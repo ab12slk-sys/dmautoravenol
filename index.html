@@ -36,7 +36,8 @@
             background-position: center;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.2s ease;
+            border: 3px solid transparent;
         }
 
         .category-card:active {
@@ -109,7 +110,9 @@
         .view-hidden { display: none; }
         
         .selected-category {
-            border: 3px solid #ffcc00;
+            border-color: #ffcc00;
+            transform: scale(1.02);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
     </style>
 </head>
@@ -156,19 +159,31 @@
 
     <!-- VEDERE: CATALOG -->
     <div id="view-catalog" class="active-view">
+        <!-- Grila cu cele 4 Categorii -->
         <div class="p-4 grid grid-cols-2 gap-4">
-            <!-- Card Ravenol cu eveniment Click -->
-            <div id="card-ravenol" onclick="selectCategory('Ravenol')" class="category-card" style="background-image: url('ravenol.jpg');">
+            <div id="card-Ravenol" onclick="selectCategory('Ravenol')" class="category-card" style="background-image: url('ravenol.jpg');">
                 <div class="category-overlay">
                     <h3 class="text-white font-black text-xs uppercase italic tracking-tighter">RAVENOL</h3>
                 </div>
             </div>
-            <div class="category-card opacity-50" style="background-image: url('banner.jpg');">
-                <div class="category-overlay"><h3 class="text-white font-black text-xs uppercase italic tracking-tighter">BANNER</h3></div>
+            <div id="card-Banner" onclick="selectCategory('Banner')" class="category-card" style="background-image: url('banner.jpg');">
+                <div class="category-overlay">
+                    <h3 class="text-white font-black text-xs uppercase italic tracking-tighter">BANNER</h3>
+                </div>
+            </div>
+            <div id="card-Cyclon" onclick="selectCategory('Cyclon')" class="category-card" style="background-image: url('cyclon.jpg');">
+                <div class="category-overlay">
+                    <h3 class="text-white font-black text-xs uppercase italic tracking-tighter">CYCLON</h3>
+                </div>
+            </div>
+            <div id="card-Diverse" onclick="selectCategory('Diverse')" class="category-card" style="background-image: url('diverse.jpg');">
+                <div class="category-overlay">
+                    <h3 class="text-white font-black text-xs uppercase italic tracking-tighter">DIVERSE</h3>
+                </div>
             </div>
         </div>
 
-        <!-- Secțiunea de produse (ascunsă inițial până la selecția unei categorii) -->
+        <!-- Secțiunea de produse -->
         <div id="product-section" class="px-4 view-hidden">
             <div class="flex justify-between items-center mb-3 px-1">
                 <div class="flex items-center gap-2">
@@ -193,23 +208,22 @@
             </div>
         </div>
         
-        <!-- Mesaj placeholder când nu e nimic selectat -->
+        <!-- Mesaj placeholder -->
         <div id="category-placeholder" class="p-10 text-center">
             <div class="bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl p-8">
                 <span class="text-4xl block mb-3">👇</span>
-                <p class="text-gray-400 font-black uppercase text-[10px] tracking-widest">Apasă pe o imagine de mai sus pentru a vedea produsele</p>
+                <p class="text-gray-400 font-black uppercase text-[10px] tracking-widest">Apasă pe o categorie de mai sus pentru a vedea produsele</p>
             </div>
         </div>
     </div>
 
-    <!-- VEDERE: COȘ (FINALIZARE) -->
+    <!-- VEDERE: COȘ -->
     <div id="view-cart" class="view-hidden p-4">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-lg font-black text-dm-blue uppercase italic">🛒 Coș Comandă</h2>
             <button onclick="golesteCos()" class="text-[10px] font-bold text-red-500 uppercase">Golește tot</button>
         </div>
         <div id="cart-content" class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden mb-6">
-            <!-- Items appear here -->
         </div>
         
         <div id="cart-summary-box" class="bg-dm-blue text-white rounded-2xl p-6 shadow-2xl">
@@ -231,7 +245,6 @@
     <div id="view-history" class="view-hidden p-4">
         <h2 class="text-lg font-black text-dm-blue uppercase mb-4 italic">📋 Comenzi Trimise</h2>
         <div id="history-content" class="space-y-4">
-            <!-- Order history appears here -->
         </div>
     </div>
 
@@ -286,7 +299,7 @@
             if (viewName === 'history') renderHistory();
         }
 
-        // Funcția nouă pentru selecția categoriei
+        // Funcția pentru selecția categoriei (RAVENOL, BANNER, CYCLON, DIVERSE)
         function selectCategory(category) {
             selectedCategory = category;
             
@@ -295,8 +308,15 @@
             document.getElementById('category-placeholder').classList.add('view-hidden');
             document.getElementById('selected-category-title').innerText = category;
             
-            // Highlight card
-            document.getElementById('card-ravenol').classList.add('selected-category');
+            // Reset highlights and set new one
+            const categories = ['Ravenol', 'Banner', 'Cyclon', 'Diverse'];
+            categories.forEach(cat => {
+                const card = document.getElementById(`card-${cat}`);
+                if (card) card.classList.remove('selected-category');
+            });
+            
+            const selectedCard = document.getElementById(`card-${category}`);
+            if (selectedCard) selectedCard.classList.add('selected-category');
             
             // Render
             renderProducts(allProducts);
@@ -309,7 +329,13 @@
             selectedCategory = null;
             document.getElementById('product-section').classList.add('view-hidden');
             document.getElementById('category-placeholder').classList.remove('view-hidden');
-            document.getElementById('card-ravenol').classList.remove('selected-category');
+            
+            const categories = ['Ravenol', 'Banner', 'Cyclon', 'Diverse'];
+            categories.forEach(cat => {
+                const card = document.getElementById(`card-${cat}`);
+                if (card) card.classList.remove('selected-category');
+            });
+            
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -359,7 +385,6 @@
             });
             localStorage.setItem('dmauto_last_products', JSON.stringify(allProducts));
             
-            // Nu mai randăm automat aici, așteptăm click pe card
             const countEl = document.getElementById('productCount');
             if(countEl) countEl.innerText = allProducts.length + " Produse";
         }
@@ -374,7 +399,6 @@
             const tbody = document.getElementById('productTableBody');
             if (!tbody) return;
             
-            // Dacă nu e selectată nicio categorie, nu afișăm nimic (deși secțiunea e ascunsă oricum)
             if (!selectedCategory) {
                 tbody.innerHTML = '';
                 return;
@@ -386,6 +410,9 @@
                 const kDenumire = keys.find(k => k.trim() === "Denumire");
                 const kPretCuTva = keys.find(k => k.trim() === "Pret cu TVA");
                 const denumire = p[kDenumire] || "";
+                
+                // Filtrare de bază - Dacă numele conține brandul sau e selectată categoria corectă
+                // Notă: Momentan afișăm tot, dar se poate rafina filtrarea aici pe baza brandului
                 const pretCuTva = formatPriceNum(p[kPretCuTva]);
                 const currentQty = cart[denumire] ? cart[denumire].quantity : 0;
                 
