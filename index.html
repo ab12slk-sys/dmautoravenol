@@ -102,7 +102,6 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
 
-        /* Stiluri pentru Modal / Detalii */
         .order-detail-card {
             animation: slideUp 0.3s ease-out;
         }
@@ -178,7 +177,7 @@
                             <tr>
                                 <th class="w-1/2">Denumire</th>
                                 <th class="text-center">Cant.</th>
-                                <th class="text-right">Preț unitar</th>
+                                <th class="text-right">Preț (fără TVA)</th>
                             </tr>
                         </thead>
                         <tbody id="productTableBody" class="divide-y divide-gray-50 text-[10px]"></tbody>
@@ -198,19 +197,19 @@
     <!-- VEDERE: COȘ -->
     <div id="view-cart" class="view-hidden p-4">
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-lg font-black text-dm-blue uppercase italic">🛒 Coș Comandă</h2>
+            <h2 class="text-lg font-black text-dm-blue uppercase italic">🛒 Coș Comandă (Prețuri fără TVA)</h2>
             <button onclick="golesteCos()" class="text-[10px] font-bold text-red-500 uppercase">Golește tot</button>
         </div>
         <div id="cart-content" class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden mb-6"></div>
         
         <div id="cart-summary-box" class="bg-dm-blue text-white rounded-2xl p-6 shadow-2xl">
-            <div class="flex justify-between border-b border-white/10 pb-3 mb-3">
-                <span class="text-xs uppercase opacity-70">Total fără TVA</span>
-                <span id="totalNoVat" class="font-bold">0.00 RON</span>
+            <div class="flex justify-between items-end border-b border-white/10 pb-3 mb-3">
+                <span class="text-xs uppercase font-black text-dm-yellow">Total Comandă (Fără TVA)</span>
+                <span id="totalNoVat" class="text-2xl font-black italic text-white">0.00 RON</span>
             </div>
-            <div class="flex justify-between items-end">
-                <span class="text-xs uppercase font-black text-dm-yellow">Total de Plată</span>
-                <span id="totalVat" class="text-2xl font-black italic">0.00 RON</span>
+            <div class="flex justify-between items-center opacity-60">
+                <span class="text-[10px] uppercase">Estimare total cu TVA (19%)</span>
+                <span id="totalVat" class="text-sm font-bold">0.00 RON</span>
             </div>
             <button id="btnTrimite" onclick="trimiteComanda()" class="w-full mt-6 bg-dm-yellow text-dm-blue py-4 rounded-xl font-black uppercase shadow-lg active:scale-95 transition-all flex items-center justify-center gap-3">
                 Trimite pe WhatsApp 🚀
@@ -272,7 +271,6 @@
             views.forEach(v => {
                 const el = document.getElementById(`view-${v}`);
                 if (el) el.classList.add('view-hidden');
-                
                 const nav = document.getElementById(`nav-${v}`);
                 if (nav) {
                     nav.classList.remove('text-dm-blue');
@@ -282,8 +280,6 @@
 
             const currentView = document.getElementById(`view-${viewName}`);
             if (currentView) currentView.classList.remove('view-hidden');
-            
-            // Map nav highlighting for details back to history
             const navName = (viewName === 'order-details') ? 'history' : viewName;
             const currentNav = document.getElementById(`nav-${navName}`);
             if (currentNav) {
@@ -303,14 +299,12 @@
             document.getElementById('product-section').classList.remove('view-hidden');
             document.getElementById('category-placeholder').classList.add('view-hidden');
             document.getElementById('selected-category-title').innerText = category;
-            
             ['Ravenol', 'Banner', 'Cyclon', 'Diverse'].forEach(cat => {
                 const card = document.getElementById(`card-${cat}`);
                 if (card) card.classList.remove('selected-category');
             });
             const selectedCard = document.getElementById(`card-${category}`);
             if (selectedCard) selectedCard.classList.add('selected-category');
-            
             renderProducts(allProducts);
             document.getElementById('product-section').scrollIntoView({ behavior: 'smooth' });
         }
@@ -366,13 +360,13 @@
             products.forEach((p, index) => {
                 const keys = Object.keys(p);
                 const denumire = p[keys.find(k => k.trim() === "Denumire")] || "";
-                const pretCuTva = formatPriceNum(p[keys.find(k => k.trim() === "Pret cu TVA")]);
+                const pretFaraTva = formatPriceNum(p[keys.find(k => k.trim() === "Pret fara TVA")]);
                 const currentQty = cart[denumire] ? cart[denumire].quantity : 0;
                 
                 html += `
                     <tr class="${currentQty > 0 ? 'bg-yellow-50' : ''}">
                         <td class="pr-2 font-black text-dm-blue uppercase leading-tight tracking-tighter">
-                            ${denumire}<br><span class="text-[8px] font-bold text-gray-400 italic">Preț unitar: ${pretCuTva.toFixed(2)} RON</span>
+                            ${denumire}<br><span class="text-[8px] font-bold text-gray-400 italic">Net: ${pretFaraTva.toFixed(2)} RON</span>
                         </td>
                         <td>
                             <div class="flex items-center justify-center gap-1.5 bg-gray-50 rounded-lg p-1 border border-gray-100">
@@ -381,7 +375,7 @@
                                 <button onclick="updateCart('${denumire.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-md">+</button>
                             </div>
                         </td>
-                        <td class="text-right font-black text-dm-blue text-xs">${(currentQty * pretCuTva).toFixed(2)} RON</td>
+                        <td class="text-right font-black text-dm-blue text-xs">${(currentQty * pretFaraTva).toFixed(2)} RON</td>
                     </tr>
                 `;
             });
@@ -410,12 +404,12 @@
         function renderCart() {
             const container = document.getElementById('cart-content');
             if (!container) return;
-            let html = '', totalVat = 0, totalNoVat = 0;
+            let html = '', totalNoVat = 0;
             const items = Object.values(cart);
             if (items.length === 0) {
                 container.innerHTML = '<div class="p-10 text-center text-gray-400 uppercase font-black text-xs italic">Coșul este gol</div>';
-                document.getElementById('totalVat').innerText = '0.00 RON';
                 document.getElementById('totalNoVat').innerText = '0.00 RON';
+                document.getElementById('totalVat').innerText = '0.00 RON';
                 document.getElementById('btnTrimite').disabled = true;
                 document.getElementById('btnTrimite').style.opacity = "0.5";
                 return;
@@ -425,23 +419,21 @@
             items.forEach(item => {
                 const keys = Object.keys(item.data);
                 const name = item.data[keys.find(k => k.trim() === "Denumire")];
-                const pCu = formatPriceNum(item.data[keys.find(k => k.trim() === "Pret cu TVA")]);
                 const pFara = formatPriceNum(item.data[keys.find(k => k.trim() === "Pret fara TVA")]);
-                totalVat += pCu * item.quantity;
                 totalNoVat += pFara * item.quantity;
                 html += `
                     <div class="p-4 border-b border-gray-50 flex justify-between items-center">
                         <div class="w-2/3">
                             <p class="font-black text-dm-blue uppercase text-[11px] leading-tight">${name}</p>
-                            <p class="text-[9px] font-bold text-gray-400 mt-1">${item.quantity} x ${pCu.toFixed(2)} RON (unitar)</p>
+                            <p class="text-[9px] font-bold text-gray-400 mt-1">${item.quantity} x ${pFara.toFixed(2)} RON (fără TVA)</p>
                         </div>
-                        <div class="text-right font-black text-dm-blue text-xs">${(item.quantity * pCu).toFixed(2)} RON</div>
+                        <div class="text-right font-black text-dm-blue text-xs">${(item.quantity * pFara).toFixed(2)} RON</div>
                     </div>
                 `;
             });
             container.innerHTML = html;
-            document.getElementById('totalVat').innerText = totalVat.toFixed(2) + ' RON';
             document.getElementById('totalNoVat').innerText = totalNoVat.toFixed(2) + ' RON';
+            document.getElementById('totalVat').innerText = (totalNoVat * 1.19).toFixed(2) + ' RON';
         }
 
         function golesteCos() {
@@ -456,23 +448,23 @@
             if (items.length === 0) return;
             const now = new Date();
             const timestamp = now.toLocaleString('ro-RO');
-            let total = 0;
+            let totalNoVat = 0;
             let msg = `Salut! Comandă DM Auto Sebeș (Agent: Calin Mocean)\nData: ${timestamp}\n\n`;
             
             items.forEach(item => {
                 const keys = Object.keys(item.data);
                 const name = item.data[keys.find(k => k.trim() === "Denumire")];
-                const pCu = formatPriceNum(item.data[keys.find(k => k.trim() === "Pret cu TVA")]);
-                const subtotal = item.quantity * pCu;
-                total += subtotal;
-                msg += `• ${item.quantity} x ${name} (${pCu.toFixed(2)} RON/buc) = ${subtotal.toFixed(2)} RON\n`;
+                const pFara = formatPriceNum(item.data[keys.find(k => k.trim() === "Pret fara TVA")]);
+                const subtotal = item.quantity * pFara;
+                totalNoVat += subtotal;
+                msg += `• ${item.quantity} x ${name} (${pFara.toFixed(2)} RON/buc fără TVA) = ${subtotal.toFixed(2)} RON\n`;
             });
-            msg += `\nTOTAL DE PLATĂ: ${total.toFixed(2)} RON`;
+            msg += `\nTOTAL FĂRĂ TVA: ${totalNoVat.toFixed(2)} RON`;
+            msg += `\nTOTAL CU TVA (19%): ${(totalNoVat * 1.19).toFixed(2)} RON`;
 
-            // SALVĂM ȘI DATELE COȘULUI PENTRU RE-EDITARE
             orderHistory.unshift({ 
                 timestamp, 
-                total: total.toFixed(2), 
+                total: totalNoVat.toFixed(2), 
                 items: items.length,
                 cartData: JSON.parse(JSON.stringify(cart)) 
             });
@@ -499,7 +491,7 @@
                     </div>
                     <div class="flex justify-between items-end">
                         <p class="text-[10px] font-bold text-dm-blue uppercase">${order.items} produse în comandă</p>
-                        <p class="text-sm font-black text-dm-blue">${order.total} RON</p>
+                        <p class="text-sm font-black text-dm-blue">${order.total} RON (fără TVA)</p>
                     </div>
                 </div>
             `).join('');
@@ -509,25 +501,21 @@
             currentViewingOrderIndex = index;
             const order = orderHistory[index];
             switchView('order-details');
-
             const header = document.getElementById('order-details-header');
             header.innerHTML = `
                 <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-1 italic">Detalii Comandă din ${order.timestamp.split(',')[0]}</h3>
-                <p class="text-xl font-black text-dm-blue italic">${order.total} RON <span class="text-[10px] uppercase opacity-50 tracking-tighter">(TVA Inclus)</span></p>
+                <p class="text-xl font-black text-dm-blue italic">${order.total} RON <span class="text-[10px] uppercase opacity-50 tracking-tighter">(Fără TVA)</span></p>
             `;
-
             const itemsContainer = document.getElementById('order-details-items');
             let itemsHtml = '';
-            
-            // Reconstruct based on saved cartData
             Object.values(order.cartData).forEach(item => {
                 const keys = Object.keys(item.data);
                 const name = item.data[keys.find(k => k.trim() === "Denumire")];
-                const pCu = formatPriceNum(item.data[keys.find(k => k.trim() === "Pret cu TVA")]);
+                const pFara = formatPriceNum(item.data[keys.find(k => k.trim() === "Pret fara TVA")]);
                 itemsHtml += `
                     <div class="flex justify-between items-center text-[11px] py-1 border-b border-gray-50 last:border-0">
                         <span class="font-bold text-dm-blue uppercase truncate pr-4">${name}</span>
-                        <span class="font-black whitespace-nowrap">${item.quantity} x ${pCu.toFixed(2)}</span>
+                        <span class="font-black whitespace-nowrap">${item.quantity} x ${pFara.toFixed(2)}</span>
                     </div>
                 `;
             });
@@ -537,24 +525,17 @@
         function incarcaComandaInCos() {
             if (currentViewingOrderIndex === null) return;
             const order = orderHistory[currentViewingOrderIndex];
-
-            // Verificăm dacă există deja ceva în coș
             const currentCartCount = Object.keys(cart).length;
             if (currentCartCount > 0) {
                 if (!confirm("Ai deja produse în coșul activ. Vrei să le înlocuiești cu produsele din această comandă veche?")) {
                     return;
                 }
             }
-
-            // Încărcăm datele salvate în coșul global (deep clone)
             cart = JSON.parse(JSON.stringify(order.cartData));
-            
             updateBadge();
             switchView('cart');
-            
-            // Feedback vizual
             setTimeout(() => {
-                alert("Produsele au fost încărcate în coș. Acum poți modifica cantitățile sau adăuga produse noi.");
+                alert("Produsele au fost încărcate în coș. Prețurile afișate sunt cele fără TVA.");
             }, 100);
         }
 
