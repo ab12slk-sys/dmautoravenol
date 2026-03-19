@@ -59,11 +59,6 @@
             z-index: 10;
         }
 
-        .quick-order-table td {
-            padding: 12px 8px;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
         .qty-btn {
             width: 32px;
             height: 32px;
@@ -104,9 +99,11 @@
             justify-content: center;
             border: 2px solid white;
         }
+
+        .view-hidden { display: none; }
     </style>
 </head>
-<body class="pb-56">
+<body class="pb-32">
 
     <!-- Header -->
     <header class="bg-dm-blue text-white p-5 pb-6 shadow-xl rounded-b-[2rem]">
@@ -128,8 +125,8 @@
             <input type="file" id="excelInput" class="hidden" accept=".xlsx, .xls, .csv">
         </div>
 
-        <div class="relative">
-            <input type="text" id="searchInput" onkeyup="filterProducts()" placeholder="Caută produs (ex: Ravenol VMP)..." 
+        <div id="search-container" class="relative">
+            <input type="text" id="searchInput" onkeyup="filterProducts()" placeholder="Caută produs în catalog..." 
                    class="w-full p-3.5 pr-12 rounded-xl text-gray-800 text-sm focus:outline-none shadow-2xl border-none font-semibold">
             <div class="absolute right-4 top-3.5 text-gray-300">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -139,101 +136,94 @@
         </div>
     </header>
 
-    <!-- Indicator Încărcare Cloud -->
-    <div id="loadingOverlay" class="mx-4 mt-2">
+    <!-- Indicator Încărcare -->
+    <div id="loadingOverlay" class="hidden mx-4 mt-2">
         <div class="bg-blue-50 border border-blue-100 p-3 rounded-lg flex items-center justify-center gap-3">
             <div class="loader"></div>
-            <span id="loaderText" class="text-[10px] text-dm-blue font-black uppercase tracking-widest">Sincronizare Cloud Activă...</span>
+            <span id="loaderText" class="text-[10px] text-dm-blue font-black uppercase tracking-widest">Sincronizare...</span>
         </div>
     </div>
 
-    <!-- Info Client Activ -->
-    <div class="m-4 bg-white rounded-2xl p-4 flex justify-between items-center shadow-md border border-gray-100 relative z-10">
-        <div class="flex items-center gap-3">
-            <div class="bg-dm-blue/5 w-10 h-10 rounded-xl flex items-center justify-center text-dm-blue text-xl font-bold">👤</div>
-            <div>
-                <h2 class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Client Activ:</h2>
-                <p class="text-xs font-black text-dm-blue uppercase">Auto Speed SRL Sebeș</p>
+    <!-- VEDERE: CATALOG -->
+    <div id="view-catalog" class="active-view">
+        <div class="p-4 grid grid-cols-2 gap-4">
+            <div class="category-card" style="background-image: url('ravenol.jpg');">
+                <div class="category-overlay"><h3 class="text-white font-black text-xs uppercase italic tracking-tighter">RAVENOL</h3></div>
+            </div>
+            <div class="category-card" style="background-image: url('banner.jpg');">
+                <div class="category-overlay"><h3 class="text-white font-black text-xs uppercase italic tracking-tighter">BANNER</h3></div>
             </div>
         </div>
-        <div class="text-right">
-            <span id="cloudStatus" class="bg-gray-100 text-gray-500 text-[8px] px-2 py-0.5 rounded-full font-black uppercase italic">Verificare Date...</span>
+
+        <div class="px-4">
+            <div class="flex justify-between items-center mb-3 px-1">
+                <h3 class="text-xs font-black uppercase tracking-widest text-gray-500 italic">Catalog Produse</h3>
+                <span id="productCount" class="text-[9px] text-gray-400 font-bold uppercase italic tracking-tighter">Pregătit</span>
+            </div>
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+                <div class="overflow-x-auto max-h-[60vh]">
+                    <table class="w-full text-left quick-order-table">
+                        <thead class="bg-gray-50 border-b border-gray-100">
+                            <tr>
+                                <th class="w-1/2">Denumire</th>
+                                <th class="text-center">Cant.</th>
+                                <th class="text-right">Preț unitar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productTableBody" class="divide-y divide-gray-50 text-[10px]"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Categorii Rapide -->
-    <div class="p-4 grid grid-cols-2 gap-4">
-        <div class="category-card" style="background-image: url('ravenol.jpg');">
-            <div class="category-overlay"><h3 class="text-white font-black text-xs uppercase italic tracking-tighter">RAVENOL</h3></div>
+    <!-- VEDERE: COȘ (FINALIZARE) -->
+    <div id="view-cart" class="view-hidden p-4">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-black text-dm-blue uppercase italic">🛒 Coș Comandă</h2>
+            <button onclick="golesteCos()" class="text-[10px] font-bold text-red-500 uppercase">Golește tot</button>
         </div>
-        <div class="category-card" style="background-image: url('banner.jpg');">
-            <div class="category-overlay"><h3 class="text-white font-black text-xs uppercase italic tracking-tighter">BANNER</h3></div>
-        </div>
-    </div>
-
-    <!-- Catalog Produse -->
-    <div class="px-4">
-        <div class="flex justify-between items-center mb-3 px-1">
-            <h3 class="text-xs font-black uppercase tracking-widest text-gray-500 italic">Catalog Comandă</h3>
-            <span id="productCount" class="text-[9px] text-gray-400 font-bold uppercase italic tracking-tighter">Accesare date...</span>
+        <div id="cart-content" class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden mb-6">
+            <!-- Items appear here -->
         </div>
         
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-            <div class="overflow-x-auto max-h-[600px]">
-                <table class="w-full text-left quick-order-table">
-                    <thead class="bg-gray-50 border-b border-gray-100">
-                        <tr>
-                            <th class="w-1/2">Denumire</th>
-                            <th class="text-center">Cant.</th>
-                            <th class="text-right">Preț unitar</th>
-                        </tr>
-                    </thead>
-                    <tbody id="productTableBody" class="divide-y divide-gray-50 text-[10px]">
-                        <tr id="placeholderRow">
-                            <td colspan="4" class="py-16 text-center text-gray-300">
-                                <span class="text-4xl block mb-2">☁️</span>
-                                <p class="font-black uppercase tracking-widest">Se descarcă ultima ofertă...</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+        <div id="cart-summary-box" class="bg-dm-blue text-white rounded-2xl p-6 shadow-2xl">
+            <div class="flex justify-between border-b border-white/10 pb-3 mb-3">
+                <span class="text-xs uppercase opacity-70">Total fără TVA</span>
+                <span id="totalNoVat" class="font-bold">0.00 RON</span>
             </div>
+            <div class="flex justify-between items-end">
+                <span class="text-xs uppercase font-black text-dm-yellow">Total de Plată</span>
+                <span id="totalVat" class="text-2xl font-black italic">0.00 RON</span>
+            </div>
+            <button id="btnTrimite" onclick="trimiteComanda()" class="w-full mt-6 bg-dm-yellow text-dm-blue py-4 rounded-xl font-black uppercase shadow-lg active:scale-95 transition-all flex items-center justify-center gap-3">
+                Trimite pe WhatsApp 🚀
+            </button>
         </div>
     </div>
 
-    <!-- Panou Rezumat Coș -->
-    <div id="cartSummary" class="fixed bottom-24 left-0 w-full px-4 z-40 transition-transform duration-300 translate-y-48">
-        <div class="bg-dm-blue text-white rounded-2xl p-4 shadow-[0_-10px_40px_rgba(0,0,0,0.4)] border-t-2 border-dm-yellow">
-            <div class="flex justify-between items-center mb-2">
-                <span class="text-[10px] font-black uppercase tracking-widest opacity-70">Rezumat Comandă Agent</span>
-                <span id="cartItemCount" class="bg-dm-yellow text-dm-blue px-2 py-0.5 rounded text-[10px] font-black uppercase">0 Articole</span>
-            </div>
-            <div class="flex justify-between items-end">
-                <div>
-                    <p class="text-[9px] opacity-60 uppercase">Total fără TVA: <span id="totalNoVat" class="font-bold">0.00</span> RON</p>
-                    <p class="text-lg font-black italic">TOTAL: <span id="totalVat" class="text-dm-yellow">0.00</span> <span class="text-xs">RON</span></p>
-                </div>
-                <button onclick="finalizareComanda()" class="bg-dm-yellow text-dm-blue px-5 py-3 rounded-xl font-black text-xs uppercase shadow-xl active:scale-95 transition-transform flex items-center gap-2">
-                    Trimite WhatsApp 🚀
-                </button>
-            </div>
+    <!-- VEDERE: ISTORIC -->
+    <div id="view-history" class="view-hidden p-4">
+        <h2 class="text-lg font-black text-dm-blue uppercase mb-4 italic">📋 Comenzi Trimise</h2>
+        <div id="history-content" class="space-y-4">
+            <!-- Order history appears here -->
         </div>
     </div>
 
     <!-- Navigare Jos -->
     <nav class="fixed bottom-0 w-full bg-white border-t border-gray-100 p-3 flex justify-around shadow-2xl z-50">
-        <button class="flex flex-col items-center text-dm-blue">
+        <button onclick="switchView('catalog')" class="nav-btn flex flex-col items-center text-dm-blue" id="nav-catalog">
             <span class="text-2xl font-bold">🏠</span>
-            <span class="text-[9px] font-black uppercase mt-1">Acasă</span>
+            <span class="text-[9px] font-black uppercase mt-1">Catalog</span>
         </button>
-        <button class="flex flex-col items-center text-gray-400">
-            <span class="text-2xl font-bold">👥</span>
-            <span class="text-[9px] font-black uppercase mt-1">Clienți</span>
-        </button>
-        <button class="flex flex-col items-center text-gray-400 relative">
+        <button onclick="switchView('cart')" class="nav-btn flex flex-col items-center text-gray-400 relative" id="nav-cart">
             <span class="text-2xl font-bold">🛒</span>
             <span class="text-[9px] font-black uppercase mt-1">Coș</span>
             <div id="cartBadge" class="cart-badge hidden">0</div>
+        </button>
+        <button onclick="switchView('history')" class="nav-btn flex flex-col items-center text-gray-400" id="nav-history">
+            <span class="text-2xl font-bold">📋</span>
+            <span class="text-[9px] font-black uppercase mt-1">Istoric</span>
         </button>
     </nav>
 
@@ -241,204 +231,266 @@
         const CLOUD_EXCEL_FILE = 'OFERTA PRET RAVENOL 16.03.26.xlsx';
         let allProducts = [];
         let cart = {};
+        let orderHistory = JSON.parse(localStorage.getItem('dmauto_order_history') || '[]');
 
-        // INIȚIALIZARE: Încercăm întâi să descărcăm automat fișierul de pe server (GitHub/Netlify)
-        window.addEventListener('load', async () => {
-            const statusLabel = document.getElementById('cloudStatus');
-            
-            try {
-                // Încercăm să aducem fișierul automat
-                const response = await fetch(`./${CLOUD_EXCEL_FILE}`);
-                if (!response.ok) throw new Error('Fișierul nu a fost găsit pe server');
-                
-                const arrayBuffer = await response.arrayBuffer();
-                const data = new Uint8Array(arrayBuffer);
-                processExcelData(data, true);
-                
-                statusLabel.innerText = "Cloud Online";
-                statusLabel.classList.replace('text-gray-500', 'text-green-600');
-                statusLabel.classList.replace('bg-gray-100', 'bg-green-100');
-                document.getElementById('loadingOverlay').classList.add('hidden');
-            } catch (error) {
-                console.warn('Sincronizarea Cloud a eșuat, verificăm memoria locală:', error);
-                
-                // Dacă Cloud eșuează, folosim ce avem salvat în tabletă
-                const savedData = localStorage.getItem('dmauto_last_products');
-                if (savedData) {
-                    allProducts = JSON.parse(savedData);
-                    renderProducts(allProducts);
-                    document.getElementById('productCount').innerText = allProducts.length + " Produse (Local)";
-                    statusLabel.innerText = "Mod Offline";
-                    document.getElementById('loadingOverlay').classList.add('hidden');
-                } else {
-                    statusLabel.innerText = "Așteptare Fișier";
-                    document.getElementById('loaderText').innerText = "Vă rugăm să încărcați fișierul manual prima dată (🔄)";
+        // Navigare între vederi
+        function switchView(viewName) {
+            const views = ['catalog', 'cart', 'history'];
+            views.forEach(v => {
+                const el = document.getElementById(`view-${v}`);
+                if (el) el.classList.add('view-hidden');
+                const nav = document.getElementById(`nav-${v}`);
+                if (nav) {
+                    nav.classList.remove('text-dm-blue');
+                    nav.classList.add('text-gray-400');
                 }
+            });
+
+            const currentView = document.getElementById(`view-${viewName}`);
+            if (currentView) currentView.classList.remove('view-hidden');
+            const currentNav = document.getElementById(`nav-${viewName}`);
+            if (currentNav) {
+                currentNav.classList.remove('text-gray-400');
+                currentNav.classList.add('text-dm-blue');
+            }
+
+            if (viewName === 'catalog') document.getElementById('search-container').classList.remove('view-hidden');
+            else document.getElementById('search-container').classList.add('view-hidden');
+
+            if (viewName === 'cart') renderCart();
+            if (viewName === 'history') renderHistory();
+        }
+
+        // Inițializare Cloud cu fix pentru URL-uri și protocol
+        window.addEventListener('load', async () => {
+            // Nu încercăm fetch pe blob: protocol deoarece va eșua mereu în preview
+            if (window.location.protocol === 'blob:') {
+                console.log("Mediul Preview: Se încarcă datele locale.");
+                loadLocalData();
+                return;
+            }
+
+            try {
+                // Utilizăm o cale relativă curată fără ./ pentru a evita erorile de parsare în unele browsere
+                const filename = CLOUD_EXCEL_FILE;
+                const response = await fetch(filename);
+                
+                if (response.ok) {
+                    const data = new Uint8Array(await response.arrayBuffer());
+                    processExcelData(data);
+                    console.log("Cloud: Date sincronizate.");
+                } else {
+                    console.warn("Cloud: Fișier inaccesibil. Se folosește memoria locală.");
+                    loadLocalData();
+                }
+            } catch (e) {
+                console.error("Eroare la sincronizarea automată:", e);
+                loadLocalData();
             }
         });
 
-        // Funcția principală de procesare a datelor Excel
-        function processExcelData(data, isCloud = false) {
-            const workbook = XLSX.read(data, {type: 'array'});
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            const json = XLSX.utils.sheet_to_json(sheet, { range: 3, defval: "" });
+        function loadLocalData() {
+            const saved = localStorage.getItem('dmauto_last_products');
+            if (saved) {
+                processJSONData(JSON.parse(saved));
+            }
+        }
 
+        function processExcelData(data) {
+            try {
+                const workbook = XLSX.read(data, {type: 'array'});
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const json = XLSX.utils.sheet_to_json(sheet, { range: 3, defval: "" });
+                processJSONData(json);
+            } catch (err) {
+                console.error("Eroare procesare Excel:", err);
+            }
+        }
+
+        function processJSONData(json) {
             allProducts = json.filter(p => {
                 const keys = Object.keys(p);
                 const kDenumire = keys.find(k => k.trim() === "Denumire");
                 return p[kDenumire] && p[kDenumire].toString().trim() !== "" && p[kDenumire] !== "Denumire";
             });
-
-            // Salvăm mereu ultima versiune primită în tabletă
             localStorage.setItem('dmauto_last_products', JSON.stringify(allProducts));
             renderProducts(allProducts);
-            document.getElementById('productCount').innerText = allProducts.length + (isCloud ? " Produse Cloud" : " Produse Manual");
+            const countEl = document.getElementById('productCount');
+            if(countEl) countEl.innerText = allProducts.length + " Produse";
         }
 
-        // Suport pentru încărcare manuală (Backup)
         document.getElementById('excelInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            document.getElementById('loadingOverlay').classList.remove('hidden');
             const reader = new FileReader();
-            reader.onload = function(event) {
-                processExcelData(new Uint8Array(event.target.result), false);
-                document.getElementById('loadingOverlay').classList.add('hidden');
-                document.getElementById('cloudStatus').innerText = "Manual Activ";
-            };
-            reader.readAsArrayBuffer(file);
+            reader.onload = (event) => processExcelData(new Uint8Array(event.target.result));
+            reader.readAsArrayBuffer(e.target.files[0]);
         });
 
         function renderProducts(products) {
             const tbody = document.getElementById('productTableBody');
+            if (!tbody) return;
             let html = '';
-            
             products.forEach((p, index) => {
                 const keys = Object.keys(p);
                 const kDenumire = keys.find(k => k.trim() === "Denumire");
                 const kPretCuTva = keys.find(k => k.trim() === "Pret cu TVA");
-                const kValuta = keys.find(k => k.trim() === "Valuta");
-
                 const denumire = p[kDenumire] || "";
-                const valuta = p[kValuta] || "RON";
                 const pretCuTva = formatPriceNum(p[kPretCuTva]);
-                
                 const currentQty = cart[denumire] ? cart[denumire].quantity : 0;
-                const rowClass = currentQty > 0 ? 'bg-yellow-50' : '';
-
+                
                 html += `
-                    <tr class="${rowClass} transition-all duration-300">
-                        <td class="pr-2">
-                            <p class="font-black text-dm-blue uppercase leading-tight tracking-tighter">${denumire}</p>
-                            <p class="text-[8px] font-bold text-gray-400 mt-0.5 italic">TVA inclus: ${pretCuTva.toFixed(2)} ${valuta}</p>
+                    <tr class="${currentQty > 0 ? 'bg-yellow-50' : ''}">
+                        <td class="pr-2 font-black text-dm-blue uppercase leading-tight tracking-tighter">
+                            ${denumire}<br><span class="text-[8px] font-bold text-gray-400 italic">Preț unitar: ${pretCuTva.toFixed(2)} RON</span>
                         </td>
                         <td>
-                            <div class="flex items-center justify-center gap-1.5 bg-gray-50 rounded-lg p-1 border border-gray-100 shadow-inner">
-                                <button onclick="updateCart('${denumire.replace(/'/g, "\\'")}', -1, ${index})" 
-                                        class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button>
-                                <span id="qty-${index}" class="font-black text-xs w-5 text-center text-dm-blue">${currentQty}</span>
-                                <button onclick="updateCart('${denumire.replace(/'/g, "\\'")}', 1, ${index})" 
-                                        class="qty-btn bg-dm-blue text-white shadow-md">+</button>
+                            <div class="flex items-center justify-center gap-1.5 bg-gray-50 rounded-lg p-1 border border-gray-100">
+                                <button onclick="updateCart('${denumire.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button>
+                                <span class="font-black text-xs w-5 text-center text-dm-blue">${currentQty}</span>
+                                <button onclick="updateCart('${denumire.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-md">+</button>
                             </div>
                         </td>
-                        <td class="text-right font-black text-dm-blue text-xs tracking-tighter">
-                            <span id="subtotal-${index}">${(currentQty * pretCuTva).toFixed(2)}</span>
-                            <span class="text-[8px] ml-0.5">${valuta}</span>
-                        </td>
+                        <td class="text-right font-black text-dm-blue text-xs">${(currentQty * pretCuTva).toFixed(2)} <span class="text-[8px]">RON</span></td>
                     </tr>
                 `;
             });
-            
-            tbody.innerHTML = html || '<tr><td colspan="3" class="py-10 text-center text-gray-400">Date indisponibile.</td></tr>';
+            tbody.innerHTML = html;
         }
 
-        function updateCart(prodName, delta, visualIndex) {
-            const productData = allProducts.find(p => {
-                const kDenumire = Object.keys(p).find(k => k.trim() === "Denumire");
-                return p[kDenumire] === prodName;
-            });
-
+        function updateCart(prodName, delta) {
+            const productData = allProducts.find(p => p[Object.keys(p).find(k => k.trim() === "Denumire")] === prodName);
             if (!productData) return;
             if (!cart[prodName]) cart[prodName] = { quantity: 0, data: productData };
-
             cart[prodName].quantity += delta;
-            if (cart[prodName].quantity < 0) cart[prodName].quantity = 0;
-            if (cart[prodName].quantity === 0) delete cart[prodName];
-
-            const qtyEl = document.getElementById(`qty-${visualIndex}`);
-            const subtotalEl = document.getElementById(`subtotal-${visualIndex}`);
+            if (cart[prodName].quantity <= 0) delete cart[prodName];
             
-            if (qtyEl && subtotalEl) {
-                const q = cart[prodName] ? cart[prodName].quantity : 0;
-                const pCu = formatPriceNum(productData[Object.keys(productData).find(k => k.trim() === "Pret cu TVA")]);
-                qtyEl.innerText = q;
-                subtotalEl.innerText = (q * pCu).toFixed(2);
-                
-                const row = qtyEl.closest('tr');
-                if (q > 0) row.classList.add('bg-yellow-50');
-                else row.classList.remove('bg-yellow-50');
-            }
-
-            updateGlobalTotals();
+            renderProducts(allProducts);
+            updateBadge();
         }
 
-        function updateGlobalTotals() {
-            let totalVat = 0;
-            let totalNoVat = 0;
-            let count = 0;
+        function updateBadge() {
+            const count = Object.values(cart).reduce((sum, item) => sum + item.quantity, 0);
+            const badge = document.getElementById('cartBadge');
+            if (!badge) return;
+            badge.innerText = count;
+            badge.classList.toggle('hidden', count === 0);
+        }
 
-            Object.values(cart).forEach(item => {
-                const pData = item.data;
-                const keys = Object.keys(pData);
-                const pretFara = formatPriceNum(pData[keys.find(k => k.trim() === "Pret fara TVA")]);
-                const pretCu = formatPriceNum(pData[keys.find(k => k.trim() === "Pret cu TVA")]);
-                
-                totalNoVat += pretFara * item.quantity;
-                totalVat += pretCu * item.quantity;
-                count += item.quantity;
-            });
+        function renderCart() {
+            const container = document.getElementById('cart-content');
+            if (!container) return;
+            let html = '';
+            let totalVat = 0, totalNoVat = 0;
 
-            const summary = document.getElementById('cartSummary');
-            if (count > 0) {
-                summary.classList.remove('translate-y-48');
-                document.getElementById('cartItemCount').innerText = `${count} Articole`;
-                document.getElementById('totalNoVat').innerText = totalNoVat.toFixed(2);
-                document.getElementById('totalVat').innerText = totalVat.toFixed(2);
-                
-                const badge = document.getElementById('cartBadge');
-                badge.innerText = count;
-                badge.classList.remove('hidden');
-            } else {
-                summary.classList.add('translate-y-48');
-                document.getElementById('cartBadge').classList.add('hidden');
+            const items = Object.values(cart);
+            if (items.length === 0) {
+                container.innerHTML = '<div class="p-10 text-center text-gray-400 uppercase font-black text-xs italic">Coșul este gol</div>';
+                document.getElementById('totalVat').innerText = '0.00 RON';
+                document.getElementById('totalNoVat').innerText = '0.00 RON';
+                document.getElementById('btnTrimite').disabled = true;
+                document.getElementById('btnTrimite').style.opacity = "0.5";
+                return;
             }
+
+            document.getElementById('btnTrimite').disabled = false;
+            document.getElementById('btnTrimite').style.opacity = "1";
+
+            items.forEach(item => {
+                const keys = Object.keys(item.data);
+                const name = item.data[keys.find(k => k.trim() === "Denumire")];
+                const pCu = formatPriceNum(item.data[keys.find(k => k.trim() === "Pret cu TVA")]);
+                const pFara = formatPriceNum(item.data[keys.find(k => k.trim() === "Pret fara TVA")]);
+                
+                totalVat += pCu * item.quantity;
+                totalNoVat += pFara * item.quantity;
+
+                html += `
+                    <div class="p-4 border-b border-gray-50 flex justify-between items-center">
+                        <div class="w-2/3">
+                            <p class="font-black text-dm-blue uppercase text-[11px] leading-tight">${name}</p>
+                            <p class="text-[9px] font-bold text-gray-400 mt-1">${item.quantity} x ${pCu.toFixed(2)} RON (unitar)</p>
+                        </div>
+                        <div class="text-right font-black text-dm-blue text-xs">${(item.quantity * pCu).toFixed(2)} RON</div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+            document.getElementById('totalVat').innerText = totalVat.toFixed(2) + ' RON';
+            document.getElementById('totalNoVat').innerText = totalNoVat.toFixed(2) + ' RON';
+        }
+
+        function golesteCos() {
+            cart = {};
+            updateBadge();
+            renderCart();
+            renderProducts(allProducts);
+        }
+
+        function trimiteComanda() {
+            const items = Object.values(cart);
+            if (items.length === 0) return;
+
+            const now = new Date();
+            const timestamp = now.toLocaleString('ro-RO');
+            let msg = `Salut! Comandă DM Auto Sebeș (Agent: Calin Mocean)\nData: ${timestamp}\n\n`;
+            
+            let total = 0;
+            items.forEach(item => {
+                const keys = Object.keys(item.data);
+                const name = item.data[keys.find(k => k.trim() === "Denumire")];
+                const pCu = formatPriceNum(item.data[keys.find(k => k.trim() === "Pret cu TVA")]);
+                const subtotal = item.quantity * pCu;
+                total += subtotal;
+                msg += `• ${item.quantity} x ${name} (${pCu.toFixed(2)} RON/buc) = ${subtotal.toFixed(2)} RON\n`;
+            });
+            msg += `\nTOTAL DE PLATĂ: ${total.toFixed(2)} RON`;
+
+            // Salvare istoric
+            orderHistory.unshift({ timestamp, total: total.toFixed(2), items: items.length });
+            localStorage.setItem('dmauto_order_history', JSON.stringify(orderHistory));
+
+            // Resetare coș (Sugestia 3)
+            cart = {};
+            updateBadge();
+            
+            const encodedMsg = encodeURIComponent(msg);
+            window.open(`https://wa.me/?text=${encodedMsg}`);
+            switchView('history');
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('history-content');
+            if (!container) return;
+            if (orderHistory.length === 0) {
+                container.innerHTML = '<div class="p-10 text-center text-gray-400 italic text-[10px]">Nicio comandă trimisă încă.</div>';
+                return;
+            }
+            container.innerHTML = orderHistory.map(order => `
+                <div class="bg-white p-4 rounded-2xl shadow-md border-l-4 border-dm-yellow">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-[9px] font-black text-gray-400 uppercase italic">${order.timestamp}</span>
+                        <span class="bg-green-100 text-green-700 text-[8px] px-2 py-0.5 rounded-full font-black uppercase">Trimisă</span>
+                    </div>
+                    <div class="flex justify-between items-end">
+                        <p class="text-[10px] font-bold text-dm-blue uppercase">${order.items} produse în comandă</p>
+                        <p class="text-sm font-black text-dm-blue">${order.total} RON</p>
+                    </div>
+                </div>
+            `).join('');
         }
 
         function formatPriceNum(val) {
             if (!val && val !== 0) return 0;
             if (typeof val === 'number') return val;
-            const n = parseFloat(val.toString().replace(',', '.'));
-            return isNaN(n) ? 0 : n;
+            return parseFloat(val.toString().replace(',', '.')) || 0;
         }
 
         function filterProducts() {
             const q = document.getElementById('searchInput').value.toLowerCase();
             const filtered = allProducts.filter(p => {
-                const kDenumire = Object.keys(p).find(k => k.trim() === "Denumire");
-                return p[kDenumire] && p[kDenumire].toString().toLowerCase().includes(q);
+                const name = p[Object.keys(p).find(k => k.trim() === "Denumire")];
+                return name && name.toString().toLowerCase().includes(q);
             });
             renderProducts(filtered);
-        }
-
-        function finalizareComanda() {
-            let msg = "Salut! Comandă DM Auto Sebeș (Agent: Calin Mocean):\n\n";
-            Object.values(cart).forEach(item => {
-                const kDenumire = Object.keys(item.data).find(k => k.trim() === "Denumire");
-                msg += `• ${item.quantity} x ${item.data[kDenumire]}\n`;
-            });
-            msg += `\nTOTAL CU TVA: ${document.getElementById('totalVat').innerText} RON`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
         }
     </script>
 </body>
