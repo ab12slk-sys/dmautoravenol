@@ -5,13 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DM Auto - Portal Agent</title>
     
-    <!-- Configurare PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#003366">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <!-- Biblioteci: Tailwind pentru Design, SheetJS pentru Excel -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     
@@ -29,7 +27,6 @@
         .text-dm-yellow { color: #ffcc00; }
         .bg-dm-yellow { background-color: #ffcc00; }
         
-        /* Carduri Categorii */
         .category-card {
             position: relative;
             overflow: hidden;
@@ -60,6 +57,11 @@
             top: 0;
             background: #f8fafc;
             z-index: 10;
+        }
+
+        .quick-order-table td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #f1f5f9;
         }
 
         .qty-btn {
@@ -106,7 +108,7 @@
 </head>
 <body class="pb-56">
 
-    <!-- Header Navy Blue (Stil dmautoAPP.png) -->
+    <!-- Header -->
     <header class="bg-dm-blue text-white p-5 pb-6 shadow-xl rounded-b-[2rem]">
         <div class="flex items-center gap-4 mb-5">
             <div class="bg-black p-2 rounded-lg border border-gray-700 shadow-lg">
@@ -137,11 +139,11 @@
         </div>
     </header>
 
-    <!-- Indicator Încărcare -->
-    <div id="loadingOverlay" class="hidden mx-4 mt-2">
+    <!-- Indicator Încărcare Cloud -->
+    <div id="loadingOverlay" class="mx-4 mt-2">
         <div class="bg-blue-50 border border-blue-100 p-3 rounded-lg flex items-center justify-center gap-3">
             <div class="loader"></div>
-            <span class="text-[10px] text-dm-blue font-black uppercase tracking-widest uppercase">Se procesează datele...</span>
+            <span id="loaderText" class="text-[10px] text-dm-blue font-black uppercase tracking-widest">Sincronizare Cloud Activă...</span>
         </div>
     </div>
 
@@ -155,7 +157,7 @@
             </div>
         </div>
         <div class="text-right">
-            <span class="bg-green-100 text-green-700 text-[8px] px-2 py-0.5 rounded-full font-black uppercase">Online</span>
+            <span id="cloudStatus" class="bg-gray-100 text-gray-500 text-[8px] px-2 py-0.5 rounded-full font-black uppercase italic">Verificare Date...</span>
         </div>
     </div>
 
@@ -173,7 +175,7 @@
     <div class="px-4">
         <div class="flex justify-between items-center mb-3 px-1">
             <h3 class="text-xs font-black uppercase tracking-widest text-gray-500 italic">Catalog Comandă</h3>
-            <span id="productCount" class="text-[9px] text-gray-400 font-bold uppercase italic tracking-tighter">Așteptare date...</span>
+            <span id="productCount" class="text-[9px] text-gray-400 font-bold uppercase italic tracking-tighter">Accesare date...</span>
         </div>
         
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
@@ -188,9 +190,9 @@
                     </thead>
                     <tbody id="productTableBody" class="divide-y divide-gray-50 text-[10px]">
                         <tr id="placeholderRow">
-                            <td colspan="3" class="py-16 text-center text-gray-300">
-                                <span class="text-4xl block mb-2">📦</span>
-                                <p class="font-black uppercase tracking-widest">Încarcă oferta DM Auto (🔄)</p>
+                            <td colspan="4" class="py-16 text-center text-gray-300">
+                                <span class="text-4xl block mb-2">☁️</span>
+                                <p class="font-black uppercase tracking-widest">Se descarcă ultima ofertă...</p>
                             </td>
                         </tr>
                     </tbody>
@@ -236,52 +238,74 @@
     </nav>
 
     <script>
+        const CLOUD_EXCEL_FILE = 'OFERTA PRET RAVENOL 16.03.26.xlsx';
         let allProducts = [];
-        let cart = {}; // Memorie coș curent
+        let cart = {};
 
-        // Memorie Locală (Păstrare date după închidere)
-        window.addEventListener('load', () => {
-            const savedData = localStorage.getItem('dmauto_last_products');
-            if (savedData) {
-                try {
+        // INIȚIALIZARE: Încercăm întâi să descărcăm automat fișierul de pe server (GitHub/Netlify)
+        window.addEventListener('load', async () => {
+            const statusLabel = document.getElementById('cloudStatus');
+            
+            try {
+                // Încercăm să aducem fișierul automat
+                const response = await fetch(`./${CLOUD_EXCEL_FILE}`);
+                if (!response.ok) throw new Error('Fișierul nu a fost găsit pe server');
+                
+                const arrayBuffer = await response.arrayBuffer();
+                const data = new Uint8Array(arrayBuffer);
+                processExcelData(data, true);
+                
+                statusLabel.innerText = "Cloud Online";
+                statusLabel.classList.replace('text-gray-500', 'text-green-600');
+                statusLabel.classList.replace('bg-gray-100', 'bg-green-100');
+                document.getElementById('loadingOverlay').classList.add('hidden');
+            } catch (error) {
+                console.warn('Sincronizarea Cloud a eșuat, verificăm memoria locală:', error);
+                
+                // Dacă Cloud eșuează, folosim ce avem salvat în tabletă
+                const savedData = localStorage.getItem('dmauto_last_products');
+                if (savedData) {
                     allProducts = JSON.parse(savedData);
                     renderProducts(allProducts);
-                    document.getElementById('productCount').innerText = allProducts.length + " Produse în Catalog";
-                } catch (e) {
-                    console.error("Eroare incarcare date salvate", e);
+                    document.getElementById('productCount').innerText = allProducts.length + " Produse (Local)";
+                    statusLabel.innerText = "Mod Offline";
+                    document.getElementById('loadingOverlay').classList.add('hidden');
+                } else {
+                    statusLabel.innerText = "Așteptare Fișier";
+                    document.getElementById('loaderText').innerText = "Vă rugăm să încărcați fișierul manual prima dată (🔄)";
                 }
             }
         });
 
-        // Procesare Excel Ravenol (range: 3 conform structurii tale)
+        // Funcția principală de procesare a datelor Excel
+        function processExcelData(data, isCloud = false) {
+            const workbook = XLSX.read(data, {type: 'array'});
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const json = XLSX.utils.sheet_to_json(sheet, { range: 3, defval: "" });
+
+            allProducts = json.filter(p => {
+                const keys = Object.keys(p);
+                const kDenumire = keys.find(k => k.trim() === "Denumire");
+                return p[kDenumire] && p[kDenumire].toString().trim() !== "" && p[kDenumire] !== "Denumire";
+            });
+
+            // Salvăm mereu ultima versiune primită în tabletă
+            localStorage.setItem('dmauto_last_products', JSON.stringify(allProducts));
+            renderProducts(allProducts);
+            document.getElementById('productCount').innerText = allProducts.length + (isCloud ? " Produse Cloud" : " Produse Manual");
+        }
+
+        // Suport pentru încărcare manuală (Backup)
         document.getElementById('excelInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
 
             document.getElementById('loadingOverlay').classList.remove('hidden');
-            
             const reader = new FileReader();
             reader.onload = function(event) {
-                try {
-                    const data = new Uint8Array(event.target.result);
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const json = XLSX.utils.sheet_to_json(sheet, { range: 3, defval: "" });
-
-                    allProducts = json.filter(p => {
-                        const keys = Object.keys(p);
-                        const kDenumire = keys.find(k => k.trim() === "Denumire");
-                        return p[kDenumire] && p[kDenumire].toString().trim() !== "" && p[kDenumire] !== "Denumire";
-                    });
-
-                    localStorage.setItem('dmauto_last_products', JSON.stringify(allProducts));
-                    renderProducts(allProducts);
-                    document.getElementById('productCount').innerText = allProducts.length + " Produse Încărcate";
-                } catch (err) {
-                    alert("Eroare procesare Excel! Verifică structura fișierului.");
-                } finally {
-                    document.getElementById('loadingOverlay').classList.add('hidden');
-                }
+                processExcelData(new Uint8Array(event.target.result), false);
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                document.getElementById('cloudStatus').innerText = "Manual Activ";
             };
             reader.readAsArrayBuffer(file);
         });
@@ -307,15 +331,15 @@
                     <tr class="${rowClass} transition-all duration-300">
                         <td class="pr-2">
                             <p class="font-black text-dm-blue uppercase leading-tight tracking-tighter">${denumire}</p>
-                            <p class="text-[8px] font-bold text-gray-400 mt-0.5 italic">Preț TVA inclus: ${pretCuTva.toFixed(2)} ${valuta}</p>
+                            <p class="text-[8px] font-bold text-gray-400 mt-0.5 italic">TVA inclus: ${pretCuTva.toFixed(2)} ${valuta}</p>
                         </td>
                         <td>
                             <div class="flex items-center justify-center gap-1.5 bg-gray-50 rounded-lg p-1 border border-gray-100 shadow-inner">
                                 <button onclick="updateCart('${denumire.replace(/'/g, "\\'")}', -1, ${index})" 
-                                        class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100 hover:bg-gray-50">-</button>
+                                        class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button>
                                 <span id="qty-${index}" class="font-black text-xs w-5 text-center text-dm-blue">${currentQty}</span>
                                 <button onclick="updateCart('${denumire.replace(/'/g, "\\'")}', 1, ${index})" 
-                                        class="qty-btn bg-dm-blue text-white shadow-md active:bg-blue-900">+</button>
+                                        class="qty-btn bg-dm-blue text-white shadow-md">+</button>
                             </div>
                         </td>
                         <td class="text-right font-black text-dm-blue text-xs tracking-tighter">
@@ -326,7 +350,7 @@
                 `;
             });
             
-            tbody.innerHTML = html || '<tr><td colspan="3" class="py-10 text-center text-gray-400">Niciun produs găsit.</td></tr>';
+            tbody.innerHTML = html || '<tr><td colspan="3" class="py-10 text-center text-gray-400">Date indisponibile.</td></tr>';
         }
 
         function updateCart(prodName, delta, visualIndex) {
@@ -336,16 +360,12 @@
             });
 
             if (!productData) return;
-
-            if (!cart[prodName]) {
-                cart[prodName] = { quantity: 0, data: productData };
-            }
+            if (!cart[prodName]) cart[prodName] = { quantity: 0, data: productData };
 
             cart[prodName].quantity += delta;
             if (cart[prodName].quantity < 0) cart[prodName].quantity = 0;
             if (cart[prodName].quantity === 0) delete cart[prodName];
 
-            // Update UI pe rândul curent
             const qtyEl = document.getElementById(`qty-${visualIndex}`);
             const subtotalEl = document.getElementById(`subtotal-${visualIndex}`);
             
@@ -418,9 +438,7 @@
                 msg += `• ${item.quantity} x ${item.data[kDenumire]}\n`;
             });
             msg += `\nTOTAL CU TVA: ${document.getElementById('totalVat').innerText} RON`;
-            
-            const encodedMsg = encodeURIComponent(msg);
-            window.open(`https://wa.me/?text=${encodedMsg}`);
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
         }
     </script>
 </body>
