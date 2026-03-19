@@ -40,9 +40,7 @@
             border: 3px solid transparent;
         }
 
-        .category-card:active {
-            transform: scale(0.95);
-        }
+        .category-card:active { transform: scale(0.95); }
 
         .category-overlay {
             background: linear-gradient(to top, rgba(0, 30, 60, 0.9) 0%, rgba(0, 30, 60, 0.2) 60%, transparent 100%);
@@ -79,17 +77,6 @@
         
         .qty-btn:active { transform: scale(0.9); }
 
-        .loader {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #003366;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
         .cart-badge {
             position: absolute;
             top: -5px;
@@ -113,6 +100,16 @@
             border-color: #ffcc00;
             transform: scale(1.02);
             box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        /* Stiluri pentru Modal / Detalii */
+        .order-detail-card {
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
     </style>
 </head>
@@ -149,48 +146,30 @@
         </div>
     </header>
 
-    <!-- Indicator Încărcare -->
-    <div id="loadingOverlay" class="hidden mx-4 mt-2">
-        <div class="bg-blue-50 border border-blue-100 p-3 rounded-lg flex items-center justify-center gap-3">
-            <div class="loader"></div>
-            <span id="loaderText" class="text-[10px] text-dm-blue font-black uppercase tracking-widest">Sincronizare...</span>
-        </div>
-    </div>
-
     <!-- VEDERE: CATALOG -->
     <div id="view-catalog" class="active-view">
-        <!-- Grila cu cele 4 Categorii -->
         <div class="p-4 grid grid-cols-2 gap-4">
             <div id="card-Ravenol" onclick="selectCategory('Ravenol')" class="category-card" style="background-image: url('ravenol.jpg');">
-                <div class="category-overlay">
-                    <h3 class="text-white font-black text-xs uppercase italic tracking-tighter">RAVENOL</h3>
-                </div>
+                <div class="category-overlay"><h3 class="text-white font-black text-xs uppercase italic tracking-tighter">RAVENOL</h3></div>
             </div>
             <div id="card-Banner" onclick="selectCategory('Banner')" class="category-card" style="background-image: url('banner.jpg');">
-                <div class="category-overlay">
-                    <h3 class="text-white font-black text-xs uppercase italic tracking-tighter">BANNER</h3>
-                </div>
+                <div class="category-overlay"><h3 class="text-white font-black text-xs uppercase italic tracking-tighter">BANNER</h3></div>
             </div>
             <div id="card-Cyclon" onclick="selectCategory('Cyclon')" class="category-card" style="background-image: url('cyclon.jpg');">
-                <div class="category-overlay">
-                    <h3 class="text-white font-black text-xs uppercase italic tracking-tighter">CYCLON</h3>
-                </div>
+                <div class="category-overlay"><h3 class="text-white font-black text-xs uppercase italic tracking-tighter">CYCLON</h3></div>
             </div>
             <div id="card-Diverse" onclick="selectCategory('Diverse')" class="category-card" style="background-image: url('diverse.jpg');">
-                <div class="category-overlay">
-                    <h3 class="text-white font-black text-xs uppercase italic tracking-tighter">DIVERSE</h3>
-                </div>
+                <div class="category-overlay"><h3 class="text-white font-black text-xs uppercase italic tracking-tighter">DIVERSE</h3></div>
             </div>
         </div>
 
-        <!-- Secțiunea de produse -->
         <div id="product-section" class="px-4 view-hidden">
             <div class="flex justify-between items-center mb-3 px-1">
                 <div class="flex items-center gap-2">
                     <h3 id="selected-category-title" class="text-xs font-black uppercase tracking-widest text-dm-blue italic">Produse</h3>
                     <button onclick="resetSelection()" class="text-[8px] bg-gray-200 px-2 py-0.5 rounded text-gray-500 font-bold uppercase">Închide</button>
                 </div>
-                <span id="productCount" class="text-[9px] text-gray-400 font-bold uppercase italic tracking-tighter">Se încarcă...</span>
+                <span id="productCount" class="text-[9px] text-gray-400 font-bold uppercase italic tracking-tighter">...</span>
             </div>
             <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 mb-8">
                 <div class="overflow-x-auto max-h-[60vh]">
@@ -208,11 +187,10 @@
             </div>
         </div>
         
-        <!-- Mesaj placeholder -->
         <div id="category-placeholder" class="p-10 text-center">
             <div class="bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl p-8">
                 <span class="text-4xl block mb-3">👇</span>
-                <p class="text-gray-400 font-black uppercase text-[10px] tracking-widest">Apasă pe o categorie de mai sus pentru a vedea produsele</p>
+                <p class="text-gray-400 font-black uppercase text-[10px] tracking-widest">Selectează o categorie</p>
             </div>
         </div>
     </div>
@@ -223,8 +201,7 @@
             <h2 class="text-lg font-black text-dm-blue uppercase italic">🛒 Coș Comandă</h2>
             <button onclick="golesteCos()" class="text-[10px] font-bold text-red-500 uppercase">Golește tot</button>
         </div>
-        <div id="cart-content" class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden mb-6">
-        </div>
+        <div id="cart-content" class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden mb-6"></div>
         
         <div id="cart-summary-box" class="bg-dm-blue text-white rounded-2xl p-6 shadow-2xl">
             <div class="flex justify-between border-b border-white/10 pb-3 mb-3">
@@ -244,7 +221,24 @@
     <!-- VEDERE: ISTORIC -->
     <div id="view-history" class="view-hidden p-4">
         <h2 class="text-lg font-black text-dm-blue uppercase mb-4 italic">📋 Comenzi Trimise</h2>
-        <div id="history-content" class="space-y-4">
+        <div id="history-content" class="space-y-4"></div>
+    </div>
+
+    <!-- VEDERE: DETALII COMANDĂ ISTORIC -->
+    <div id="view-order-details" class="view-hidden p-4 order-detail-card">
+        <button onclick="switchView('history')" class="mb-4 flex items-center gap-2 text-dm-blue font-bold uppercase text-[10px]">
+            ← Înapoi la istoric
+        </button>
+        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-5 mb-6">
+            <div id="order-details-header" class="border-b border-gray-100 pb-4 mb-4">
+                <!-- Info data/total comanda -->
+            </div>
+            <div id="order-details-items" class="space-y-3 mb-6">
+                <!-- Articolele comenzii vechi -->
+            </div>
+            <button onclick="incarcaComandaInCos()" class="w-full bg-dm-blue text-dm-yellow py-4 rounded-xl font-black uppercase shadow-lg active:scale-95 transition-all">
+                Modifică și Reia Comanda 🔄
+            </button>
         </div>
     </div>
 
@@ -271,12 +265,14 @@
         let cart = {};
         let selectedCategory = null;
         let orderHistory = JSON.parse(localStorage.getItem('dmauto_order_history') || '[]');
+        let currentViewingOrderIndex = null;
 
         function switchView(viewName) {
-            const views = ['catalog', 'cart', 'history'];
+            const views = ['catalog', 'cart', 'history', 'order-details'];
             views.forEach(v => {
                 const el = document.getElementById(`view-${v}`);
                 if (el) el.classList.add('view-hidden');
+                
                 const nav = document.getElementById(`nav-${v}`);
                 if (nav) {
                     nav.classList.remove('text-dm-blue');
@@ -286,7 +282,10 @@
 
             const currentView = document.getElementById(`view-${viewName}`);
             if (currentView) currentView.classList.remove('view-hidden');
-            const currentNav = document.getElementById(`nav-${viewName}`);
+            
+            // Map nav highlighting for details back to history
+            const navName = (viewName === 'order-details') ? 'history' : viewName;
+            const currentNav = document.getElementById(`nav-${navName}`);
             if (currentNav) {
                 currentNav.classList.remove('text-gray-400');
                 currentNav.classList.add('text-dm-blue');
@@ -299,29 +298,20 @@
             if (viewName === 'history') renderHistory();
         }
 
-        // Funcția pentru selecția categoriei (RAVENOL, BANNER, CYCLON, DIVERSE)
         function selectCategory(category) {
             selectedCategory = category;
-            
-            // UI Update
             document.getElementById('product-section').classList.remove('view-hidden');
             document.getElementById('category-placeholder').classList.add('view-hidden');
             document.getElementById('selected-category-title').innerText = category;
             
-            // Reset highlights and set new one
-            const categories = ['Ravenol', 'Banner', 'Cyclon', 'Diverse'];
-            categories.forEach(cat => {
+            ['Ravenol', 'Banner', 'Cyclon', 'Diverse'].forEach(cat => {
                 const card = document.getElementById(`card-${cat}`);
                 if (card) card.classList.remove('selected-category');
             });
-            
             const selectedCard = document.getElementById(`card-${category}`);
             if (selectedCard) selectedCard.classList.add('selected-category');
             
-            // Render
             renderProducts(allProducts);
-            
-            // Scroll la listă
             document.getElementById('product-section').scrollIntoView({ behavior: 'smooth' });
         }
 
@@ -329,52 +319,33 @@
             selectedCategory = null;
             document.getElementById('product-section').classList.add('view-hidden');
             document.getElementById('category-placeholder').classList.remove('view-hidden');
-            
-            const categories = ['Ravenol', 'Banner', 'Cyclon', 'Diverse'];
-            categories.forEach(cat => {
+            ['Ravenol', 'Banner', 'Cyclon', 'Diverse'].forEach(cat => {
                 const card = document.getElementById(`card-${cat}`);
                 if (card) card.classList.remove('selected-category');
             });
-            
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         window.addEventListener('load', async () => {
-            if (window.location.protocol === 'blob:') {
-                loadLocalData();
-                return;
-            }
-
-            try {
-                const filename = CLOUD_EXCEL_FILE;
-                const response = await fetch(filename);
-                if (response.ok) {
-                    const data = new Uint8Array(await response.arrayBuffer());
-                    processExcelData(data);
-                } else {
-                    loadLocalData();
-                }
-            } catch (e) {
-                loadLocalData();
+            loadLocalData();
+            if (window.location.protocol !== 'blob:') {
+                try {
+                    const response = await fetch(CLOUD_EXCEL_FILE);
+                    if (response.ok) processExcelData(await response.arrayBuffer());
+                } catch (e) { console.warn("Cloud offline"); }
             }
         });
 
         function loadLocalData() {
             const saved = localStorage.getItem('dmauto_last_products');
-            if (saved) {
-                processJSONData(JSON.parse(saved));
-            }
+            if (saved) processJSONData(JSON.parse(saved));
         }
 
         function processExcelData(data) {
-            try {
-                const workbook = XLSX.read(data, {type: 'array'});
-                const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                const json = XLSX.utils.sheet_to_json(sheet, { range: 3, defval: "" });
-                processJSONData(json);
-            } catch (err) {
-                console.error("Eroare procesare Excel:", err);
-            }
+            const workbook = XLSX.read(data, {type: 'array'});
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const json = XLSX.utils.sheet_to_json(sheet, { range: 3, defval: "" });
+            processJSONData(json);
         }
 
         function processJSONData(json) {
@@ -384,36 +355,18 @@
                 return p[kDenumire] && p[kDenumire].toString().trim() !== "" && p[kDenumire] !== "Denumire";
             });
             localStorage.setItem('dmauto_last_products', JSON.stringify(allProducts));
-            
             const countEl = document.getElementById('productCount');
             if(countEl) countEl.innerText = allProducts.length + " Produse";
         }
 
-        document.getElementById('excelInput').addEventListener('change', function(e) {
-            const reader = new FileReader();
-            reader.onload = (event) => processExcelData(new Uint8Array(event.target.result));
-            reader.readAsArrayBuffer(e.target.files[0]);
-        });
-
         function renderProducts(products) {
             const tbody = document.getElementById('productTableBody');
-            if (!tbody) return;
-            
-            if (!selectedCategory) {
-                tbody.innerHTML = '';
-                return;
-            }
-
+            if (!tbody || !selectedCategory) return;
             let html = '';
             products.forEach((p, index) => {
                 const keys = Object.keys(p);
-                const kDenumire = keys.find(k => k.trim() === "Denumire");
-                const kPretCuTva = keys.find(k => k.trim() === "Pret cu TVA");
-                const denumire = p[kDenumire] || "";
-                
-                // Filtrare de bază - Dacă numele conține brandul sau e selectată categoria corectă
-                // Notă: Momentan afișăm tot, dar se poate rafina filtrarea aici pe baza brandului
-                const pretCuTva = formatPriceNum(p[kPretCuTva]);
+                const denumire = p[keys.find(k => k.trim() === "Denumire")] || "";
+                const pretCuTva = formatPriceNum(p[keys.find(k => k.trim() === "Pret cu TVA")]);
                 const currentQty = cart[denumire] ? cart[denumire].quantity : 0;
                 
                 html += `
@@ -428,7 +381,7 @@
                                 <button onclick="updateCart('${denumire.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-md">+</button>
                             </div>
                         </td>
-                        <td class="text-right font-black text-dm-blue text-xs">${(currentQty * pretCuTva).toFixed(2)} <span class="text-[8px]">RON</span></td>
+                        <td class="text-right font-black text-dm-blue text-xs">${(currentQty * pretCuTva).toFixed(2)} RON</td>
                     </tr>
                 `;
             });
@@ -441,7 +394,6 @@
             if (!cart[prodName]) cart[prodName] = { quantity: 0, data: productData };
             cart[prodName].quantity += delta;
             if (cart[prodName].quantity <= 0) delete cart[prodName];
-            
             renderProducts(allProducts);
             updateBadge();
         }
@@ -449,17 +401,16 @@
         function updateBadge() {
             const count = Object.values(cart).reduce((sum, item) => sum + item.quantity, 0);
             const badge = document.getElementById('cartBadge');
-            if (!badge) return;
-            badge.innerText = count;
-            badge.classList.toggle('hidden', count === 0);
+            if (badge) {
+                badge.innerText = count;
+                badge.classList.toggle('hidden', count === 0);
+            }
         }
 
         function renderCart() {
             const container = document.getElementById('cart-content');
             if (!container) return;
-            let html = '';
-            let totalVat = 0, totalNoVat = 0;
-
+            let html = '', totalVat = 0, totalNoVat = 0;
             const items = Object.values(cart);
             if (items.length === 0) {
                 container.innerHTML = '<div class="p-10 text-center text-gray-400 uppercase font-black text-xs italic">Coșul este gol</div>';
@@ -469,19 +420,15 @@
                 document.getElementById('btnTrimite').style.opacity = "0.5";
                 return;
             }
-
             document.getElementById('btnTrimite').disabled = false;
             document.getElementById('btnTrimite').style.opacity = "1";
-
             items.forEach(item => {
                 const keys = Object.keys(item.data);
                 const name = item.data[keys.find(k => k.trim() === "Denumire")];
                 const pCu = formatPriceNum(item.data[keys.find(k => k.trim() === "Pret cu TVA")]);
                 const pFara = formatPriceNum(item.data[keys.find(k => k.trim() === "Pret fara TVA")]);
-                
                 totalVat += pCu * item.quantity;
                 totalNoVat += pFara * item.quantity;
-
                 html += `
                     <div class="p-4 border-b border-gray-50 flex justify-between items-center">
                         <div class="w-2/3">
@@ -507,12 +454,11 @@
         function trimiteComanda() {
             const items = Object.values(cart);
             if (items.length === 0) return;
-
             const now = new Date();
             const timestamp = now.toLocaleString('ro-RO');
+            let total = 0;
             let msg = `Salut! Comandă DM Auto Sebeș (Agent: Calin Mocean)\nData: ${timestamp}\n\n`;
             
-            let total = 0;
             items.forEach(item => {
                 const keys = Object.keys(item.data);
                 const name = item.data[keys.find(k => k.trim() === "Denumire")];
@@ -523,14 +469,18 @@
             });
             msg += `\nTOTAL DE PLATĂ: ${total.toFixed(2)} RON`;
 
-            orderHistory.unshift({ timestamp, total: total.toFixed(2), items: items.length });
+            // SALVĂM ȘI DATELE COȘULUI PENTRU RE-EDITARE
+            orderHistory.unshift({ 
+                timestamp, 
+                total: total.toFixed(2), 
+                items: items.length,
+                cartData: JSON.parse(JSON.stringify(cart)) 
+            });
             localStorage.setItem('dmauto_order_history', JSON.stringify(orderHistory));
 
             cart = {};
             updateBadge();
-            
-            const encodedMsg = encodeURIComponent(msg);
-            window.open(`https://wa.me/?text=${encodedMsg}`);
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
             switchView('history');
         }
 
@@ -541,11 +491,11 @@
                 container.innerHTML = '<div class="p-10 text-center text-gray-400 italic text-[10px]">Nicio comandă trimisă încă.</div>';
                 return;
             }
-            container.innerHTML = orderHistory.map(order => `
-                <div class="bg-white p-4 rounded-2xl shadow-md border-l-4 border-dm-yellow">
+            container.innerHTML = orderHistory.map((order, index) => `
+                <div onclick="veziDetaliiComanda(${index})" class="bg-white p-4 rounded-2xl shadow-md border-l-4 border-dm-yellow active:scale-[0.98] transition-all cursor-pointer">
                     <div class="flex justify-between items-start mb-2">
                         <span class="text-[9px] font-black text-gray-400 uppercase italic">${order.timestamp}</span>
-                        <span class="bg-green-100 text-green-700 text-[8px] px-2 py-0.5 rounded-full font-black uppercase">Trimisă</span>
+                        <span class="text-dm-blue text-[8px] font-black uppercase">Vezi detalii →</span>
                     </div>
                     <div class="flex justify-between items-end">
                         <p class="text-[10px] font-bold text-dm-blue uppercase">${order.items} produse în comandă</p>
@@ -553,6 +503,59 @@
                     </div>
                 </div>
             `).join('');
+        }
+
+        function veziDetaliiComanda(index) {
+            currentViewingOrderIndex = index;
+            const order = orderHistory[index];
+            switchView('order-details');
+
+            const header = document.getElementById('order-details-header');
+            header.innerHTML = `
+                <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-1 italic">Detalii Comandă din ${order.timestamp.split(',')[0]}</h3>
+                <p class="text-xl font-black text-dm-blue italic">${order.total} RON <span class="text-[10px] uppercase opacity-50 tracking-tighter">(TVA Inclus)</span></p>
+            `;
+
+            const itemsContainer = document.getElementById('order-details-items');
+            let itemsHtml = '';
+            
+            // Reconstruct based on saved cartData
+            Object.values(order.cartData).forEach(item => {
+                const keys = Object.keys(item.data);
+                const name = item.data[keys.find(k => k.trim() === "Denumire")];
+                const pCu = formatPriceNum(item.data[keys.find(k => k.trim() === "Pret cu TVA")]);
+                itemsHtml += `
+                    <div class="flex justify-between items-center text-[11px] py-1 border-b border-gray-50 last:border-0">
+                        <span class="font-bold text-dm-blue uppercase truncate pr-4">${name}</span>
+                        <span class="font-black whitespace-nowrap">${item.quantity} x ${pCu.toFixed(2)}</span>
+                    </div>
+                `;
+            });
+            itemsContainer.innerHTML = itemsHtml;
+        }
+
+        function incarcaComandaInCos() {
+            if (currentViewingOrderIndex === null) return;
+            const order = orderHistory[currentViewingOrderIndex];
+
+            // Verificăm dacă există deja ceva în coș
+            const currentCartCount = Object.keys(cart).length;
+            if (currentCartCount > 0) {
+                if (!confirm("Ai deja produse în coșul activ. Vrei să le înlocuiești cu produsele din această comandă veche?")) {
+                    return;
+                }
+            }
+
+            // Încărcăm datele salvate în coșul global (deep clone)
+            cart = JSON.parse(JSON.stringify(order.cartData));
+            
+            updateBadge();
+            switchView('cart');
+            
+            // Feedback vizual
+            setTimeout(() => {
+                alert("Produsele au fost încărcate în coș. Acum poți modifica cantitățile sau adăuga produse noi.");
+            }, 100);
         }
 
         function formatPriceNum(val) {
@@ -563,10 +566,7 @@
 
         function filterProducts() {
             const q = document.getElementById('searchInput').value.toLowerCase();
-            // Dacă nu e selectată nicio categorie, forțăm selecția pe Ravenol la căutare
-            if (!selectedCategory && q.length > 0) {
-                selectCategory('Ravenol');
-            }
+            if (!selectedCategory && q.length > 0) selectCategory('Ravenol');
             const filtered = allProducts.filter(p => {
                 const name = p[Object.keys(p).find(k => k.trim() === "Denumire")];
                 return name && name.toString().toLowerCase().includes(q);
