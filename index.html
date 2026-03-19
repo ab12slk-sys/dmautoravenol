@@ -215,7 +215,27 @@
             <h2 class="text-lg font-black text-dm-blue uppercase italic">🛒 Coș Comandă</h2>
             <button onclick="golesteCos()" class="text-[10px] font-bold text-red-500 uppercase">Golește tot</button>
         </div>
-        <div id="cart-content" class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden mb-6 text-[11px]"></div>
+        
+        <!-- Tabel Interactiv in Coș -->
+        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden mb-6">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left quick-order-table">
+                    <thead class="bg-gray-50 border-b border-gray-100">
+                        <tr>
+                            <th class="w-1/2">Produs</th>
+                            <th class="text-center">Cant.</th>
+                            <th class="text-right">Total Net</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cart-content-table" class="divide-y divide-gray-50 text-[10px]">
+                        <!-- Items appear here with +/- buttons -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="cart-empty-msg" class="p-10 text-center text-gray-400 uppercase font-black text-xs italic view-hidden">
+                Coșul este gol
+            </div>
+        </div>
         
         <div id="cart-summary-box" class="bg-dm-blue text-white rounded-2xl p-6 shadow-2xl">
             <div class="flex justify-between items-end border-b border-white/10 pb-3 mb-3">
@@ -276,8 +296,10 @@
         let selectedCategory = null;
         let orderHistory = JSON.parse(localStorage.getItem('dmauto_order_history') || '[]');
         let currentViewingOrderIndex = null;
+        let currentActiveView = 'catalog';
 
         function switchView(viewName) {
+            currentActiveView = viewName;
             const views = ['catalog', 'cart', 'history', 'order-details'];
             views.forEach(v => {
                 const el = document.getElementById(`view-${v}`);
@@ -406,7 +428,12 @@
             if (!cart[prodName]) cart[prodName] = { quantity: 0, data: productData };
             cart[prodName].quantity += delta;
             if (cart[prodName].quantity <= 0) delete cart[prodName];
+            
+            // Sync Catalog UI
             renderProducts(allProducts);
+            // Sync Cart UI if currently active
+            if (currentActiveView === 'cart') renderCart();
+            
             updateBadge();
         }
 
@@ -420,36 +447,52 @@
         }
 
         function renderCart() {
-            const container = document.getElementById('cart-content');
-            if (!container) return;
+            const tbody = document.getElementById('cart-content-table');
+            const emptyMsg = document.getElementById('cart-empty-msg');
+            if (!tbody) return;
+            
             let html = '', totalNoVat = 0;
             const items = Object.values(cart);
+            
             if (items.length === 0) {
-                container.innerHTML = '<div class="p-10 text-center text-gray-400 uppercase font-black text-xs italic">Coșul este gol</div>';
+                tbody.innerHTML = '';
+                emptyMsg.classList.remove('view-hidden');
                 document.getElementById('totalNoVat').innerText = '0.00 RON';
                 document.getElementById('totalVat').innerText = '0.00 RON';
                 document.getElementById('btnTrimite').disabled = true;
                 document.getElementById('btnTrimite').style.opacity = "0.5";
                 return;
             }
+
+            emptyMsg.classList.add('view-hidden');
             document.getElementById('btnTrimite').disabled = false;
             document.getElementById('btnTrimite').style.opacity = "1";
+
             items.forEach(item => {
                 const keys = Object.keys(item.data);
                 const name = item.data[keys.find(k => k.trim() === "Denumire")];
                 const pFara = formatPriceNum(item.data[keys.find(k => k.trim() === "Pret fara TVA")]);
-                totalNoVat += pFara * item.quantity;
+                const subtotal = item.quantity * pFara;
+                totalNoVat += subtotal;
+
                 html += `
-                    <div class="p-4 border-b border-gray-50 flex justify-between items-center">
-                        <div class="w-2/3">
-                            <p class="font-black text-dm-blue uppercase text-[11px] leading-tight">${name}</p>
-                            <p class="text-[9px] font-bold text-gray-400 mt-1">${item.quantity} x ${pFara.toFixed(2)} RON (fără TVA)</p>
-                        </div>
-                        <div class="text-right font-black text-dm-blue text-xs">${(item.quantity * pFara).toFixed(2)} RON</div>
-                    </div>
+                    <tr>
+                        <td class="pr-2 font-black text-dm-blue uppercase leading-tight tracking-tighter">
+                            ${name}<br><span class="text-[8px] font-bold text-gray-400 italic">${pFara.toFixed(2)} RON / buc</span>
+                        </td>
+                        <td>
+                            <div class="flex items-center justify-center gap-1.5 bg-gray-50 rounded-lg p-1 border border-gray-100">
+                                <button onclick="updateCart('${name.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button>
+                                <span class="font-black text-xs w-5 text-center text-dm-blue">${item.quantity}</span>
+                                <button onclick="updateCart('${name.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-md">+</button>
+                            </div>
+                        </td>
+                        <td class="text-right font-black text-dm-blue text-xs">${subtotal.toFixed(2)} RON</td>
+                    </tr>
                 `;
             });
-            container.innerHTML = html;
+            
+            tbody.innerHTML = html;
             document.getElementById('totalNoVat').innerText = totalNoVat.toFixed(2) + ' RON';
             document.getElementById('totalVat').innerText = (totalNoVat * 1.19).toFixed(2) + ' RON';
         }
@@ -540,24 +583,15 @@
             itemsContainer.innerHTML = itemsHtml;
         }
 
-        // FIX: Funcția de încărcare a fost consolidată pentru a asigura refresh-ul UI
         function incarcaComandaInCos() {
             if (currentViewingOrderIndex === null) return;
             const order = orderHistory[currentViewingOrderIndex];
             
-            // Creăm o copie curată a datelor pentru coș
             cart = JSON.parse(JSON.stringify(order.cartData));
             
-            // Actualizăm bifele din catalog (dacă catalogul e deschis)
             renderProducts(allProducts);
-            
-            // Actualizăm bulina de coș
             updateBadge();
-            
-            // Mergem direct la coș
             switchView('cart');
-            
-            // Re-randăm coșul pentru siguranță
             renderCart();
         }
 
