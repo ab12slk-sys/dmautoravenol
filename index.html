@@ -127,7 +127,7 @@
         </div>
     </div>
 
-    <!-- Tabel Produse Optimizat cu 4 coloane de preț -->
+    <!-- Tabel Produse Optimizat -->
     <div class="px-4">
         <div class="flex justify-between items-center mb-3 px-1">
             <h3 class="text-xs font-black uppercase tracking-widest text-gray-500 italic">Catalog Produse</h3>
@@ -179,6 +179,20 @@
     <script>
         let allProducts = [];
 
+        // FUNCTIE: Încărcare automată la pornire
+        window.addEventListener('load', () => {
+            const savedData = localStorage.getItem('dmauto_last_products');
+            if (savedData) {
+                try {
+                    allProducts = JSON.parse(savedData);
+                    renderProducts(allProducts);
+                    document.getElementById('productCount').innerText = allProducts.length + " Produse (Salvate)";
+                } catch (e) {
+                    console.error("Eroare la incarcarea datelor salvate", e);
+                }
+            }
+        });
+
         document.getElementById('excelInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -191,16 +205,16 @@
                     const data = new Uint8Array(event.target.result);
                     const workbook = XLSX.read(data, {type: 'array'});
                     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    
-                    // range: 3 conform structurii fișierului DM Auto (sărim peste antetul SRL-ului)
                     const json = XLSX.utils.sheet_to_json(sheet, { range: 3, defval: "" });
 
-                    // Curățăm datele și detectăm coloanele corecte
                     allProducts = json.filter(p => {
                         const keys = Object.keys(p);
                         const denumireKey = keys.find(k => k.trim() === "Denumire");
                         return p[denumireKey] && p[denumireKey].toString().trim() !== "" && p[denumireKey] !== "Denumire";
                     });
+
+                    // FUNCTIE: Salvare în memoria tabletei
+                    localStorage.setItem('dmauto_last_products', JSON.stringify(allProducts));
 
                     renderProducts(allProducts);
                     document.getElementById('productCount').innerText = allProducts.length + " Produse Încărcate";
@@ -220,7 +234,6 @@
             
             products.forEach(p => {
                 const keys = Object.keys(p);
-                // Detecție coloane flexibilă pentru a evita problemele cu spațiile din Excel
                 const kDenumire = keys.find(k => k.trim() === "Denumire");
                 const kUM = keys.find(k => k.trim() === "UM");
                 const kPretFaraTva = keys.find(k => k.trim() === "Pret fara TVA");
@@ -229,8 +242,6 @@
 
                 const denumire = p[kDenumire] || "";
                 const um = p[kUM] || "BUC";
-                
-                // Formatare prețuri
                 const fPretFara = formatPrice(p[kPretFaraTva]);
                 const fPretCu = formatPrice(p[kPretCuTva]);
                 const valuta = p[kValuta] || "RON";
@@ -251,7 +262,6 @@
         function formatPrice(val) {
             if (!val && val !== 0) return "0.00";
             if (typeof val === 'number') return val.toFixed(2);
-            // Dacă e string, încercăm să-l convertim (util pentru cazurile în care Excel-ul e tratat ca text)
             const n = parseFloat(val.toString().replace(',', '.'));
             return isNaN(n) ? "0.00" : n.toFixed(2);
         }
