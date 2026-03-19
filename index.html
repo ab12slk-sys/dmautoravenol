@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DM Auto - Portal Agent</title>
     
+    <!-- Configurare PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#003366">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
+    <!-- Biblioteci: Tailwind pentru Design, SheetJS pentru Excel -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     
@@ -27,6 +29,7 @@
         .text-dm-yellow { color: #ffcc00; }
         .bg-dm-yellow { background-color: #ffcc00; }
         
+        /* Carduri Categorii */
         .category-card {
             position: relative;
             overflow: hidden;
@@ -59,10 +62,18 @@
             z-index: 10;
         }
 
-        .quick-order-table td {
-            padding: 12px 8px;
-            border-bottom: 1px solid #f1f5f9;
+        .qty-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-weight: 900;
+            transition: all 0.1s ease;
         }
+        
+        .qty-btn:active { transform: scale(0.9); }
 
         .loader {
             border: 3px solid #f3f3f3;
@@ -74,16 +85,33 @@
         }
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ffcc00;
+            color: #003366;
+            font-size: 10px;
+            font-weight: 900;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+        }
     </style>
 </head>
-<body class="pb-40">
+<body class="pb-56">
 
-    <!-- Header -->
+    <!-- Header Navy Blue (Stil dmautoAPP.png) -->
     <header class="bg-dm-blue text-white p-5 pb-6 shadow-xl rounded-b-[2rem]">
         <div class="flex items-center gap-4 mb-5">
             <div class="bg-black p-2 rounded-lg border border-gray-700 shadow-lg">
                 <div class="text-center leading-none">
-                    <span class="text-white font-black text-2xl italic block">DM</span>
+                    <span class="text-white font-black text-2xl italic block tracking-tighter">DM</span>
                     <span class="text-dm-yellow font-black text-[11px] block tracking-[0.2em] -mt-1">AUTO</span>
                 </div>
             </div>
@@ -99,7 +127,7 @@
         </div>
 
         <div class="relative">
-            <input type="text" id="searchInput" onkeyup="filterProducts()" placeholder="Caută produs (ex: VMP 5W-30)..." 
+            <input type="text" id="searchInput" onkeyup="filterProducts()" placeholder="Caută produs (ex: Ravenol VMP)..." 
                    class="w-full p-3.5 pr-12 rounded-xl text-gray-800 text-sm focus:outline-none shadow-2xl border-none font-semibold">
             <div class="absolute right-4 top-3.5 text-gray-300">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -109,29 +137,43 @@
         </div>
     </header>
 
-    <!-- Loading Indicator -->
+    <!-- Indicator Încărcare -->
     <div id="loadingOverlay" class="hidden mx-4 mt-2">
         <div class="bg-blue-50 border border-blue-100 p-3 rounded-lg flex items-center justify-center gap-3">
             <div class="loader"></div>
-            <span class="text-[10px] text-dm-blue font-black uppercase tracking-widest">Se încarcă oferta Ravenol...</span>
+            <span class="text-[10px] text-dm-blue font-black uppercase tracking-widest uppercase">Se procesează datele...</span>
         </div>
     </div>
 
-    <!-- Grila Categorii -->
+    <!-- Info Client Activ -->
+    <div class="m-4 bg-white rounded-2xl p-4 flex justify-between items-center shadow-md border border-gray-100 relative z-10">
+        <div class="flex items-center gap-3">
+            <div class="bg-dm-blue/5 w-10 h-10 rounded-xl flex items-center justify-center text-dm-blue text-xl font-bold">👤</div>
+            <div>
+                <h2 class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Client Activ:</h2>
+                <p class="text-xs font-black text-dm-blue uppercase">Auto Speed SRL Sebeș</p>
+            </div>
+        </div>
+        <div class="text-right">
+            <span class="bg-green-100 text-green-700 text-[8px] px-2 py-0.5 rounded-full font-black uppercase">Online</span>
+        </div>
+    </div>
+
+    <!-- Categorii Rapide -->
     <div class="p-4 grid grid-cols-2 gap-4">
         <div class="category-card" style="background-image: url('ravenol.jpg');">
-            <div class="category-overlay"><h3 class="text-white font-black text-xs uppercase">RAVENOL</h3></div>
+            <div class="category-overlay"><h3 class="text-white font-black text-xs uppercase italic tracking-tighter">RAVENOL</h3></div>
         </div>
         <div class="category-card" style="background-image: url('banner.jpg');">
-            <div class="category-overlay"><h3 class="text-white font-black text-xs uppercase">BANNER</h3></div>
+            <div class="category-overlay"><h3 class="text-white font-black text-xs uppercase italic tracking-tighter">BANNER</h3></div>
         </div>
     </div>
 
-    <!-- Tabel Produse Optimizat -->
+    <!-- Catalog Produse -->
     <div class="px-4">
         <div class="flex justify-between items-center mb-3 px-1">
-            <h3 class="text-xs font-black uppercase tracking-widest text-gray-500 italic">Catalog Produse</h3>
-            <span id="productCount" class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter italic">Așteptare fișier...</span>
+            <h3 class="text-xs font-black uppercase tracking-widest text-gray-500 italic">Catalog Comandă</h3>
+            <span id="productCount" class="text-[9px] text-gray-400 font-bold uppercase italic tracking-tighter">Așteptare date...</span>
         </div>
         
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
@@ -139,17 +181,16 @@
                 <table class="w-full text-left quick-order-table">
                     <thead class="bg-gray-50 border-b border-gray-100">
                         <tr>
-                            <th class="w-1/3">Denumire</th>
-                            <th class="text-center">UM</th>
-                            <th class="text-right">Preț FĂRĂ TVA</th>
-                            <th class="text-right">Preț CU TVA</th>
+                            <th class="w-1/2">Denumire</th>
+                            <th class="text-center">Cant.</th>
+                            <th class="text-right">Preț unitar</th>
                         </tr>
                     </thead>
-                    <tbody id="productTableBody" class="divide-y divide-gray-50">
+                    <tbody id="productTableBody" class="divide-y divide-gray-50 text-[10px]">
                         <tr id="placeholderRow">
-                            <td colspan="4" class="py-16 text-center text-gray-300">
-                                <span class="text-4xl block mb-2">📊</span>
-                                <p class="text-[10px] font-black uppercase">Încarcă oferta Ravenol folosind butonul 🔄</p>
+                            <td colspan="3" class="py-16 text-center text-gray-300">
+                                <span class="text-4xl block mb-2">📦</span>
+                                <p class="font-black uppercase tracking-widest">Încarcă oferta DM Auto (🔄)</p>
                             </td>
                         </tr>
                     </tbody>
@@ -158,41 +199,61 @@
         </div>
     </div>
 
-    <div class="fixed bottom-20 left-0 w-full px-4 py-3 z-40">
-        <button class="w-full bg-dm-yellow text-dm-blue py-4 rounded-xl font-black text-sm uppercase shadow-2xl flex items-center justify-center gap-3 border-b-4 border-yellow-600">
-            <span>🛒</span> FINALIZARE COMANDĂ
-        </button>
+    <!-- Panou Rezumat Coș -->
+    <div id="cartSummary" class="fixed bottom-24 left-0 w-full px-4 z-40 transition-transform duration-300 translate-y-48">
+        <div class="bg-dm-blue text-white rounded-2xl p-4 shadow-[0_-10px_40px_rgba(0,0,0,0.4)] border-t-2 border-dm-yellow">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-[10px] font-black uppercase tracking-widest opacity-70">Rezumat Comandă Agent</span>
+                <span id="cartItemCount" class="bg-dm-yellow text-dm-blue px-2 py-0.5 rounded text-[10px] font-black uppercase">0 Articole</span>
+            </div>
+            <div class="flex justify-between items-end">
+                <div>
+                    <p class="text-[9px] opacity-60 uppercase">Total fără TVA: <span id="totalNoVat" class="font-bold">0.00</span> RON</p>
+                    <p class="text-lg font-black italic">TOTAL: <span id="totalVat" class="text-dm-yellow">0.00</span> <span class="text-xs">RON</span></p>
+                </div>
+                <button onclick="finalizareComanda()" class="bg-dm-yellow text-dm-blue px-5 py-3 rounded-xl font-black text-xs uppercase shadow-xl active:scale-95 transition-transform flex items-center gap-2">
+                    Trimite WhatsApp 🚀
+                </button>
+            </div>
+        </div>
     </div>
 
+    <!-- Navigare Jos -->
     <nav class="fixed bottom-0 w-full bg-white border-t border-gray-100 p-3 flex justify-around shadow-2xl z-50">
         <button class="flex flex-col items-center text-dm-blue">
-            <span class="text-2xl">🏠</span><span class="text-[9px] font-black uppercase mt-1">Acasă</span>
+            <span class="text-2xl font-bold">🏠</span>
+            <span class="text-[9px] font-black uppercase mt-1">Acasă</span>
         </button>
         <button class="flex flex-col items-center text-gray-400">
-            <span class="text-2xl">👥</span><span class="text-[9px] font-black uppercase mt-1">Clienți</span>
+            <span class="text-2xl font-bold">👥</span>
+            <span class="text-[9px] font-black uppercase mt-1">Clienți</span>
         </button>
-        <button class="flex flex-col items-center text-gray-400">
-            <span class="text-2xl">📋</span><span class="text-[9px] font-black uppercase mt-1">Catalog</span>
+        <button class="flex flex-col items-center text-gray-400 relative">
+            <span class="text-2xl font-bold">🛒</span>
+            <span class="text-[9px] font-black uppercase mt-1">Coș</span>
+            <div id="cartBadge" class="cart-badge hidden">0</div>
         </button>
     </nav>
 
     <script>
         let allProducts = [];
+        let cart = {}; // Memorie coș curent
 
-        // FUNCTIE: Încărcare automată la pornire
+        // Memorie Locală (Păstrare date după închidere)
         window.addEventListener('load', () => {
             const savedData = localStorage.getItem('dmauto_last_products');
             if (savedData) {
                 try {
                     allProducts = JSON.parse(savedData);
                     renderProducts(allProducts);
-                    document.getElementById('productCount').innerText = allProducts.length + " Produse (Salvate)";
+                    document.getElementById('productCount').innerText = allProducts.length + " Produse în Catalog";
                 } catch (e) {
-                    console.error("Eroare la incarcarea datelor salvate", e);
+                    console.error("Eroare incarcare date salvate", e);
                 }
             }
         });
 
+        // Procesare Excel Ravenol (range: 3 conform structurii tale)
         document.getElementById('excelInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -209,18 +270,15 @@
 
                     allProducts = json.filter(p => {
                         const keys = Object.keys(p);
-                        const denumireKey = keys.find(k => k.trim() === "Denumire");
-                        return p[denumireKey] && p[denumireKey].toString().trim() !== "" && p[denumireKey] !== "Denumire";
+                        const kDenumire = keys.find(k => k.trim() === "Denumire");
+                        return p[kDenumire] && p[kDenumire].toString().trim() !== "" && p[kDenumire] !== "Denumire";
                     });
 
-                    // FUNCTIE: Salvare în memoria tabletei
                     localStorage.setItem('dmauto_last_products', JSON.stringify(allProducts));
-
                     renderProducts(allProducts);
                     document.getElementById('productCount').innerText = allProducts.length + " Produse Încărcate";
                 } catch (err) {
-                    console.error(err);
-                    alert("Eroare la procesarea fișierului!");
+                    alert("Eroare procesare Excel! Verifică structura fișierului.");
                 } finally {
                     document.getElementById('loadingOverlay').classList.add('hidden');
                 }
@@ -232,38 +290,116 @@
             const tbody = document.getElementById('productTableBody');
             let html = '';
             
-            products.forEach(p => {
+            products.forEach((p, index) => {
                 const keys = Object.keys(p);
                 const kDenumire = keys.find(k => k.trim() === "Denumire");
-                const kUM = keys.find(k => k.trim() === "UM");
-                const kPretFaraTva = keys.find(k => k.trim() === "Pret fara TVA");
                 const kPretCuTva = keys.find(k => k.trim() === "Pret cu TVA");
                 const kValuta = keys.find(k => k.trim() === "Valuta");
 
                 const denumire = p[kDenumire] || "";
-                const um = p[kUM] || "BUC";
-                const fPretFara = formatPrice(p[kPretFaraTva]);
-                const fPretCu = formatPrice(p[kPretCuTva]);
                 const valuta = p[kValuta] || "RON";
+                const pretCuTva = formatPriceNum(p[kPretCuTva]);
+                
+                const currentQty = cart[denumire] ? cart[denumire].quantity : 0;
+                const rowClass = currentQty > 0 ? 'bg-yellow-50' : '';
 
                 html += `
-                    <tr>
-                        <td class="font-black text-dm-blue text-[10px] uppercase leading-tight">${denumire}</td>
-                        <td class="text-center text-[9px] font-bold text-gray-400 uppercase">${um}</td>
-                        <td class="font-bold text-right text-gray-600 text-[10px] whitespace-nowrap">${fPretFara} ${valuta}</td>
-                        <td class="font-black text-right text-dm-blue text-[10px] whitespace-nowrap">${fPretCu} ${valuta}</td>
+                    <tr class="${rowClass} transition-all duration-300">
+                        <td class="pr-2">
+                            <p class="font-black text-dm-blue uppercase leading-tight tracking-tighter">${denumire}</p>
+                            <p class="text-[8px] font-bold text-gray-400 mt-0.5 italic">Preț TVA inclus: ${pretCuTva.toFixed(2)} ${valuta}</p>
+                        </td>
+                        <td>
+                            <div class="flex items-center justify-center gap-1.5 bg-gray-50 rounded-lg p-1 border border-gray-100 shadow-inner">
+                                <button onclick="updateCart('${denumire.replace(/'/g, "\\'")}', -1, ${index})" 
+                                        class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100 hover:bg-gray-50">-</button>
+                                <span id="qty-${index}" class="font-black text-xs w-5 text-center text-dm-blue">${currentQty}</span>
+                                <button onclick="updateCart('${denumire.replace(/'/g, "\\'")}', 1, ${index})" 
+                                        class="qty-btn bg-dm-blue text-white shadow-md active:bg-blue-900">+</button>
+                            </div>
+                        </td>
+                        <td class="text-right font-black text-dm-blue text-xs tracking-tighter">
+                            <span id="subtotal-${index}">${(currentQty * pretCuTva).toFixed(2)}</span>
+                            <span class="text-[8px] ml-0.5">${valuta}</span>
+                        </td>
                     </tr>
                 `;
             });
             
-            tbody.innerHTML = html || '<tr><td colspan="4" class="py-10 text-center text-gray-400">Niciun produs găsit.</td></tr>';
+            tbody.innerHTML = html || '<tr><td colspan="3" class="py-10 text-center text-gray-400">Niciun produs găsit.</td></tr>';
         }
 
-        function formatPrice(val) {
-            if (!val && val !== 0) return "0.00";
-            if (typeof val === 'number') return val.toFixed(2);
+        function updateCart(prodName, delta, visualIndex) {
+            const productData = allProducts.find(p => {
+                const kDenumire = Object.keys(p).find(k => k.trim() === "Denumire");
+                return p[kDenumire] === prodName;
+            });
+
+            if (!productData) return;
+
+            if (!cart[prodName]) {
+                cart[prodName] = { quantity: 0, data: productData };
+            }
+
+            cart[prodName].quantity += delta;
+            if (cart[prodName].quantity < 0) cart[prodName].quantity = 0;
+            if (cart[prodName].quantity === 0) delete cart[prodName];
+
+            // Update UI pe rândul curent
+            const qtyEl = document.getElementById(`qty-${visualIndex}`);
+            const subtotalEl = document.getElementById(`subtotal-${visualIndex}`);
+            
+            if (qtyEl && subtotalEl) {
+                const q = cart[prodName] ? cart[prodName].quantity : 0;
+                const pCu = formatPriceNum(productData[Object.keys(productData).find(k => k.trim() === "Pret cu TVA")]);
+                qtyEl.innerText = q;
+                subtotalEl.innerText = (q * pCu).toFixed(2);
+                
+                const row = qtyEl.closest('tr');
+                if (q > 0) row.classList.add('bg-yellow-50');
+                else row.classList.remove('bg-yellow-50');
+            }
+
+            updateGlobalTotals();
+        }
+
+        function updateGlobalTotals() {
+            let totalVat = 0;
+            let totalNoVat = 0;
+            let count = 0;
+
+            Object.values(cart).forEach(item => {
+                const pData = item.data;
+                const keys = Object.keys(pData);
+                const pretFara = formatPriceNum(pData[keys.find(k => k.trim() === "Pret fara TVA")]);
+                const pretCu = formatPriceNum(pData[keys.find(k => k.trim() === "Pret cu TVA")]);
+                
+                totalNoVat += pretFara * item.quantity;
+                totalVat += pretCu * item.quantity;
+                count += item.quantity;
+            });
+
+            const summary = document.getElementById('cartSummary');
+            if (count > 0) {
+                summary.classList.remove('translate-y-48');
+                document.getElementById('cartItemCount').innerText = `${count} Articole`;
+                document.getElementById('totalNoVat').innerText = totalNoVat.toFixed(2);
+                document.getElementById('totalVat').innerText = totalVat.toFixed(2);
+                
+                const badge = document.getElementById('cartBadge');
+                badge.innerText = count;
+                badge.classList.remove('hidden');
+            } else {
+                summary.classList.add('translate-y-48');
+                document.getElementById('cartBadge').classList.add('hidden');
+            }
+        }
+
+        function formatPriceNum(val) {
+            if (!val && val !== 0) return 0;
+            if (typeof val === 'number') return val;
             const n = parseFloat(val.toString().replace(',', '.'));
-            return isNaN(n) ? "0.00" : n.toFixed(2);
+            return isNaN(n) ? 0 : n;
         }
 
         function filterProducts() {
@@ -273,6 +409,18 @@
                 return p[kDenumire] && p[kDenumire].toString().toLowerCase().includes(q);
             });
             renderProducts(filtered);
+        }
+
+        function finalizareComanda() {
+            let msg = "Salut! Comandă DM Auto Sebeș (Agent: Calin Mocean):\n\n";
+            Object.values(cart).forEach(item => {
+                const kDenumire = Object.keys(item.data).find(k => k.trim() === "Denumire");
+                msg += `• ${item.quantity} x ${item.data[kDenumire]}\n`;
+            });
+            msg += `\nTOTAL CU TVA: ${document.getElementById('totalVat').innerText} RON`;
+            
+            const encodedMsg = encodeURIComponent(msg);
+            window.open(`https://wa.me/?text=${encodedMsg}`);
         }
     </script>
 </body>
