@@ -111,7 +111,6 @@
             to { transform: translateY(0); opacity: 1; }
         }
 
-        /* Stil pentru logo-ul din header */
         .header-logo-container {
             width: 54px;
             height: 54px;
@@ -127,14 +126,12 @@
     <!-- Header -->
     <header class="bg-dm-blue text-white p-5 pb-6 shadow-xl rounded-b-[2rem]">
         <div class="flex items-center gap-4 mb-5">
-            <!-- Container Logo cu Fallback -->
             <div class="header-logo-container">
                 <img src="logo_dmauto.png" 
                      alt="DM Auto Logo" 
                      class="max-h-full max-w-full object-contain" 
                      onerror="this.style.display='none'; document.getElementById('fallback-logo').classList.remove('hidden');">
                 
-                <!-- Fallback Logo (text-based) in case image is missing -->
                 <div id="fallback-logo" class="hidden bg-black p-2 rounded-lg border border-gray-700 shadow-lg leading-none text-center">
                     <span class="text-white font-black text-xl italic block tracking-tighter">DM</span>
                     <span class="text-dm-yellow font-black text-[9px] block tracking-[0.2em] -mt-0.5">AUTO</span>
@@ -215,10 +212,10 @@
     <!-- VEDERE: COȘ -->
     <div id="view-cart" class="view-hidden p-4">
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-lg font-black text-dm-blue uppercase italic">🛒 Coș Comandă (Prețuri fără TVA)</h2>
+            <h2 class="text-lg font-black text-dm-blue uppercase italic">🛒 Coș Comandă</h2>
             <button onclick="golesteCos()" class="text-[10px] font-bold text-red-500 uppercase">Golește tot</button>
         </div>
-        <div id="cart-content" class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden mb-6"></div>
+        <div id="cart-content" class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden mb-6 text-[11px]"></div>
         
         <div id="cart-summary-box" class="bg-dm-blue text-white rounded-2xl p-6 shadow-2xl">
             <div class="flex justify-between items-end border-b border-white/10 pb-3 mb-3">
@@ -247,12 +244,8 @@
             ← Înapoi la istoric
         </button>
         <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-5 mb-6">
-            <div id="order-details-header" class="border-b border-gray-100 pb-4 mb-4">
-                <!-- Info data/total comanda -->
-            </div>
-            <div id="order-details-items" class="space-y-3 mb-6">
-                <!-- Articolele comenzii vechi -->
-            </div>
+            <div id="order-details-header" class="border-b border-gray-100 pb-4 mb-4"></div>
+            <div id="order-details-items" class="space-y-3 mb-6"></div>
             <button onclick="incarcaComandaInCos()" class="w-full bg-dm-blue text-dm-yellow py-4 rounded-xl font-black uppercase shadow-lg active:scale-95 transition-all">
                 Modifică și Reia Comanda 🔄
             </button>
@@ -289,7 +282,7 @@
             views.forEach(v => {
                 const el = document.getElementById(`view-${v}`);
                 if (el) el.classList.add('view-hidden');
-                const nav = document.getElementById(`nav-${v}`);
+                const nav = document.getElementById(`nav-${v === 'order-details' ? 'history' : v}`);
                 if (nav) {
                     nav.classList.remove('text-dm-blue');
                     nav.classList.add('text-gray-400');
@@ -298,8 +291,9 @@
 
             const currentView = document.getElementById(`view-${viewName}`);
             if (currentView) currentView.classList.remove('view-hidden');
-            const navName = (viewName === 'order-details') ? 'history' : viewName;
-            const currentNav = document.getElementById(`nav-${navName}`);
+            
+            const activeNavId = viewName === 'order-details' ? 'nav-history' : `nav-${viewName}`;
+            const currentNav = document.getElementById(activeNavId);
             if (currentNav) {
                 currentNav.classList.remove('text-gray-400');
                 currentNav.classList.add('text-dm-blue');
@@ -546,22 +540,25 @@
             itemsContainer.innerHTML = itemsHtml;
         }
 
+        // FIX: Funcția de încărcare a fost consolidată pentru a asigura refresh-ul UI
         function incarcaComandaInCos() {
             if (currentViewingOrderIndex === null) return;
             const order = orderHistory[currentViewingOrderIndex];
-            const currentCartCount = Object.keys(cart).length;
-            if (currentCartCount > 0) {
-                if (!confirm("Ai deja produse în coșul activ. Vrei să le înlocuiești cu produsele din această comandă veche?")) {
-                    return;
-                }
-            }
+            
+            // Creăm o copie curată a datelor pentru coș
             cart = JSON.parse(JSON.stringify(order.cartData));
+            
+            // Actualizăm bifele din catalog (dacă catalogul e deschis)
+            renderProducts(allProducts);
+            
+            // Actualizăm bulina de coș
             updateBadge();
+            
+            // Mergem direct la coș
             switchView('cart');
-            setTimeout(() => {
-                // UI message instead of alert if possible, keeping alert for speed
-                alert("Produsele au fost încărcate în coș. Prețurile afișate sunt cele fără TVA.");
-            }, 100);
+            
+            // Re-randăm coșul pentru siguranță
+            renderCart();
         }
 
         function formatPriceNum(val) {
@@ -574,7 +571,8 @@
             const q = document.getElementById('searchInput').value.toLowerCase();
             if (!selectedCategory && q.length > 0) selectCategory('Ravenol');
             const filtered = allProducts.filter(p => {
-                const name = p[Object.keys(p).find(k => k.trim() === "Denumire")];
+                const keys = Object.keys(p);
+                const name = p[keys.find(k => k.trim() === "Denumire")];
                 return name && name.toString().toLowerCase().includes(q);
             });
             renderProducts(filtered);
