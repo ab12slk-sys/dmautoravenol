@@ -35,6 +35,12 @@
             background-size: cover;
             background-position: center;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .category-card:active {
+            transform: scale(0.95);
         }
 
         .category-overlay {
@@ -101,6 +107,10 @@
         }
 
         .view-hidden { display: none; }
+        
+        .selected-category {
+            border: 3px solid #ffcc00;
+        }
     </style>
 </head>
 <body class="pb-32">
@@ -147,20 +157,27 @@
     <!-- VEDERE: CATALOG -->
     <div id="view-catalog" class="active-view">
         <div class="p-4 grid grid-cols-2 gap-4">
-            <div class="category-card" style="background-image: url('ravenol.jpg');">
-                <div class="category-overlay"><h3 class="text-white font-black text-xs uppercase italic tracking-tighter">RAVENOL</h3></div>
+            <!-- Card Ravenol cu eveniment Click -->
+            <div id="card-ravenol" onclick="selectCategory('Ravenol')" class="category-card" style="background-image: url('ravenol.jpg');">
+                <div class="category-overlay">
+                    <h3 class="text-white font-black text-xs uppercase italic tracking-tighter">RAVENOL</h3>
+                </div>
             </div>
-            <div class="category-card" style="background-image: url('banner.jpg');">
+            <div class="category-card opacity-50" style="background-image: url('banner.jpg');">
                 <div class="category-overlay"><h3 class="text-white font-black text-xs uppercase italic tracking-tighter">BANNER</h3></div>
             </div>
         </div>
 
-        <div class="px-4">
+        <!-- Secțiunea de produse (ascunsă inițial până la selecția unei categorii) -->
+        <div id="product-section" class="px-4 view-hidden">
             <div class="flex justify-between items-center mb-3 px-1">
-                <h3 class="text-xs font-black uppercase tracking-widest text-gray-500 italic">Catalog Produse</h3>
-                <span id="productCount" class="text-[9px] text-gray-400 font-bold uppercase italic tracking-tighter">Pregătit</span>
+                <div class="flex items-center gap-2">
+                    <h3 id="selected-category-title" class="text-xs font-black uppercase tracking-widest text-dm-blue italic">Produse</h3>
+                    <button onclick="resetSelection()" class="text-[8px] bg-gray-200 px-2 py-0.5 rounded text-gray-500 font-bold uppercase">Închide</button>
+                </div>
+                <span id="productCount" class="text-[9px] text-gray-400 font-bold uppercase italic tracking-tighter">Se încarcă...</span>
             </div>
-            <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 mb-8">
                 <div class="overflow-x-auto max-h-[60vh]">
                     <table class="w-full text-left quick-order-table">
                         <thead class="bg-gray-50 border-b border-gray-100">
@@ -173,6 +190,14 @@
                         <tbody id="productTableBody" class="divide-y divide-gray-50 text-[10px]"></tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+        
+        <!-- Mesaj placeholder când nu e nimic selectat -->
+        <div id="category-placeholder" class="p-10 text-center">
+            <div class="bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl p-8">
+                <span class="text-4xl block mb-3">👇</span>
+                <p class="text-gray-400 font-black uppercase text-[10px] tracking-widest">Apasă pe o imagine de mai sus pentru a vedea produsele</p>
             </div>
         </div>
     </div>
@@ -231,9 +256,9 @@
         const CLOUD_EXCEL_FILE = 'OFERTA PRET RAVENOL 16.03.26.xlsx';
         let allProducts = [];
         let cart = {};
+        let selectedCategory = null;
         let orderHistory = JSON.parse(localStorage.getItem('dmauto_order_history') || '[]');
 
-        // Navigare între vederi
         function switchView(viewName) {
             const views = ['catalog', 'cart', 'history'];
             views.forEach(v => {
@@ -261,30 +286,49 @@
             if (viewName === 'history') renderHistory();
         }
 
-        // Inițializare Cloud cu fix pentru URL-uri și protocol
+        // Funcția nouă pentru selecția categoriei
+        function selectCategory(category) {
+            selectedCategory = category;
+            
+            // UI Update
+            document.getElementById('product-section').classList.remove('view-hidden');
+            document.getElementById('category-placeholder').classList.add('view-hidden');
+            document.getElementById('selected-category-title').innerText = category;
+            
+            // Highlight card
+            document.getElementById('card-ravenol').classList.add('selected-category');
+            
+            // Render
+            renderProducts(allProducts);
+            
+            // Scroll la listă
+            document.getElementById('product-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function resetSelection() {
+            selectedCategory = null;
+            document.getElementById('product-section').classList.add('view-hidden');
+            document.getElementById('category-placeholder').classList.remove('view-hidden');
+            document.getElementById('card-ravenol').classList.remove('selected-category');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
         window.addEventListener('load', async () => {
-            // Nu încercăm fetch pe blob: protocol deoarece va eșua mereu în preview
             if (window.location.protocol === 'blob:') {
-                console.log("Mediul Preview: Se încarcă datele locale.");
                 loadLocalData();
                 return;
             }
 
             try {
-                // Utilizăm o cale relativă curată fără ./ pentru a evita erorile de parsare în unele browsere
                 const filename = CLOUD_EXCEL_FILE;
                 const response = await fetch(filename);
-                
                 if (response.ok) {
                     const data = new Uint8Array(await response.arrayBuffer());
                     processExcelData(data);
-                    console.log("Cloud: Date sincronizate.");
                 } else {
-                    console.warn("Cloud: Fișier inaccesibil. Se folosește memoria locală.");
                     loadLocalData();
                 }
             } catch (e) {
-                console.error("Eroare la sincronizarea automată:", e);
                 loadLocalData();
             }
         });
@@ -314,7 +358,8 @@
                 return p[kDenumire] && p[kDenumire].toString().trim() !== "" && p[kDenumire] !== "Denumire";
             });
             localStorage.setItem('dmauto_last_products', JSON.stringify(allProducts));
-            renderProducts(allProducts);
+            
+            // Nu mai randăm automat aici, așteptăm click pe card
             const countEl = document.getElementById('productCount');
             if(countEl) countEl.innerText = allProducts.length + " Produse";
         }
@@ -328,6 +373,13 @@
         function renderProducts(products) {
             const tbody = document.getElementById('productTableBody');
             if (!tbody) return;
+            
+            // Dacă nu e selectată nicio categorie, nu afișăm nimic (deși secțiunea e ascunsă oricum)
+            if (!selectedCategory) {
+                tbody.innerHTML = '';
+                return;
+            }
+
             let html = '';
             products.forEach((p, index) => {
                 const keys = Object.keys(p);
@@ -444,11 +496,9 @@
             });
             msg += `\nTOTAL DE PLATĂ: ${total.toFixed(2)} RON`;
 
-            // Salvare istoric
             orderHistory.unshift({ timestamp, total: total.toFixed(2), items: items.length });
             localStorage.setItem('dmauto_order_history', JSON.stringify(orderHistory));
 
-            // Resetare coș (Sugestia 3)
             cart = {};
             updateBadge();
             
@@ -486,6 +536,10 @@
 
         function filterProducts() {
             const q = document.getElementById('searchInput').value.toLowerCase();
+            // Dacă nu e selectată nicio categorie, forțăm selecția pe Ravenol la căutare
+            if (!selectedCategory && q.length > 0) {
+                selectCategory('Ravenol');
+            }
             const filtered = allProducts.filter(p => {
                 const name = p[Object.keys(p).find(k => k.trim() === "Denumire")];
                 return name && name.toString().toLowerCase().includes(q);
