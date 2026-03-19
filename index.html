@@ -172,8 +172,9 @@
             <div id="card-Cyclon" onclick="selectCategory('Cyclon')" class="category-card" style="background-image: url('cyclon.jpg');">
                 <div class="category-overlay"><h3 class="text-white font-black text-xs uppercase italic tracking-tighter">CYCLON</h3></div>
             </div>
-            <div id="card-Diverse" onclick="selectCategory('Diverse')" class="category-card" style="background-image: url('diverse.jpg');">
-                <div class="category-overlay"><h3 class="text-white font-black text-xs uppercase italic tracking-tighter">DIVERSE</h3></div>
+            <!-- Categoria DIVERSE modificata in CEMSA -->
+            <div id="card-Cemsa" onclick="selectCategory('Cemsa')" class="category-card" style="background-image: url('cemsa.jpg');">
+                <div class="category-overlay"><h3 class="text-white font-black text-xs uppercase italic tracking-tighter">CEMSA</h3></div>
             </div>
         </div>
 
@@ -216,7 +217,6 @@
             <button onclick="golesteCos()" class="text-[10px] font-bold text-red-500 uppercase">Golește tot</button>
         </div>
         
-        <!-- Tabel Interactiv in Coș -->
         <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden mb-6">
             <div class="overflow-x-auto">
                 <table class="w-full text-left quick-order-table">
@@ -227,9 +227,7 @@
                             <th class="text-right">Total Net</th>
                         </tr>
                     </thead>
-                    <tbody id="cart-content-table" class="divide-y divide-gray-50 text-[10px]">
-                        <!-- Items appear here with +/- buttons -->
-                    </tbody>
+                    <tbody id="cart-content-table" class="divide-y divide-gray-50 text-[10px]"></tbody>
                 </table>
             </div>
             <div id="cart-empty-msg" class="p-10 text-center text-gray-400 uppercase font-black text-xs italic view-hidden">
@@ -333,12 +331,15 @@
             document.getElementById('product-section').classList.remove('view-hidden');
             document.getElementById('category-placeholder').classList.add('view-hidden');
             document.getElementById('selected-category-title').innerText = category;
-            ['Ravenol', 'Banner', 'Cyclon', 'Diverse'].forEach(cat => {
+            
+            // Am actualizat lista categoriilor aici pentru highlight corect
+            ['Ravenol', 'Banner', 'Cyclon', 'Cemsa'].forEach(cat => {
                 const card = document.getElementById(`card-${cat}`);
                 if (card) card.classList.remove('selected-category');
             });
             const selectedCard = document.getElementById(`card-${category}`);
             if (selectedCard) selectedCard.classList.add('selected-category');
+            
             renderProducts(allProducts);
             document.getElementById('product-section').scrollIntoView({ behavior: 'smooth' });
         }
@@ -347,7 +348,7 @@
             selectedCategory = null;
             document.getElementById('product-section').classList.add('view-hidden');
             document.getElementById('category-placeholder').classList.remove('view-hidden');
-            ['Ravenol', 'Banner', 'Cyclon', 'Diverse'].forEach(cat => {
+            ['Ravenol', 'Banner', 'Cyclon', 'Cemsa'].forEach(cat => {
                 const card = document.getElementById(`card-${cat}`);
                 if (card) card.classList.remove('selected-category');
             });
@@ -429,11 +430,8 @@
             cart[prodName].quantity += delta;
             if (cart[prodName].quantity <= 0) delete cart[prodName];
             
-            // Sync Catalog UI
             renderProducts(allProducts);
-            // Sync Cart UI if currently active
             if (currentActiveView === 'cart') renderCart();
-            
             updateBadge();
         }
 
@@ -586,9 +584,7 @@
         function incarcaComandaInCos() {
             if (currentViewingOrderIndex === null) return;
             const order = orderHistory[currentViewingOrderIndex];
-            
             cart = JSON.parse(JSON.stringify(order.cartData));
-            
             renderProducts(allProducts);
             updateBadge();
             switchView('cart');
