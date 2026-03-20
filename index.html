@@ -264,7 +264,6 @@
                         <span class="text-xl">🚀</span> TRIMITE
                     </button>
                 </div>
-                <p class="text-[10px] text-center mt-5 opacity-60 uppercase tracking-widest italic font-bold">Poți continua comanda oricând din Istoric</p>
             </div>
         </div>
 
@@ -282,9 +281,20 @@
             <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 mb-6">
                 <div id="order-details-header" class="border-b border-gray-100 pb-5 mb-5"></div>
                 <div id="order-details-items" class="space-y-4 mb-8"></div>
-                <button onclick="incarcaComandaInCos()" class="w-full bg-dm-blue text-dm-yellow py-5 rounded-xl font-black uppercase shadow-lg active:scale-95 transition-all text-sm">
-                    MODIFICĂ ȘI REIA COMANDA 🔄
-                </button>
+                
+                <div class="flex flex-col gap-3">
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="incarcaComandaInCos()" class="bg-dm-blue text-white py-4 rounded-xl font-black uppercase shadow-lg active:scale-95 transition-all text-[11px] flex items-center justify-center gap-2">
+                            <span>🔄</span> MODIFICĂ
+                        </button>
+                        <button onclick="retrimiteComandaDirect()" class="bg-dm-yellow text-dm-blue py-4 rounded-xl font-black uppercase shadow-lg active:scale-95 transition-all text-[11px] flex items-center justify-center gap-2">
+                            <span>🚀</span> TRIMITE
+                        </button>
+                    </div>
+                    <button onclick="stergeComandaCurenta()" class="w-full bg-red-500 text-white py-4 rounded-xl font-black uppercase shadow-lg active:scale-95 transition-all text-[11px] flex items-center justify-center gap-2">
+                        <span>🗑️</span> ȘTERGE COMANDA
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -375,6 +385,7 @@
             localStorage.setItem(cartKey, JSON.stringify(cart));
         }
 
+        // --- CATALOG ---
         async function syncCatalog() {
             loadLocalProducts();
             if (window.location.protocol === 'blob:') return;
@@ -405,6 +416,7 @@
             if(document.getElementById('productCount')) document.getElementById('productCount').innerText = allProducts.length + " Produse în Catalog";
         }
 
+        // --- UI / NAVIGATION ---
         function switchView(viewName) {
             currentActiveView = viewName;
             const views = ['catalog', 'cart', 'history', 'order-details'];
@@ -447,6 +459,7 @@
             });
         }
 
+        // --- COȘ ---
         function updateCart(prodName, delta) {
             const productData = allProducts.find(p => p[Object.keys(p).find(k => k.trim() === "Denumire")] === prodName);
             if (!productData) return;
@@ -474,24 +487,17 @@
                 const denumire = p[keys.find(k => k.trim() === "Denumire")] || "";
                 const pretFaraTva = formatPriceNum(p[keys.find(k => k.trim() === "Pret fara TVA")]);
                 const currentQty = cart[denumire] ? cart[denumire].quantity : 0;
-                
-                // MĂRIRE FONT PRODUSE CATALOG
                 html += `
                     <tr class="${currentQty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100">
-                        <td class="pr-2 py-4 pl-2 font-black text-dm-blue uppercase leading-tight tracking-tighter text-base">
-                            ${denumire}
-                            <br><span class="text-xs font-bold text-gray-500 italic opacity-80 mt-1 block">NET: ${pretFaraTva.toFixed(2)} RON</span>
-                        </td>
+                        <td class="pr-2 py-4 pl-2 font-black text-dm-blue uppercase leading-tight tracking-tighter text-base">${denumire}<br><span class="text-xs font-bold text-gray-500 italic opacity-80 mt-1 block">NET: ${pretFaraTva.toFixed(2)} RON</span></td>
                         <td class="py-4">
-                            <div class="flex items-center justify-center gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100 shadow-inner">
+                            <div class="flex items-center justify-center gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100">
                                 <button onclick="updateCart('${denumire.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button>
                                 <span class="font-black text-base w-7 text-center text-dm-blue">${currentQty}</span>
                                 <button onclick="updateCart('${denumire.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-md">+</button>
                             </div>
                         </td>
-                        <td class="text-right pr-2 py-4 font-black text-dm-blue text-sm">
-                            ${(currentQty * pretFaraTva).toFixed(2)} RON
-                        </td>
+                        <td class="text-right pr-2 py-4 font-black text-dm-blue text-sm">${(currentQty * pretFaraTva).toFixed(2)} RON</td>
                     </tr>`;
             });
             tbody.innerHTML = html;
@@ -514,21 +520,15 @@
             emptyMsg.classList.add('view-hidden');
             document.getElementById('btnTrimite').disabled = false; document.getElementById('btnTrimite').style.opacity = "1";
             document.getElementById('btnSaveDraft').disabled = false; document.getElementById('btnSaveDraft').style.opacity = "1";
-            
             items.forEach(item => {
                 const keys = Object.keys(item.data);
                 const name = item.data[keys.find(k => k.trim() === "Denumire")];
                 const pFara = formatPriceNum(item.data[keys.find(k => k.trim() === "Pret fara TVA")]);
                 const subtotal = item.quantity * pFara;
                 totalNoVat += subtotal;
-                
-                // MĂRIRE FONT PRODUSE COȘ
                 html += `
                     <tr class="border-b border-gray-100">
-                        <td class="pr-2 py-4 pl-2 font-black text-dm-blue uppercase leading-tight tracking-tighter text-base">
-                            ${name}
-                            <br><span class="text-xs font-bold text-gray-500 italic mt-1 block">${pFara.toFixed(2)} RON / BUC (NET)</span>
-                        </td>
+                        <td class="pr-2 py-4 pl-2 font-black text-dm-blue uppercase leading-tight tracking-tighter text-base">${name}<br><span class="text-xs font-bold text-gray-500 italic mt-1 block">${pFara.toFixed(2)} RON / BUC (NET)</span></td>
                         <td class="py-4">
                             <div class="flex items-center justify-center gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100">
                                 <button onclick="updateCart('${name.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button>
@@ -550,6 +550,7 @@
             }
         }
 
+        // --- SALVARE ȘI TRIMITERE ---
         function salveazaComanda(isDraft = false) {
             const items = Object.values(cart);
             if (items.length === 0) return;
@@ -559,18 +560,10 @@
                 const pFara = formatPriceNum(item.data[Object.keys(item.data).find(k => k.trim() === "Pret fara TVA")]);
                 totalNoVat += item.quantity * pFara;
             });
-
-            window.orderHistory.unshift({ 
-                timestamp, 
-                total: totalNoVat.toFixed(2), 
-                items: items.length, 
-                cartData: JSON.parse(JSON.stringify(cart)),
-                status: isDraft ? 'Ciornă' : 'Trimisă'
-            });
+            window.orderHistory.unshift({ timestamp, total: totalNoVat.toFixed(2), items: items.length, cartData: JSON.parse(JSON.stringify(cart)), status: isDraft ? 'Ciornă' : 'Trimisă' });
             saveAgentData();
-
             if (!isDraft) {
-                trimiteWhatsApp(totalNoVat, timestamp);
+                trimiteWhatsApp(totalNoVat, timestamp, cart);
                 cart = {}; saveAgentData(); updateBadge(); switchView('history');
             } else {
                 alert("Progresul a fost salvat în Istoric ca Ciornă.");
@@ -578,8 +571,8 @@
             }
         }
 
-        function trimiteWhatsApp(totalNoVat, timestamp) {
-            const items = Object.values(cart);
+        function trimiteWhatsApp(totalNoVat, timestamp, cartDataObj) {
+            const items = Object.values(cartDataObj);
             let msg = `Salut! Comandă DM Auto Sebeș (Agent: ${currentAgent.name})\nData: ${timestamp}\n\n`;
             items.forEach(item => {
                 const keys = Object.keys(item.data);
@@ -587,16 +580,16 @@
                 const pFara = formatPriceNum(item.data[keys.find(k => k.trim() === "Pret fara TVA")]);
                 msg += `• ${item.quantity} x ${name} (${pFara.toFixed(2)} RON/buc NET) = ${(item.quantity * pFara).toFixed(2)} RON\n`;
             });
-            msg += `\nTOTAL NET: ${totalNoVat.toFixed(2)} RON`;
+            msg += `\nTOTAL NET: ${totalNoVat} RON`;
             msg += `\nTOTAL CU TVA (21%): ${(totalNoVat * TVA_RATE).toFixed(2)} RON`;
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
         }
 
+        // --- ISTORIC ---
         function renderHistory() {
             const container = document.getElementById('history-content');
             if (!container) return;
             if (window.orderHistory.length === 0) { container.innerHTML = '<div class="p-10 text-center text-gray-400 italic text-sm">Nicio comandă salvată încă.</div>'; return; }
-            
             container.innerHTML = window.orderHistory.map((order, index) => {
                 const statusColor = order.status === 'Ciornă' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700';
                 return `
@@ -619,23 +612,17 @@
             switchView('order-details');
             document.getElementById('order-details-header').innerHTML = `
                 <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-sm font-black text-gray-400 uppercase italic tracking-widest">COMANDA DIN ${order.timestamp.split(',')[0]}</h3>
+                    <h3 class="text-sm font-black text-gray-400 uppercase italic">COMANDA DIN ${order.timestamp.split(',')[0]}</h3>
                     <span class="text-[10px] font-black bg-gray-100 px-3 py-1 rounded-full uppercase">${order.status}</span>
                 </div>
                 <p class="text-2xl font-black text-dm-blue italic">${order.total} RON <span class="text-sm uppercase opacity-50 not-italic">NET</span></p>
-                <p class="text-xs font-bold text-gray-400 italic mt-1">Total cu TVA 21%: ${(order.total * TVA_RATE).toFixed(2)} RON</p>
-            `;
+                <p class="text-xs font-bold text-gray-400 italic mt-1">Total cu TVA 21%: ${(order.total * TVA_RATE).toFixed(2)} RON</p>`;
             let html = '';
             Object.values(order.cartData).forEach(item => {
                 const keys = Object.keys(item.data);
                 const name = item.data[keys.find(k => k.trim() === "Denumire")];
                 const pFara = formatPriceNum(item.data[keys.find(k => k.trim() === "Pret fara TVA")]);
-                // MĂRIRE FONT DETALII ISTORIC
-                html += `
-                    <div class="flex justify-between items-center text-sm py-2 border-b border-gray-50 last:border-0">
-                        <span class="font-bold text-dm-blue uppercase truncate pr-4 leading-tight">${name}</span>
-                        <span class="font-black whitespace-nowrap bg-gray-50 px-2 py-1 rounded">${item.quantity} x ${pFara.toFixed(2)}</span>
-                    </div>`;
+                html += `<div class="flex justify-between items-center text-sm py-2 border-b border-gray-50 last:border-0"><span class="font-bold text-dm-blue uppercase truncate pr-4 leading-tight">${name}</span><span class="font-black bg-gray-50 px-2 py-1 rounded">${item.quantity} x ${pFara.toFixed(2)}</span></div>`;
             });
             document.getElementById('order-details-items').innerHTML = html;
         }
@@ -644,6 +631,28 @@
             if (currentViewingOrderIndex === null) return;
             cart = JSON.parse(JSON.stringify(window.orderHistory[currentViewingOrderIndex].cartData));
             saveAgentData(); renderProducts(allProducts); updateBadge(); switchView('cart'); renderCart();
+        }
+
+        function retrimiteComandaDirect() {
+            if (currentViewingOrderIndex === null) return;
+            const order = window.orderHistory[currentViewingOrderIndex];
+            trimiteWhatsApp(order.total, order.timestamp, order.cartData);
+            
+            // Actualizăm statusul în "Trimisă" dacă era Ciornă
+            if (order.status === 'Ciornă') {
+                window.orderHistory[currentViewingOrderIndex].status = 'Trimisă';
+                saveAgentData();
+                switchView('history');
+            }
+        }
+
+        function stergeComandaCurenta() {
+            if (currentViewingOrderIndex === null) return;
+            if (confirm("Sigur vrei să ștergi această comandă din istoric?")) {
+                window.orderHistory.splice(currentViewingOrderIndex, 1);
+                saveAgentData();
+                switchView('history');
+            }
         }
 
         function formatPriceNum(val) {
