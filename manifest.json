@@ -8,7 +8,7 @@
   "description": "Sistem de gestiune comenzi DM Auto Sebeș - Agent: Calin Mocean",
   "icons": [
     {
-      "src": "https://www.dmauto.ro/wp-content/uploads/logo-dmauto.png",
+      "src": "logo_dmauto.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

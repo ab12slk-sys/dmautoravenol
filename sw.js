@@ -1,11 +1,12 @@
-const CACHE_NAME = 'dmauto-v5';
+const CACHE_NAME = 'dmauto-v6';
 const ASSETS = [
   './index.html',
   './manifest.json',
+  './logo_dmauto.png',
   './ravenol.jpg',
   './banner.jpg',
   './cyclon.jpg',
-  './castrol.png'
+  './cemsa.jpg'
 ];
 
 self.addEventListener('install', (e) => {
