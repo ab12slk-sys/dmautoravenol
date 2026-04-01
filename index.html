@@ -186,9 +186,12 @@
             </div>
 
             <div id="search-container" class="relative">
-                <input type="text" id="searchInput" onkeyup="filterProducts()" placeholder="Caută în categoria selectată..." 
+                <input type="text" id="searchInput" 
+                       onkeyup="if(event.key === 'Enter') filterProducts()" 
+                       placeholder="Caută în categoria selectată..." 
                        class="w-full p-4 pr-12 rounded-xl text-gray-800 text-base focus:outline-none shadow-2xl border-none font-semibold">
-                <div class="absolute right-4 top-4 text-gray-300">
+                <!-- Lupa cu onclick si efect de apasare -->
+                <div onclick="filterProducts()" class="absolute right-4 top-4 text-gray-300 cursor-pointer active:scale-90 active:text-dm-blue transition-all">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
@@ -219,7 +222,7 @@
                 <div class="flex justify-between items-center mb-3 px-1">
                     <div class="flex items-center gap-2">
                         <h3 id="selected-category-title" class="text-sm font-black uppercase tracking-widest text-dm-blue italic">Produse</h3>
-                        <button onclick="resetSelection()" class="text-[10px] bg-gray-200 px-3 py-1 rounded text-gray-600 font-bold uppercase">Închide</button>
+                        <button onclick="resetSelection()" class="text-[10px] bg-gray-200 px-3 py-1 rounded text-gray-600 font-bold uppercase active:bg-gray-300">Închide</button>
                     </div>
                     <span id="productCount" class="text-[11px] text-gray-400 font-bold uppercase italic tracking-tighter">...</span>
                 </div>
@@ -411,6 +414,9 @@
         }
 
         async function selectCategory(category) {
+            // MODIFICARE: La re-click pe categorie, curățăm bara de căutare
+            document.getElementById('searchInput').value = '';
+            
             selectedCategory = category;
             activeSheetName = null;
             currentCategoryData = {};
@@ -419,6 +425,7 @@
             document.getElementById('product-section').classList.remove('view-hidden');
             document.getElementById('category-placeholder').classList.add('view-hidden');
             document.getElementById('selected-category-title').innerText = category;
+            
             ['Ravenol', 'Banner', 'Cyclon', 'Cemsa'].forEach(cat => {
                 const card = document.getElementById(`card-${cat}`);
                 if (card) card.classList.toggle('selected-category', cat === category);
@@ -480,7 +487,6 @@
             const activeBtn = document.getElementById(`btn-sheet-${sheetName}`);
             if (activeBtn) activeBtn.classList.replace('sheet-tab-inactive', 'sheet-tab-active');
             
-            // Respectăm filtrul din bara de căutare la schimbarea foii
             filterProducts();
             document.getElementById('productCount').innerText = allProducts.length + " Produse în " + sheetName;
         }
@@ -488,7 +494,7 @@
         function renderProducts(products) {
             const tbody = document.getElementById('productTableBody');
             if (!tbody) return;
-            if (products.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-10 text-center text-gray-400 italic">Niciun produs găsit.</td></tr>'; return; }
+            if (products.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-10 text-center text-gray-400 italic font-bold">Niciun produs găsit pentru căutarea ta.</td></tr>'; return; }
             let html = '';
             products.forEach(p => {
                 const keys = Object.keys(p);
@@ -519,7 +525,6 @@
             tbody.innerHTML = html;
         }
 
-        // FIX: Acum updateCart folosește filterProducts() în loc de renderProducts(allProducts)
         function updateCart(prodName, delta) {
             const productData = allProducts.find(p => p[Object.keys(p).find(k => k.trim().toLowerCase() === "denumire")] === prodName);
             if (!productData && !cart[prodName]) return;
@@ -527,10 +532,7 @@
             cart[prodName].quantity += delta;
             if (cart[prodName].quantity <= 0) delete cart[prodName];
             saveAgentData();
-            
-            // Aceasta este modificarea cheie: reaplicăm filtrul curent
             filterProducts(); 
-            
             if (currentActiveView === 'cart') renderCart();
             updateBadge();
         }
@@ -633,7 +635,7 @@
                 const keys = Object.keys(item.data);
                 const kDen = keys.find(k => k.trim().toLowerCase() === "denumire");
                 const kPret = keys.find(k => k.trim().toLowerCase() === "pret fara tva");
-                html += `<div class="flex justify-between items-center text-sm py-3 border-b border-gray-50 last:border-0"><div class="flex flex-col"><span class="font-bold text-dm-blue uppercase leading-tight">${item.data[kDen]}</span><span class="text-lg font-black text-blue-600">${formatPriceNum(item.data[kPret]).toFixed(2)} <span class="text-[10px] opacity-60">Net</span></span></div><span class="font-black bg-gray-100 px-3 py-2 rounded-xl text-lg">x ${item.quantity}</span></div>`;
+                html += `<div class="flex justify-between items-center text-sm py-3 border-b border-gray-50 last:border-0"><div class="flex flex-col"><span class="font-bold text-dm-blue uppercase leading-tight">${item.data[kDen]}</span><span class="text-lg font-black text-blue-600">${formatPriceNum(item.data[kPret]).toFixed(2)} <span class="text-[10px] opacity-60">Net</span></span></div><span class="font-black bg-gray-50 px-3 py-2 rounded-xl text-lg">x ${item.quantity}</span></div>`;
             });
             document.getElementById('order-details-items').innerHTML = html;
         }
@@ -644,14 +646,29 @@
         function formatPriceNum(val) { if (!val && val !== 0) return 0; if (typeof val === 'number') return val; return parseFloat(val.toString().replace(',', '.')) || 0; }
         function triggerManualSync() { if (selectedCategory) selectCategory(selectedCategory); else alert("Selectează o categorie."); }
 
-        // MODIFICARE: Funcție de filtrare centralizată
         function filterProducts() {
-            const q = document.getElementById('searchInput').value.toLowerCase();
+            const q = document.getElementById('searchInput').value.toLowerCase().trim();
             const filtered = allProducts.filter(p => {
                 const k = Object.keys(p).find(key => key.trim().toLowerCase() === "denumire");
                 return p[k] && p[k].toString().toLowerCase().includes(q);
             });
             renderProducts(filtered);
+        }
+
+        function resetSelection() {
+            // MODIFICARE: Curățăm bara de căutare la apăsarea butonului Închide
+            document.getElementById('searchInput').value = '';
+            
+            selectedCategory = null;
+            allProducts = [];
+            document.getElementById('product-section').classList.add('view-hidden');
+            document.getElementById('sheet-selector').classList.add('view-hidden');
+            document.getElementById('category-placeholder').classList.remove('view-hidden');
+            ['Ravenol', 'Banner', 'Cyclon', 'Cemsa'].forEach(cat => {
+                const card = document.getElementById(`card-${cat}`);
+                if (card) card.classList.remove('selected-category');
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function switchView(viewName) {
