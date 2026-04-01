@@ -65,12 +65,12 @@
         }
 
         .qty-btn {
-            width: 38px;
-            height: 38px;
+            width: 44px;
+            height: 44px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 10px;
+            border-radius: 12px;
             font-weight: 900;
             transition: all 0.1s ease;
         }
@@ -213,7 +213,6 @@
                 </div>
             </div>
 
-            <!-- SELECTOR FOI -->
             <div id="sheet-selector" class="px-4 mb-4 flex gap-2 overflow-x-auto no-scrollbar view-hidden"></div>
 
             <div id="product-section" class="px-4 view-hidden">
@@ -229,9 +228,9 @@
                         <table class="w-full text-left quick-order-table">
                             <thead class="bg-gray-50 border-b border-gray-100">
                                 <tr>
-                                    <th class="w-1/2">Denumire</th>
-                                    <th class="text-center">Cant.</th>
-                                    <th class="text-right">Net (Fără TVA)</th>
+                                    <th class="w-1/2 pl-4">Produs / Preț NET</th>
+                                    <th class="text-center">Cantitate</th>
+                                    <th class="text-right pr-4">Subtotal</th>
                                 </tr>
                             </thead>
                             <tbody id="productTableBody" class="divide-y divide-gray-50 text-sm"></tbody>
@@ -261,9 +260,9 @@
                     <table class="w-full text-left quick-order-table">
                         <thead class="bg-gray-50 border-b border-gray-100">
                             <tr>
-                                <th class="w-1/2">Produs</th>
-                                <th class="text-center">Cant.</th>
-                                <th class="text-right">Total Net</th>
+                                <th class="w-1/2 pl-4">Produs / Preț NET</th>
+                                <th class="text-center">Cantitate</th>
+                                <th class="text-right pr-4">Total Net</th>
                             </tr>
                         </thead>
                         <tbody id="cart-content-table" class="divide-y divide-gray-50 text-base"></tbody>
@@ -358,7 +357,7 @@
         let cart = {};
         let selectedCategory = null;
         let activeSheetName = null;
-        let currentCategoryData = {}; // Obiect care retine toate foile pentru categoria curenta
+        let currentCategoryData = {}; 
         let currentActiveView = 'catalog';
         let currentViewingOrderIndex = null;
         window.orderHistory = [];
@@ -415,19 +414,15 @@
             selectedCategory = category;
             activeSheetName = null;
             currentCategoryData = {};
-            
             document.getElementById('productTableBody').innerHTML = '<tr><td colspan="3" class="p-10 text-center text-dm-blue font-bold italic">Se accesează oferta...</td></tr>';
             document.getElementById('sheet-selector').classList.add('view-hidden');
-            
             document.getElementById('product-section').classList.remove('view-hidden');
             document.getElementById('category-placeholder').classList.add('view-hidden');
             document.getElementById('selected-category-title').innerText = category;
-            
             ['Ravenol', 'Banner', 'Cyclon', 'Cemsa'].forEach(cat => {
                 const card = document.getElementById(`card-${cat}`);
                 if (card) card.classList.toggle('selected-category', cat === category);
             });
-
             await syncCategoryData(category);
             document.getElementById('product-section').scrollIntoView({ behavior: 'smooth' });
         }
@@ -435,8 +430,6 @@
         async function syncCategoryData(category) {
             const fileName = CATEGORY_FILES[category];
             const localKey = `dmauto_cache_${category}`;
-            
-            // Incarcam din cache intai
             const cached = localStorage.getItem(localKey);
             if (cached) {
                 currentCategoryData = JSON.parse(cached);
@@ -444,25 +437,18 @@
                 renderSheetSelector(sheetNames);
                 loadSheet(sheetNames[0]);
             }
-
             if (window.location.protocol === 'blob:') return;
-
             try {
                 const encodedFile = encodeURIComponent(fileName);
                 const response = await fetch(window.location.pathname.includes('DM-Auto-App') ? `./${encodedFile}` : encodedFile);
-                
                 if (response.ok) {
                     const data = await response.arrayBuffer();
                     const workbook = XLSX.read(data, {type: 'array'});
-                    
-                    // Resetam datele pentru a procesa tot workbook-ul
                     currentCategoryData = {};
                     workbook.SheetNames.forEach(name => {
                         const rawJson = XLSX.utils.sheet_to_json(workbook.Sheets[name], { header: 1 });
-                        // Gasim rândul antetului automat (unde apare "Denumire")
                         let headerIdx = rawJson.findIndex(row => row.some(cell => cell && cell.toString().toLowerCase().includes("denumire")));
                         headerIdx = headerIdx === -1 ? 0 : headerIdx;
-                        
                         const sheetJson = XLSX.utils.sheet_to_json(workbook.Sheets[name], { range: headerIdx, defval: "" });
                         const filtered = sheetJson.filter(p => {
                             const k = Object.keys(p).find(key => key.trim().toLowerCase() === "denumire");
@@ -470,43 +456,29 @@
                         });
                         currentCategoryData[name] = filtered;
                     });
-
                     localStorage.setItem(localKey, JSON.stringify(currentCategoryData));
                     const sheetNames = Object.keys(currentCategoryData);
                     renderSheetSelector(sheetNames);
                     loadSheet(sheetNames[0]);
                 }
-            } catch (e) { 
-                console.error("Eroare incarcare:", e);
-            }
+            } catch (e) { console.error("Eroare incarcare:", e); }
         }
 
         function renderSheetSelector(sheetNames) {
             const container = document.getElementById('sheet-selector');
-            if (sheetNames.length <= 1) {
-                container.classList.add('view-hidden');
-                return;
-            }
+            if (sheetNames.length <= 1) { container.classList.add('view-hidden'); return; }
             container.classList.remove('view-hidden');
-            container.innerHTML = sheetNames.map(name => `
-                <button onclick="loadSheet('${name}')" id="btn-sheet-${name}" 
-                        class="sheet-tab ${activeSheetName === name ? 'sheet-tab-active' : 'sheet-tab-inactive'}">
-                    ${name}
-                </button>
-            `).join('');
+            container.innerHTML = sheetNames.map(name => `<button onclick="loadSheet('${name}')" id="btn-sheet-${name}" class="sheet-tab ${activeSheetName === name ? 'sheet-tab-active' : 'sheet-tab-inactive'}">${name}</button>`).join('');
         }
 
         function loadSheet(sheetName) {
             if (!currentCategoryData[sheetName]) return;
             activeSheetName = sheetName;
             allProducts = currentCategoryData[sheetName];
-
-            // Update UI selector
             const container = document.getElementById('sheet-selector');
             container.querySelectorAll('button').forEach(btn => btn.classList.replace('sheet-tab-active', 'sheet-tab-inactive'));
             const activeBtn = document.getElementById(`btn-sheet-${sheetName}`);
             if (activeBtn) activeBtn.classList.replace('sheet-tab-inactive', 'sheet-tab-active');
-
             renderProducts(allProducts);
             document.getElementById('productCount').innerText = allProducts.length + " Produse în " + sheetName;
         }
@@ -514,10 +486,7 @@
         function renderProducts(products) {
             const tbody = document.getElementById('productTableBody');
             if (!tbody) return;
-            if (products.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" class="p-10 text-center text-gray-400 italic">Niciun produs găsit în această listă.</td></tr>';
-                return;
-            }
+            if (products.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-10 text-center text-gray-400 italic">Niciun produs găsit.</td></tr>'; return; }
             let html = '';
             products.forEach(p => {
                 const keys = Object.keys(p);
@@ -527,17 +496,23 @@
                 const pretFaraTva = formatPriceNum(p[kPret]);
                 const currentQty = cart[denumire] ? cart[denumire].quantity : 0;
                 
+                // MĂRIRE FONT PREȚ NET SUB DENUMIRE PENTRU OVIDIU
                 html += `
                     <tr class="${currentQty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100">
-                        <td class="pr-2 py-4 pl-2 font-black text-dm-blue uppercase leading-tight tracking-tighter text-base">${denumire}<br><span class="text-xs font-bold text-gray-500 italic opacity-80 mt-1 block">NET: ${pretFaraTva.toFixed(2)} RON</span></td>
+                        <td class="pr-2 py-4 pl-4 font-black text-dm-blue uppercase leading-tight tracking-tighter text-sm">
+                            ${denumire}
+                            <br><span class="text-xl font-black text-blue-600 mt-2 block tracking-tight">${pretFaraTva.toFixed(2)} RON <span class="text-[10px] uppercase opacity-60">Net</span></span>
+                        </td>
                         <td class="py-4">
                             <div class="flex items-center justify-center gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100 shadow-inner">
                                 <button onclick="updateCart('${denumire.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button>
-                                <span class="font-black text-base w-7 text-center text-dm-blue">${currentQty}</span>
+                                <span class="font-black text-lg w-8 text-center text-dm-blue">${currentQty}</span>
                                 <button onclick="updateCart('${denumire.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-md">+</button>
                             </div>
                         </td>
-                        <td class="text-right pr-2 py-4 font-black text-dm-blue text-sm">${(currentQty * pretFaraTva).toFixed(2)} RON</td>
+                        <td class="text-right pr-4 py-4 font-black text-dm-blue text-sm">
+                            ${(currentQty * pretFaraTva).toFixed(2)} <span class="text-[9px]">RON</span>
+                        </td>
                     </tr>`;
             });
             tbody.innerHTML = html;
@@ -582,17 +557,22 @@
                 const pFara = formatPriceNum(item.data[kPret]);
                 const subtotal = item.quantity * pFara;
                 totalNoVat += subtotal;
+                
+                // MĂRIRE FONT PREȚ NET ÎN COȘ
                 html += `
                     <tr class="border-b border-gray-100">
-                        <td class="pr-2 py-4 pl-2 font-black text-dm-blue uppercase leading-tight tracking-tighter text-base">${name}<br><span class="text-xs font-bold text-gray-500 italic mt-1 block">${pFara.toFixed(2)} RON (Net) | ${item.sheet || 'General'}</span></td>
+                        <td class="pr-2 py-4 pl-4 font-black text-dm-blue uppercase leading-tight tracking-tighter text-sm">
+                            ${name}
+                            <br><span class="text-xl font-black text-blue-600 mt-2 block tracking-tight">${pFara.toFixed(2)} RON <span class="text-[10px] uppercase opacity-60">Net</span></span>
+                        </td>
                         <td class="py-4">
                             <div class="flex items-center justify-center gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100">
                                 <button onclick="updateCart('${name.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button>
-                                <span class="font-black text-base w-7 text-center text-dm-blue">${item.quantity}</span>
+                                <span class="font-black text-lg w-8 text-center text-dm-blue">${item.quantity}</span>
                                 <button onclick="updateCart('${name.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-md">+</button>
                             </div>
                         </td>
-                        <td class="text-right pr-2 py-4 font-black text-dm-blue text-sm">${subtotal.toFixed(2)} RON</td>
+                        <td class="text-right pr-4 py-4 font-black text-dm-blue text-sm">${subtotal.toFixed(2)} RON</td>
                     </tr>`;
             });
             tbody.innerHTML = html;
@@ -636,41 +616,26 @@
             const container = document.getElementById('history-content');
             if (!container) return;
             if (window.orderHistory.length === 0) { container.innerHTML = '<div class="p-10 text-center text-gray-400 italic text-sm">Nicio comandă încă.</div>'; return; }
-            container.innerHTML = window.orderHistory.map((order, index) => `
-                <div onclick="veziDetaliiComanda(${index})" class="bg-white p-5 rounded-2xl shadow-md border-l-4 border-dm-yellow active:scale-[0.98] cursor-pointer">
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="text-xs font-black text-gray-400 uppercase italic">${order.timestamp}</span>
-                        <span class="${order.status === 'Ciornă' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'} text-[10px] font-black px-3 py-1 rounded-full uppercase">${order.status}</span>
-                    </div>
-                    <div class="flex justify-between items-end"><p class="text-xs font-bold text-dm-blue uppercase">${order.items} PRODUSE</p><p class="text-lg font-black text-dm-blue">${order.total} RON NET</p></div>
-                </div>`).join('');
+            container.innerHTML = window.orderHistory.map((order, index) => `<div onclick="veziDetaliiComanda(${index})" class="bg-white p-5 rounded-2xl shadow-md border-l-4 border-dm-yellow active:scale-[0.98] cursor-pointer"><div class="flex justify-between items-start mb-2"><span class="text-xs font-black text-gray-400 uppercase italic">${order.timestamp}</span><span class="${order.status === 'Ciornă' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'} text-[10px] font-black px-3 py-1 rounded-full uppercase">${order.status}</span></div><div class="flex justify-between items-end"><p class="text-xs font-bold text-dm-blue uppercase">${order.items} PRODUSE</p><p class="text-lg font-black text-dm-blue">${order.total} RON NET</p></div></div>`).join('');
         }
 
         function veziDetaliiComanda(index) {
             currentViewingOrderIndex = index;
             const order = window.orderHistory[index];
             switchView('order-details');
-            document.getElementById('order-details-header').innerHTML = `
-                <div class="flex justify-between items-center mb-2"><h3 class="text-sm font-black text-gray-400 uppercase italic">COMANDA ${order.timestamp.split(',')[0]}</h3><span class="text-[10px] font-black bg-gray-100 px-3 py-1 rounded-full uppercase">${order.status}</span></div>
-                <p class="text-2xl font-black text-dm-blue italic">${order.total} RON <span class="text-sm uppercase opacity-50 not-italic">NET</span></p>
-                <p class="text-xs font-bold text-gray-400 italic mt-1">Total cu TVA 21%: ${(order.total * TVA_RATE).toFixed(2)} RON</p>`;
+            document.getElementById('order-details-header').innerHTML = `<div class="flex justify-between items-center mb-2"><h3 class="text-sm font-black text-gray-400 uppercase italic">COMANDA ${order.timestamp.split(',')[0]}</h3><span class="text-[10px] font-black bg-gray-100 px-3 py-1 rounded-full uppercase">${order.status}</span></div><p class="text-2xl font-black text-dm-blue italic">${order.total} RON <span class="text-sm uppercase opacity-50 not-italic">NET</span></p><p class="text-xs font-bold text-gray-400 italic mt-1">Total cu TVA 21%: ${(order.total * TVA_RATE).toFixed(2)} RON</p>`;
             let html = '';
             Object.values(order.cartData).forEach(item => {
                 const keys = Object.keys(item.data);
                 const kDen = keys.find(k => k.trim().toLowerCase() === "denumire");
                 const kPret = keys.find(k => k.trim().toLowerCase() === "pret fara tva");
-                html += `<div class="flex justify-between items-center text-sm py-2 border-b border-gray-50 last:border-0"><span class="font-bold text-dm-blue uppercase truncate pr-4 leading-tight">${item.data[kDen]}</span><span class="font-black bg-gray-50 px-2 py-1 rounded">${item.quantity} x ${formatPriceNum(item.data[kPret]).toFixed(2)}</span></div>`;
+                html += `<div class="flex justify-between items-center text-sm py-3 border-b border-gray-50 last:border-0"><div class="flex flex-col"><span class="font-bold text-dm-blue uppercase leading-tight">${item.data[kDen]}</span><span class="text-lg font-black text-blue-600">${formatPriceNum(item.data[kPret]).toFixed(2)} <span class="text-[10px] opacity-60">Net</span></span></div><span class="font-black bg-gray-100 px-3 py-2 rounded-xl text-lg">x ${item.quantity}</span></div>`;
             });
             document.getElementById('order-details-items').innerHTML = html;
         }
 
         function incarcaComandaInCos() { if (currentViewingOrderIndex === null) return; cart = JSON.parse(JSON.stringify(window.orderHistory[currentViewingOrderIndex].cartData)); saveAgentData(); renderCart(); switchView('cart'); updateBadge(); }
-        function retrimiteComandaDirect() {
-            if (currentViewingOrderIndex === null) return;
-            const order = window.orderHistory[currentViewingOrderIndex];
-            trimiteWhatsApp(order.total, order.timestamp, order.cartData);
-            if (order.status === 'Ciornă') { window.orderHistory[currentViewingOrderIndex].status = 'Trimisă'; saveAgentData(); switchView('history'); }
-        }
+        function retrimiteComandaDirect() { if (currentViewingOrderIndex === null) return; const order = window.orderHistory[currentViewingOrderIndex]; trimiteWhatsApp(order.total, order.timestamp, order.cartData); if (order.status === 'Ciornă') { window.orderHistory[currentViewingOrderIndex].status = 'Trimisă'; saveAgentData(); switchView('history'); } }
         function stergeComandaCurenta() { if (currentViewingOrderIndex === null) return; if (confirm("Ștergi comanda?")) { window.orderHistory.splice(currentViewingOrderIndex, 1); saveAgentData(); switchView('history'); } }
         function formatPriceNum(val) { if (!val && val !== 0) return 0; if (typeof val === 'number') return val; return parseFloat(val.toString().replace(',', '.')) || 0; }
         function triggerManualSync() { if (selectedCategory) selectCategory(selectedCategory); else alert("Selectează o categorie."); }
