@@ -143,6 +143,16 @@
             border-left-color: #ffcc00;
             background-color: #fffbeb;
         }
+
+        .btn-save-client {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            transition: all 0.2s;
+        }
     </style>
 </head>
 <body class="pb-32">
@@ -186,14 +196,20 @@
                 </div>
                 <div class="flex-1">
                     <h1 class="text-sm font-medium opacity-90">Salut, <span id="agent-display-name" class="font-black text-white">Agent!</span></h1>
-                    <button onclick="switchView('clients')" class="mt-1 bg-black/20 border border-white/10 px-3 py-1.5 rounded-lg flex items-center gap-2 active:scale-95 transition-all">
-                        <span class="text-[10px] font-black text-dm-yellow uppercase tracking-tighter">Client:</span>
-                        <span id="header-client-name" class="text-xs font-bold truncate max-w-[120px]">Neselectat 👤</span>
+                    <!-- MODIFICARE: Caseta Client Mărită pentru Ovidiu -->
+                    <button onclick="switchView('clients')" class="mt-2 w-full bg-black/30 border border-white/20 p-4 rounded-xl flex flex-col items-start gap-1 active:scale-95 transition-all shadow-inner">
+                        <span class="text-[10px] font-black text-dm-yellow uppercase tracking-[0.2em] opacity-80">Client Selectat:</span>
+                        <div class="flex items-center justify-between w-full">
+                            <span id="header-client-name" class="text-lg font-black truncate leading-none">Neselectat 👤</span>
+                            <span class="text-dm-yellow text-sm">➔</span>
+                        </div>
                     </button>
                 </div>
-                <button onclick="triggerManualSync()" class="bg-white/10 p-3 rounded-2xl border border-white/20 active:scale-90 transition-all">
-                    <span class="text-xl">🔄</span>
-                </button>
+                <div class="flex flex-col gap-2">
+                    <button onclick="triggerManualSync()" class="bg-white/10 p-3 rounded-2xl border border-white/20 active:scale-90 transition-all">
+                        <span class="text-xl">🔄</span>
+                    </button>
+                </div>
             </div>
 
             <div id="search-container" class="relative">
@@ -282,12 +298,12 @@
                 <button onclick="golesteCos()" class="text-[11px] font-bold text-red-500 uppercase">Golește tot</button>
             </div>
             
-            <div id="cart-client-banner" class="bg-dm-yellow/20 border border-dm-yellow/30 p-3 rounded-xl mb-4 flex justify-between items-center">
+            <div id="cart-client-banner" class="bg-dm-yellow/20 border border-dm-yellow/30 p-4 rounded-xl mb-4 flex justify-between items-center">
                 <div>
                     <p class="text-[10px] font-black uppercase text-dm-blue/60 leading-none">Pentru Clientul:</p>
-                    <p id="cart-client-name" class="text-sm font-black text-dm-blue uppercase tracking-tighter mt-1">Neselectat!</p>
+                    <p id="cart-client-name" class="text-base font-black text-dm-blue uppercase tracking-tighter mt-1">Neselectat!</p>
                 </div>
-                <button onclick="switchView('clients')" class="text-[10px] font-black bg-dm-blue text-white px-3 py-1.5 rounded-lg uppercase">Schimbă</button>
+                <button onclick="switchView('clients')" class="text-[10px] font-black bg-dm-blue text-white px-4 py-2 rounded-lg uppercase">Schimbă</button>
             </div>
 
             <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden mb-6">
@@ -391,6 +407,7 @@
         let currentAgent = null;
         let allProducts = []; 
         let allClients = [];
+        let savedClientNames = []; // Clienți adăugați manual de agent
         let showOnlyMyClients = true;
         let selectedClient = null;
         let cart = {};
@@ -436,9 +453,13 @@
             const historyKey = `dmauto_history_${currentAgent.id}`;
             const cartKey = `dmauto_cart_${currentAgent.id}`;
             const clientKey = `dmauto_client_${currentAgent.id}`;
+            const savedKey = `dmauto_saved_clients_${currentAgent.id}`;
+            
             window.orderHistory = JSON.parse(localStorage.getItem(historyKey) || '[]');
             cart = JSON.parse(localStorage.getItem(cartKey) || '{}');
             selectedClient = JSON.parse(localStorage.getItem(clientKey) || 'null');
+            savedClientNames = JSON.parse(localStorage.getItem(savedKey) || '[]');
+            
             updateBadge();
             updateClientUI();
         }
@@ -447,9 +468,10 @@
             localStorage.setItem(`dmauto_history_${currentAgent.id}`, JSON.stringify(window.orderHistory));
             localStorage.setItem(`dmauto_cart_${currentAgent.id}`, JSON.stringify(cart));
             localStorage.setItem(`dmauto_client_${currentAgent.id}`, JSON.stringify(selectedClient));
+            localStorage.setItem(`dmauto_saved_clients_${currentAgent.id}`, JSON.stringify(savedClientNames));
         }
 
-        // --- GESTIUNE CLIENTI (Robustă) ---
+        // --- GESTIUNE CLIENTI ---
         async function syncClients() {
             const localKey = `dmauto_cache_clients`;
             const cached = localStorage.getItem(localKey);
@@ -464,30 +486,37 @@
                     const data = await response.arrayBuffer();
                     const workbook = XLSX.read(data, {type: 'array'});
                     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    
-                    // Gasire automata header pentru coloana 'denumire'
                     const rawJson = XLSX.utils.sheet_to_json(sheet, { header: 1 });
                     let headerIdx = rawJson.findIndex(row => row && row.some(cell => cell && cell.toString().toLowerCase().trim() === "denumire"));
                     headerIdx = headerIdx === -1 ? 0 : headerIdx;
-
                     const json = XLSX.utils.sheet_to_json(sheet, { range: headerIdx, defval: "" });
-                    
                     allClients = json.filter(c => {
                         const keys = Object.keys(c);
                         const kName = keys.find(k => k.trim().toLowerCase() === "denumire");
                         return c[kName] && c[kName].toString().trim() !== "";
                     });
-                    
                     localStorage.setItem(localKey, JSON.stringify(allClients));
                     filterClients();
                 }
-            } catch (e) { console.error("Eroare incarcare clienti:", e); }
+            } catch (e) { console.error("Eroare clienti:", e); }
         }
 
         function toggleClientFilter(onlyMine) {
             showOnlyMyClients = onlyMine;
             document.getElementById('btnFilterMyClients').className = `sheet-tab ${onlyMine ? 'sheet-tab-active' : 'sheet-tab-inactive'}`;
             document.getElementById('btnFilterAllClients').className = `sheet-tab ${!onlyMine ? 'sheet-tab-active' : 'sheet-tab-inactive'}`;
+            filterClients();
+        }
+
+        function toggleSaveClient(name, event) {
+            event.stopPropagation();
+            const index = savedClientNames.indexOf(name);
+            if (index > -1) {
+                savedClientNames.splice(index, 1);
+            } else {
+                savedClientNames.push(name);
+            }
+            saveAgentData();
             filterClients();
         }
 
@@ -499,10 +528,14 @@
                 const kLoc = keys.find(k => k.trim().toLowerCase() === "localitate");
                 const kAgent = keys.find(k => k.trim().toLowerCase() === "den_agent");
                 
-                const matchesSearch = c[kName]?.toString().toLowerCase().includes(q) || c[kLoc]?.toString().toLowerCase().includes(q);
+                const clientName = c[kName]?.toString() || "";
+                const matchesSearch = clientName.toLowerCase().includes(q) || c[kLoc]?.toString().toLowerCase().includes(q);
+                
                 let matchesAgent = true;
                 if (showOnlyMyClients && currentAgent) {
-                    matchesAgent = c[kAgent]?.toString().toUpperCase().includes(currentAgent.filter);
+                    const isOfficiallyMine = c[kAgent]?.toString().toUpperCase().includes(currentAgent.filter);
+                    const isManuallySaved = savedClientNames.includes(clientName);
+                    matchesAgent = isOfficiallyMine || isManuallySaved;
                 }
                 return matchesSearch && matchesAgent;
             });
@@ -512,7 +545,7 @@
         function renderClients(clients) {
             const container = document.getElementById('clients-list');
             if (clients.length === 0) {
-                container.innerHTML = '<p class="p-10 text-center text-gray-400 italic text-base">Nu am găsit clienți. Verifică fișierul LISTA_CLIENTI.xlsx pe GitHub.</p>';
+                container.innerHTML = '<p class="p-10 text-center text-gray-400 italic text-base">Niciun client găsit.</p>';
                 return;
             }
             container.innerHTML = clients.map(c => {
@@ -522,11 +555,19 @@
                 const name = c[kName];
                 const loc = c[kLoc] || "-";
                 const isActive = selectedClient && selectedClient.name === name;
+                const isSaved = savedClientNames.includes(name);
+                
                 return `
                 <div onclick="selectClient('${name.replace(/'/g, "\\'")}', '${loc.replace(/'/g, "\\'")}')" 
-                     class="client-card bg-white p-5 rounded-2xl shadow-md active:scale-95 transition-all cursor-pointer ${isActive ? 'active-client' : ''}">
-                    <p class="text-xl font-black text-dm-blue uppercase leading-tight">${name}</p>
-                    <p class="text-sm font-bold text-gray-400 mt-2 uppercase tracking-wide">📍 ${loc}</p>
+                     class="client-card bg-white p-5 rounded-2xl shadow-md active:scale-95 transition-all cursor-pointer flex justify-between items-center ${isActive ? 'active-client' : ''}">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xl font-black text-dm-blue uppercase leading-tight truncate">${name}</p>
+                        <p class="text-sm font-bold text-gray-400 mt-2 uppercase tracking-wide">📍 ${loc}</p>
+                    </div>
+                    <button onclick="toggleSaveClient('${name.replace(/'/g, "\\'")}', event)" 
+                            class="btn-save-client ml-4 ${isSaved ? 'bg-dm-yellow text-dm-blue' : 'bg-gray-100 text-gray-400'}">
+                        <span class="text-xl">${isSaved ? '⭐' : '☆'}</span>
+                    </button>
                 </div>`;
             }).join('');
         }
@@ -543,12 +584,12 @@
             const elCart = document.getElementById('cart-client-name');
             if (selectedClient) {
                 elHeader.innerText = selectedClient.name;
-                elHeader.classList.add('text-dm-yellow');
+                elHeader.className = "text-lg font-black truncate leading-none text-dm-yellow";
                 elCart.innerText = `${selectedClient.name} (${selectedClient.loc})`;
                 elCart.classList.remove('text-red-500');
             } else {
                 elHeader.innerText = "Neselectat 👤";
-                elHeader.classList.remove('text-dm-yellow');
+                elHeader.className = "text-lg font-black truncate leading-none text-white";
                 elCart.innerText = "ATENȚIE: NICIUN CLIENT SELECTAT!";
                 elCart.classList.add('text-red-500');
             }
@@ -702,7 +743,7 @@
                     <tr class="border-b border-gray-100">
                         <td class="pr-2 py-4 pl-4 font-black text-dm-blue uppercase leading-tight tracking-tighter text-sm">
                             ${name}
-                            <br><span class="text-2xl font-black text-blue-600 mt-2 block tracking-tight">${pFara.toFixed(2)} RON <span class="text-[10px] uppercase opacity-60">Net</span></span>
+                            <br><span class="text-xl font-black text-blue-600 mt-2 block tracking-tight">${pFara.toFixed(2)} RON <span class="text-[10px] uppercase opacity-60">Net</span></span>
                         </td>
                         <td class="py-4">
                             <div class="flex items-center justify-center gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100">
@@ -785,23 +826,6 @@
             renderProducts(filtered);
         }
 
-        function filterClients() {
-            const q = document.getElementById('clientSearch').value.toLowerCase().trim();
-            const filtered = allClients.filter(c => {
-                const kName = Object.keys(c).find(k => k.trim().toLowerCase() === "denumire");
-                const kLoc = Object.keys(c).find(k => k.trim().toLowerCase() === "localitate");
-                const kAgent = Object.keys(c).find(k => k.trim().toLowerCase() === "den_agent");
-                
-                const matchesSearch = c[kName]?.toString().toLowerCase().includes(q) || c[kLoc]?.toString().toLowerCase().includes(q);
-                let matchesAgent = true;
-                if (showOnlyMyClients && currentAgent) {
-                    matchesAgent = c[kAgent]?.toString().toUpperCase().includes(currentAgent.filter);
-                }
-                return matchesSearch && matchesAgent;
-            });
-            renderClients(filtered);
-        }
-
         function resetSelection() {
             document.getElementById('searchInput').value = '';
             selectedCategory = null;
@@ -825,14 +849,11 @@
                 if (nav) { nav.classList.remove('text-dm-blue'); nav.classList.add('text-gray-400'); }
             });
             document.getElementById(`view-${viewName}`).classList.remove('view-hidden');
-            
             const activeNavId = (viewName === 'order-details' || viewName === 'clients') ? 'nav-history' : `nav-${viewName}`;
             const currentNav = document.getElementById(activeNavId);
             if (currentNav) { currentNav.classList.remove('text-gray-400'); currentNav.classList.add('text-dm-blue'); }
-            
             if (viewName === 'catalog') document.getElementById('search-container').classList.remove('view-hidden');
             else document.getElementById('search-container').classList.add('view-hidden');
-            
             if (viewName === 'cart') renderCart();
             if (viewName === 'history') renderHistory();
         }
