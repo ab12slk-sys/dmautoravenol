@@ -186,7 +186,6 @@
                 </div>
                 <div class="flex-1">
                     <h1 class="text-sm font-medium opacity-90">Salut, <span id="agent-display-name" class="font-black text-white">Agent!</span></h1>
-                    <!-- AFISARE CLIENT SELECTAT -->
                     <button onclick="switchView('clients')" class="mt-1 bg-black/20 border border-white/10 px-3 py-1.5 rounded-lg flex items-center gap-2 active:scale-95 transition-all">
                         <span class="text-[10px] font-black text-dm-yellow uppercase tracking-tighter">Client:</span>
                         <span id="header-client-name" class="text-xs font-bold truncate max-w-[120px]">Neselectat 👤</span>
@@ -267,9 +266,13 @@
                        class="w-full p-4 pr-12 rounded-xl text-gray-800 text-base focus:outline-none shadow-xl border border-gray-100 font-semibold">
                 <div class="absolute right-4 top-4 text-gray-300">🔍</div>
             </div>
-            <div id="clients-list" class="space-y-3 overflow-y-auto max-h-[65vh] pr-1">
-                <!-- Lista clienti generata din Excel -->
+            
+            <div class="flex gap-2 mb-4 overflow-x-auto pb-2 no-scrollbar">
+                <button onclick="toggleClientFilter(true)" id="btnFilterMyClients" class="sheet-tab sheet-tab-active">Clienții Mei</button>
+                <button onclick="toggleClientFilter(false)" id="btnFilterAllClients" class="sheet-tab sheet-tab-inactive">Toți Clienții</button>
             </div>
+
+            <div id="clients-list" class="space-y-3 overflow-y-auto max-h-[55vh] pr-1"></div>
         </div>
 
         <!-- COȘ -->
@@ -279,7 +282,6 @@
                 <button onclick="golesteCos()" class="text-[11px] font-bold text-red-500 uppercase">Golește tot</button>
             </div>
             
-            <!-- Rezumat Client in Cos -->
             <div id="cart-client-banner" class="bg-dm-yellow/20 border border-dm-yellow/30 p-3 rounded-xl mb-4 flex justify-between items-center">
                 <div>
                     <p class="text-[10px] font-black uppercase text-dm-blue/60 leading-none">Pentru Clientul:</p>
@@ -374,8 +376,8 @@
     <script>
         const TVA_RATE = 1.21; 
         const AGENTS = {
-            'calin': { pass: 'mocean', name: 'Călin Mocean' },
-            'ovidiu': { pass: 'rahovean', name: 'Ovidiu Rahovean' }
+            'calin': { pass: 'mocean', name: 'Călin Mocean', filter: 'MOCEAN' },
+            'ovidiu': { pass: 'rahovean', name: 'Ovidiu Rahovean', filter: 'RAHOVEAN' }
         };
 
         const CATEGORY_FILES = {
@@ -389,6 +391,7 @@
         let currentAgent = null;
         let allProducts = []; 
         let allClients = [];
+        let showOnlyMyClients = true;
         let selectedClient = null;
         let cart = {};
         let selectedCategory = null;
@@ -409,7 +412,7 @@
             const pass = document.getElementById('login-pass').value.trim();
             const errorEl = document.getElementById('login-error');
             if (AGENTS[user] && AGENTS[user].pass === pass) {
-                currentAgent = { id: user, name: AGENTS[user].name };
+                currentAgent = { id: user, name: AGENTS[user].name, filter: AGENTS[user].filter };
                 localStorage.setItem('dmauto_session', JSON.stringify(currentAgent));
                 errorEl.classList.add('hidden');
                 initApp();
@@ -446,13 +449,13 @@
             localStorage.setItem(`dmauto_client_${currentAgent.id}`, JSON.stringify(selectedClient));
         }
 
-        // --- GESTIUNE CLIENTI ---
+        // --- GESTIUNE CLIENTI (Robustă) ---
         async function syncClients() {
             const localKey = `dmauto_cache_clients`;
             const cached = localStorage.getItem(localKey);
             if (cached) {
                 allClients = JSON.parse(cached);
-                renderClients(allClients);
+                filterClients();
             }
             if (window.location.protocol === 'blob:') return;
             try {
@@ -461,36 +464,69 @@
                     const data = await response.arrayBuffer();
                     const workbook = XLSX.read(data, {type: 'array'});
                     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+                    
+                    // Gasire automata header pentru coloana 'denumire'
+                    const rawJson = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                    let headerIdx = rawJson.findIndex(row => row && row.some(cell => cell && cell.toString().toLowerCase().trim() === "denumire"));
+                    headerIdx = headerIdx === -1 ? 0 : headerIdx;
+
+                    const json = XLSX.utils.sheet_to_json(sheet, { range: headerIdx, defval: "" });
+                    
                     allClients = json.filter(c => {
                         const keys = Object.keys(c);
-                        const kName = keys.find(k => k.trim().toLowerCase().includes("client") || k.trim().toLowerCase().includes("nume"));
+                        const kName = keys.find(k => k.trim().toLowerCase() === "denumire");
                         return c[kName] && c[kName].toString().trim() !== "";
                     });
+                    
                     localStorage.setItem(localKey, JSON.stringify(allClients));
-                    renderClients(allClients);
+                    filterClients();
                 }
             } catch (e) { console.error("Eroare incarcare clienti:", e); }
+        }
+
+        function toggleClientFilter(onlyMine) {
+            showOnlyMyClients = onlyMine;
+            document.getElementById('btnFilterMyClients').className = `sheet-tab ${onlyMine ? 'sheet-tab-active' : 'sheet-tab-inactive'}`;
+            document.getElementById('btnFilterAllClients').className = `sheet-tab ${!onlyMine ? 'sheet-tab-active' : 'sheet-tab-inactive'}`;
+            filterClients();
+        }
+
+        function filterClients() {
+            const q = document.getElementById('clientSearch').value.toLowerCase().trim();
+            const filtered = allClients.filter(c => {
+                const keys = Object.keys(c);
+                const kName = keys.find(k => k.trim().toLowerCase() === "denumire");
+                const kLoc = keys.find(k => k.trim().toLowerCase() === "localitate");
+                const kAgent = keys.find(k => k.trim().toLowerCase() === "den_agent");
+                
+                const matchesSearch = c[kName]?.toString().toLowerCase().includes(q) || c[kLoc]?.toString().toLowerCase().includes(q);
+                let matchesAgent = true;
+                if (showOnlyMyClients && currentAgent) {
+                    matchesAgent = c[kAgent]?.toString().toUpperCase().includes(currentAgent.filter);
+                }
+                return matchesSearch && matchesAgent;
+            });
+            renderClients(filtered);
         }
 
         function renderClients(clients) {
             const container = document.getElementById('clients-list');
             if (clients.length === 0) {
-                container.innerHTML = '<p class="p-10 text-center text-gray-400 italic">Nu am găsit clienți pe GitHub (LISTA_CLIENTI.xlsx)</p>';
+                container.innerHTML = '<p class="p-10 text-center text-gray-400 italic text-base">Nu am găsit clienți. Verifică fișierul LISTA_CLIENTI.xlsx pe GitHub.</p>';
                 return;
             }
             container.innerHTML = clients.map(c => {
                 const keys = Object.keys(c);
-                const kName = keys.find(k => k.trim().toLowerCase().includes("client") || k.trim().toLowerCase().includes("nume"));
-                const kLoc = keys.find(k => k.trim().toLowerCase().includes("localitate") || k.trim().toLowerCase().includes("oras"));
+                const kName = keys.find(k => k.trim().toLowerCase() === "denumire");
+                const kLoc = keys.find(k => k.trim().toLowerCase() === "localitate");
                 const name = c[kName];
-                const loc = c[kLoc] || "Localitate nespecificată";
+                const loc = c[kLoc] || "-";
                 const isActive = selectedClient && selectedClient.name === name;
                 return `
                 <div onclick="selectClient('${name.replace(/'/g, "\\'")}', '${loc.replace(/'/g, "\\'")}')" 
                      class="client-card bg-white p-5 rounded-2xl shadow-md active:scale-95 transition-all cursor-pointer ${isActive ? 'active-client' : ''}">
-                    <p class="text-base font-black text-dm-blue uppercase leading-tight">${name}</p>
-                    <p class="text-[11px] font-bold text-gray-400 mt-1 uppercase">📍 ${loc}</p>
+                    <p class="text-xl font-black text-dm-blue uppercase leading-tight">${name}</p>
+                    <p class="text-sm font-bold text-gray-400 mt-2 uppercase tracking-wide">📍 ${loc}</p>
                 </div>`;
             }).join('');
         }
@@ -518,15 +554,7 @@
             }
         }
 
-        function filterClients() {
-            const q = document.getElementById('clientSearch').value.toLowerCase().trim();
-            const filtered = allClients.filter(c => {
-                return Object.values(c).some(val => val.toString().toLowerCase().includes(q));
-            });
-            renderClients(filtered);
-        }
-
-        // --- CATALOG SI BRANDURI ---
+        // --- BRANDURI ---
         async function selectCategory(category) {
             document.getElementById('searchInput').value = '';
             selectedCategory = category;
@@ -565,7 +593,7 @@
                     currentCategoryData = {};
                     workbook.SheetNames.forEach(name => {
                         const rawJson = XLSX.utils.sheet_to_json(workbook.Sheets[name], { header: 1 });
-                        let headerIdx = rawJson.findIndex(row => row.some(cell => cell && cell.toString().toLowerCase().includes("denumire")));
+                        let headerIdx = rawJson.findIndex(row => row && row.some(cell => cell && cell.toString().toLowerCase().includes("denumire")));
                         headerIdx = headerIdx === -1 ? 0 : headerIdx;
                         const sheetJson = XLSX.utils.sheet_to_json(workbook.Sheets[name], { range: headerIdx, defval: "" });
                         const filtered = sheetJson.filter(p => {
@@ -579,7 +607,7 @@
                     renderSheetSelector(sheetNames);
                     loadSheet(sheetNames[0]);
                 }
-            } catch (e) { console.error("Eroare incarcare brand:", e); }
+            } catch (e) { console.error("Eroare brand:", e); }
         }
 
         function renderSheetSelector(sheetNames) {
@@ -616,12 +644,12 @@
                     <tr class="${currentQty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100">
                         <td class="pr-2 py-4 pl-4 font-black text-dm-blue uppercase leading-tight tracking-tighter text-sm">
                             ${denumire}
-                            <br><span class="text-xl font-black text-blue-600 mt-2 block tracking-tight">${pretFaraTva.toFixed(2)} RON <span class="text-[10px] uppercase opacity-60">Net</span></span>
+                            <br><span class="text-2xl font-black text-blue-600 mt-2 block tracking-tight">${pretFaraTva.toFixed(2)} RON <span class="text-[10px] uppercase opacity-60">Net</span></span>
                         </td>
                         <td class="py-4">
                             <div class="flex items-center justify-center gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100 shadow-inner">
                                 <button onclick="updateCart('${denumire.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button>
-                                <span class="font-black text-lg w-8 text-center text-dm-blue">${currentQty}</span>
+                                <span class="font-black text-xl w-8 text-center text-dm-blue">${currentQty}</span>
                                 <button onclick="updateCart('${denumire.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-md">+</button>
                             </div>
                         </td>
@@ -674,12 +702,12 @@
                     <tr class="border-b border-gray-100">
                         <td class="pr-2 py-4 pl-4 font-black text-dm-blue uppercase leading-tight tracking-tighter text-sm">
                             ${name}
-                            <br><span class="text-xl font-black text-blue-600 mt-2 block tracking-tight">${pFara.toFixed(2)} RON <span class="text-[10px] uppercase opacity-60">Net</span></span>
+                            <br><span class="text-2xl font-black text-blue-600 mt-2 block tracking-tight">${pFara.toFixed(2)} RON <span class="text-[10px] uppercase opacity-60">Net</span></span>
                         </td>
                         <td class="py-4">
                             <div class="flex items-center justify-center gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100">
                                 <button onclick="updateCart('${name.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button>
-                                <span class="font-black text-lg w-8 text-center text-dm-blue">${item.quantity}</span>
+                                <span class="font-black text-xl w-8 text-center text-dm-blue">${item.quantity}</span>
                                 <button onclick="updateCart('${name.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-md">+</button>
                             </div>
                         </td>
@@ -694,11 +722,7 @@
         function golesteCos() { if(confirm("Golești coșul?")) { cart = {}; saveAgentData(); updateBadge(); renderCart(); filterProducts(); } }
 
         function salveazaComanda(isDraft = false) {
-            if (!selectedClient && !isDraft) {
-                alert("TE RUGĂM SĂ SELECTEZI UN CLIENT ÎNAINTE DE A TRIMITE!");
-                switchView('clients');
-                return;
-            }
+            if (!selectedClient && !isDraft) { alert("SELECTEAZĂ UN CLIENT!"); switchView('clients'); return; }
             const items = Object.values(cart);
             if (items.length === 0) return;
             const timestamp = new Date().toLocaleString('ro-RO');
@@ -707,17 +731,10 @@
                 const kPret = Object.keys(item.data).find(k => k.trim().toLowerCase() === "pret fara tva");
                 totalNoVat += item.quantity * formatPriceNum(item.data[kPret]);
             });
-            window.orderHistory.unshift({ 
-                timestamp, 
-                total: totalNoVat.toFixed(2), 
-                items: items.length, 
-                cartData: JSON.parse(JSON.stringify(cart)), 
-                status: isDraft ? 'Ciornă' : 'Trimisă',
-                client: selectedClient
-            });
+            window.orderHistory.unshift({ timestamp, total: totalNoVat.toFixed(2), items: items.length, cartData: JSON.parse(JSON.stringify(cart)), status: isDraft ? 'Ciornă' : 'Trimisă', client: selectedClient });
             saveAgentData();
             if (!isDraft) { trimiteWhatsApp(timestamp, cart); cart = {}; selectedClient = null; saveAgentData(); updateBadge(); updateClientUI(); switchView('history'); }
-            else { alert("Salvat ca Ciornă."); switchView('history'); }
+            else { alert("Salvat."); switchView('history'); }
         }
 
         function trimiteWhatsApp(timestamp, cartDataObj) {
@@ -735,35 +752,20 @@
             const container = document.getElementById('history-content');
             if (!container) return;
             if (window.orderHistory.length === 0) { container.innerHTML = '<div class="p-10 text-center text-gray-400 italic text-sm">Nicio comandă încă.</div>'; return; }
-            container.innerHTML = window.orderHistory.map((order, index) => `
-                <div onclick="veziDetaliiComanda(${index})" class="bg-white p-5 rounded-2xl shadow-md border-l-4 border-dm-yellow active:scale-[0.98] cursor-pointer">
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="text-xs font-black text-gray-400 uppercase italic">${order.timestamp}</span>
-                        <span class="${order.status === 'Ciornă' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'} text-[10px] font-black px-3 py-1 rounded-full uppercase">${order.status}</span>
-                    </div>
-                    <p class="text-[11px] font-black text-dm-blue uppercase mb-2">${order.client ? order.client.name : 'Client necunoscut'}</p>
-                    <div class="flex justify-between items-end">
-                        <p class="text-xs font-bold text-gray-400 uppercase">${order.items} PRODUSE</p>
-                        <p class="text-lg font-black text-dm-blue">${order.total} RON NET</p>
-                    </div>
-                </div>`).join('');
+            container.innerHTML = window.orderHistory.map((order, index) => `<div onclick="veziDetaliiComanda(${index})" class="bg-white p-5 rounded-2xl shadow-md border-l-4 border-dm-yellow active:scale-[0.98] cursor-pointer"><div class="flex justify-between items-start mb-2"><span class="text-xs font-black text-gray-400 uppercase italic">${order.timestamp}</span><span class="${order.status === 'Ciornă' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'} text-[10px] font-black px-3 py-1 rounded-full uppercase">${order.status}</span></div><p class="text-base font-black text-dm-blue uppercase mb-2">${order.client ? order.client.name : 'Client nespecificat'}</p><div class="flex justify-between items-end"><p class="text-xs font-bold text-gray-400 uppercase">${order.items} PRODUSE</p><p class="text-lg font-black text-dm-blue">${order.total} RON NET</p></div></div>`).join('');
         }
 
         function veziDetaliiComanda(index) {
             currentViewingOrderIndex = index;
             const order = window.orderHistory[index];
             switchView('order-details');
-            document.getElementById('order-details-header').innerHTML = `
-                <div class="flex justify-between items-center mb-2"><h3 class="text-sm font-black text-gray-400 uppercase italic">COMANDA ${order.timestamp.split(',')[0]}</h3><span class="text-[10px] font-black bg-gray-100 px-3 py-1 rounded-full uppercase">${order.status}</span></div>
-                <p class="text-base font-black text-dm-blue uppercase mb-3">${order.client ? order.client.name + ' (' + order.client.loc + ')' : 'Client nespecificat'}</p>
-                <p class="text-2xl font-black text-dm-blue italic">${order.total} RON <span class="text-sm uppercase opacity-50 not-italic">NET</span></p>
-                <p class="text-xs font-bold text-gray-400 italic mt-1">Total cu TVA 21%: ${(order.total * TVA_RATE).toFixed(2)} RON</p>`;
+            document.getElementById('order-details-header').innerHTML = `<div class="flex justify-between items-center mb-2"><h3 class="text-sm font-black text-gray-400 uppercase italic">COMANDA ${order.timestamp.split(',')[0]}</h3><span class="text-[10px] font-black bg-gray-100 px-3 py-1 rounded-full uppercase">${order.status}</span></div><p class="text-lg font-black text-dm-blue uppercase mb-3">${order.client ? order.client.name + ' (' + order.client.loc + ')' : 'Client nespecificat'}</p><p class="text-2xl font-black text-dm-blue italic">${order.total} RON <span class="text-sm uppercase opacity-50 not-italic">NET</span></p>`;
             let html = '';
             Object.values(order.cartData).forEach(item => {
                 const keys = Object.keys(item.data);
                 const kDen = keys.find(k => k.trim().toLowerCase() === "denumire");
                 const kPret = keys.find(k => k.trim().toLowerCase() === "pret fara tva");
-                html += `<div class="flex justify-between items-center text-sm py-3 border-b border-gray-50 last:border-0"><div class="flex flex-col"><span class="font-bold text-dm-blue uppercase leading-tight">${item.data[kDen]}</span><span class="text-lg font-black text-blue-600">${formatPriceNum(item.data[kPret]).toFixed(2)} <span class="text-[10px] opacity-60">Net</span></span></div><span class="font-black bg-gray-50 px-3 py-2 rounded-xl text-lg">x ${item.quantity}</span></div>`;
+                html += `<div class="flex justify-between items-center text-sm py-3 border-b border-gray-50 last:border-0"><div class="flex flex-col"><span class="font-bold text-dm-blue uppercase leading-tight">${item.data[kDen]}</span><span class="text-lg font-black text-blue-600">${formatPriceNum(item.data[kPret]).toFixed(2)}</span></div><span class="font-black bg-gray-100 px-3 py-2 rounded-xl text-lg">x ${item.quantity}</span></div>`;
             });
             document.getElementById('order-details-items').innerHTML = html;
         }
@@ -772,7 +774,7 @@
         function retrimiteComandaDirect() { if (currentViewingOrderIndex === null) return; const order = window.orderHistory[currentViewingOrderIndex]; selectedClient = order.client; trimiteWhatsApp(order.timestamp, order.cartData); if (order.status === 'Ciornă') { window.orderHistory[currentViewingOrderIndex].status = 'Trimisă'; saveAgentData(); switchView('history'); } }
         function stergeComandaCurenta() { if (currentViewingOrderIndex === null) return; if (confirm("Ștergi comanda?")) { window.orderHistory.splice(currentViewingOrderIndex, 1); saveAgentData(); switchView('history'); } }
         function formatPriceNum(val) { if (!val && val !== 0) return 0; if (typeof val === 'number') return val; return parseFloat(val.toString().replace(',', '.')) || 0; }
-        function triggerManualSync() { if (selectedCategory) syncCategoryData(selectedCategory); syncClients(); }
+        function triggerManualSync() { if (selectedCategory) selectCategory(selectedCategory); syncClients(); }
 
         function filterProducts() {
             const q = document.getElementById('searchInput').value.toLowerCase().trim();
@@ -781,6 +783,23 @@
                 return p[k] && p[k].toString().toLowerCase().includes(q);
             });
             renderProducts(filtered);
+        }
+
+        function filterClients() {
+            const q = document.getElementById('clientSearch').value.toLowerCase().trim();
+            const filtered = allClients.filter(c => {
+                const kName = Object.keys(c).find(k => k.trim().toLowerCase() === "denumire");
+                const kLoc = Object.keys(c).find(k => k.trim().toLowerCase() === "localitate");
+                const kAgent = Object.keys(c).find(k => k.trim().toLowerCase() === "den_agent");
+                
+                const matchesSearch = c[kName]?.toString().toLowerCase().includes(q) || c[kLoc]?.toString().toLowerCase().includes(q);
+                let matchesAgent = true;
+                if (showOnlyMyClients && currentAgent) {
+                    matchesAgent = c[kAgent]?.toString().toUpperCase().includes(currentAgent.filter);
+                }
+                return matchesSearch && matchesAgent;
+            });
+            renderClients(filtered);
         }
 
         function resetSelection() {
@@ -794,7 +813,6 @@
                 const card = document.getElementById(`card-${cat}`);
                 if (card) card.classList.remove('selected-category');
             });
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function switchView(viewName) {
@@ -808,7 +826,7 @@
             });
             document.getElementById(`view-${viewName}`).classList.remove('view-hidden');
             
-            const activeNavId = (viewName === 'order-details' || viewName === 'clients') ? 'nav-catalog' : `nav-${viewName}`;
+            const activeNavId = (viewName === 'order-details' || viewName === 'clients') ? 'nav-history' : `nav-${viewName}`;
             const currentNav = document.getElementById(activeNavId);
             if (currentNav) { currentNav.classList.remove('text-gray-400'); currentNav.classList.add('text-dm-blue'); }
             
