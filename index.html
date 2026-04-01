@@ -414,9 +414,7 @@
         }
 
         async function selectCategory(category) {
-            // MODIFICARE: La re-click pe categorie, curățăm bara de căutare
             document.getElementById('searchInput').value = '';
-            
             selectedCategory = category;
             activeSheetName = null;
             currentCategoryData = {};
@@ -425,7 +423,6 @@
             document.getElementById('product-section').classList.remove('view-hidden');
             document.getElementById('category-placeholder').classList.add('view-hidden');
             document.getElementById('selected-category-title').innerText = category;
-            
             ['Ravenol', 'Banner', 'Cyclon', 'Cemsa'].forEach(cat => {
                 const card = document.getElementById(`card-${cat}`);
                 if (card) card.classList.toggle('selected-category', cat === category);
@@ -486,7 +483,6 @@
             container.querySelectorAll('button').forEach(btn => btn.classList.replace('sheet-tab-active', 'sheet-tab-inactive'));
             const activeBtn = document.getElementById(`btn-sheet-${sheetName}`);
             if (activeBtn) activeBtn.classList.replace('sheet-tab-inactive', 'sheet-tab-active');
-            
             filterProducts();
             document.getElementById('productCount').innerText = allProducts.length + " Produse în " + sheetName;
         }
@@ -494,7 +490,7 @@
         function renderProducts(products) {
             const tbody = document.getElementById('productTableBody');
             if (!tbody) return;
-            if (products.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-10 text-center text-gray-400 italic font-bold">Niciun produs găsit pentru căutarea ta.</td></tr>'; return; }
+            if (products.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-10 text-center text-gray-400 italic font-bold">Niciun produs găsit.</td></tr>'; return; }
             let html = '';
             products.forEach(p => {
                 const keys = Object.keys(p);
@@ -503,7 +499,6 @@
                 const denumire = p[kDen] || "";
                 const pretFaraTva = formatPriceNum(p[kPret]);
                 const currentQty = cart[denumire] ? cart[denumire].quantity : 0;
-                
                 html += `
                     <tr class="${currentQty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100">
                         <td class="pr-2 py-4 pl-4 font-black text-dm-blue uppercase leading-tight tracking-tighter text-sm">
@@ -517,9 +512,7 @@
                                 <button onclick="updateCart('${denumire.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-md">+</button>
                             </div>
                         </td>
-                        <td class="text-right pr-4 py-4 font-black text-dm-blue text-sm">
-                            ${(currentQty * pretFaraTva).toFixed(2)} <span class="text-[9px]">RON</span>
-                        </td>
+                        <td class="text-right pr-4 py-4 font-black text-dm-blue text-sm">${(currentQty * pretFaraTva).toFixed(2)} <span class="text-[9px]">RON</span></td>
                     </tr>`;
             });
             tbody.innerHTML = html;
@@ -564,7 +557,6 @@
                 const pFara = formatPriceNum(item.data[kPret]);
                 const subtotal = item.quantity * pFara;
                 totalNoVat += subtotal;
-                
                 html += `
                     <tr class="border-b border-gray-100">
                         <td class="pr-2 py-4 pl-4 font-black text-dm-blue uppercase leading-tight tracking-tighter text-sm">
@@ -599,22 +591,19 @@
             });
             window.orderHistory.unshift({ timestamp, total: totalNoVat.toFixed(2), items: items.length, cartData: JSON.parse(JSON.stringify(cart)), status: isDraft ? 'Ciornă' : 'Trimisă' });
             saveAgentData();
-            if (!isDraft) { trimiteWhatsApp(totalNoVat.toFixed(2), timestamp, cart); cart = {}; saveAgentData(); updateBadge(); switchView('history'); }
+            if (!isDraft) { trimiteWhatsApp(timestamp, cart); cart = {}; saveAgentData(); updateBadge(); switchView('history'); }
             else { alert("Salvat ca Ciornă."); switchView('history'); }
         }
 
-        function trimiteWhatsApp(totalNoVat, timestamp, cartDataObj) {
+        // MODIFICARE: Eliminare prețuri din mesajul WhatsApp pentru gestionar
+        function trimiteWhatsApp(timestamp, cartDataObj) {
             const items = Object.values(cartDataObj);
             let msg = `Salut! Comandă DM Auto Sebeș (Agent: ${currentAgent.name})\nData: ${timestamp}\n\n`;
             items.forEach(item => {
                 const keys = Object.keys(item.data);
                 const kDen = keys.find(k => k.trim().toLowerCase() === "denumire");
-                const kPret = keys.find(k => k.trim().toLowerCase() === "pret fara tva");
-                const name = item.data[kDen];
-                const pFara = formatPriceNum(item.data[kPret]);
-                msg += `• ${item.quantity} x ${name} (${pFara.toFixed(2)} RON/buc Net) = ${(item.quantity * pFara).toFixed(2)} RON\n`;
+                msg += `• ${item.quantity} x ${item.data[kDen]}\n`;
             });
-            msg += `\nTOTAL NET: ${totalNoVat} RON\nTOTAL CU TVA (21%): ${(totalNoVat * TVA_RATE).toFixed(2)} RON`;
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
         }
 
@@ -635,13 +624,20 @@
                 const keys = Object.keys(item.data);
                 const kDen = keys.find(k => k.trim().toLowerCase() === "denumire");
                 const kPret = keys.find(k => k.trim().toLowerCase() === "pret fara tva");
-                html += `<div class="flex justify-between items-center text-sm py-3 border-b border-gray-50 last:border-0"><div class="flex flex-col"><span class="font-bold text-dm-blue uppercase leading-tight">${item.data[kDen]}</span><span class="text-lg font-black text-blue-600">${formatPriceNum(item.data[kPret]).toFixed(2)} <span class="text-[10px] opacity-60">Net</span></span></div><span class="font-black bg-gray-50 px-3 py-2 rounded-xl text-lg">x ${item.quantity}</span></div>`;
+                html += `<div class="flex justify-between items-center text-sm py-3 border-b border-gray-50 last:border-0"><div class="flex flex-col"><span class="font-bold text-dm-blue uppercase leading-tight">${item.data[kDen]}</span><span class="text-lg font-black text-blue-600">${formatPriceNum(item.data[kPret]).toFixed(2)} <span class="text-[10px] opacity-60">Net</span></span></div><span class="font-black bg-gray-100 px-3 py-2 rounded-xl text-lg">x ${item.quantity}</span></div>`;
             });
             document.getElementById('order-details-items').innerHTML = html;
         }
 
         function incarcaComandaInCos() { if (currentViewingOrderIndex === null) return; cart = JSON.parse(JSON.stringify(window.orderHistory[currentViewingOrderIndex].cartData)); saveAgentData(); renderCart(); switchView('cart'); updateBadge(); }
-        function retrimiteComandaDirect() { if (currentViewingOrderIndex === null) return; const order = window.orderHistory[currentViewingOrderIndex]; trimiteWhatsApp(order.total, order.timestamp, order.cartData); if (order.status === 'Ciornă') { window.orderHistory[currentViewingOrderIndex].status = 'Trimisă'; saveAgentData(); switchView('history'); } }
+        
+        function retrimiteComandaDirect() {
+            if (currentViewingOrderIndex === null) return;
+            const order = window.orderHistory[currentViewingOrderIndex];
+            trimiteWhatsApp(order.timestamp, order.cartData);
+            if (order.status === 'Ciornă') { window.orderHistory[currentViewingOrderIndex].status = 'Trimisă'; saveAgentData(); switchView('history'); }
+        }
+
         function stergeComandaCurenta() { if (currentViewingOrderIndex === null) return; if (confirm("Ștergi comanda?")) { window.orderHistory.splice(currentViewingOrderIndex, 1); saveAgentData(); switchView('history'); } }
         function formatPriceNum(val) { if (!val && val !== 0) return 0; if (typeof val === 'number') return val; return parseFloat(val.toString().replace(',', '.')) || 0; }
         function triggerManualSync() { if (selectedCategory) selectCategory(selectedCategory); else alert("Selectează o categorie."); }
@@ -656,9 +652,7 @@
         }
 
         function resetSelection() {
-            // MODIFICARE: Curățăm bara de căutare la apăsarea butonului Închide
             document.getElementById('searchInput').value = '';
-            
             selectedCategory = null;
             allProducts = [];
             document.getElementById('product-section').classList.add('view-hidden');
