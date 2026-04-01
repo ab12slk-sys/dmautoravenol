@@ -211,7 +211,7 @@
                                     <th class="text-right">Net (Fără TVA)</th>
                                 </tr>
                             </thead>
-                            <tbody id="productTableBody" class="divide-y divide-gray-50 text-sm"></tbody>
+                            <tbody id="productTableBody" class="divide-y divide-gray-50 text-base"></tbody>
                         </table>
                     </div>
                 </div>
@@ -326,16 +326,16 @@
             'ovidiu': { pass: 'rahovean', name: 'Ovidiu Rahovean' }
         };
 
-        // Mapează fiecare categorie la fișierul său Excel specific pe GitHub
+        // Fișierele asociate fiecărei categorii în GitHub
         const CATEGORY_FILES = {
             'Ravenol': 'OFERTA PRET RAVENOL 16.03.26.xlsx',
-            'Banner': 'OFERTA_BANNER.xlsx',
+            'Banner': 'OFERTA_PRET_BANNER.xlsx',
             'Cyclon': 'OFERTA_CYCLON.xlsx',
             'Cemsa': 'OFERTA_CEMSA.xlsx'
         };
 
         let currentAgent = null;
-        let allProducts = []; // Conține produsele din categoria SELECTATĂ
+        let allProducts = []; 
         let cart = {};
         let selectedCategory = null;
         let currentActiveView = 'catalog';
@@ -396,12 +396,9 @@
         // --- CATEGORII ȘI DATE ---
         async function selectCategory(category) {
             selectedCategory = category;
-            
-            // 1. Curățăm interfața anterioară
-            document.getElementById('productTableBody').innerHTML = '';
+            document.getElementById('productTableBody').innerHTML = '<tr><td colspan="3" class="p-10 text-center text-dm-blue font-bold italic">Se încarcă oferta...</td></tr>';
             allProducts = [];
             
-            // 2. UI Update
             document.getElementById('product-section').classList.remove('view-hidden');
             document.getElementById('category-placeholder').classList.add('view-hidden');
             document.getElementById('selected-category-title').innerText = category;
@@ -411,21 +408,17 @@
                 if (card) card.classList.toggle('selected-category', cat === category);
             });
 
-            // 3. Sincronizăm datele specifice categoriei
             await syncCategoryData(category);
-            
             document.getElementById('product-section').scrollIntoView({ behavior: 'smooth' });
         }
 
         async function syncCategoryData(category) {
-            // Încercăm întâi să luăm ce avem în memorie pentru această categorie
             const localKey = `dmauto_products_${category}`;
             const saved = localStorage.getItem(localKey);
             if (saved) {
                 processJSONData(JSON.parse(saved), category);
             }
 
-            // Apoi încercăm să aducem fișierul nou de pe GitHub
             if (window.location.protocol === 'blob:') return;
             
             const fileName = CATEGORY_FILES[category];
@@ -443,29 +436,28 @@
                 } else if (!saved) {
                     document.getElementById('productTableBody').innerHTML = `
                         <tr><td colspan="3" class="p-10 text-center text-gray-400 italic">
-                            Nu există fișierul Excel pentru categoria ${category} pe GitHub.
+                            Fișierul "${fileName}" nu a fost găsit pe GitHub.<br>Te rugăm să îl încarci în repository.
                         </td></tr>`;
                 }
             } catch (e) { 
-                console.warn(`Offline sau eroare pentru ${category}`); 
+                console.warn(`Eroare la accesarea fișierului ${category}`); 
             }
         }
 
         function processJSONData(json, category) {
             const filtered = json.filter(p => {
-                const k = Object.keys(p).find(key => key.trim() === "Denumire");
-                return p[k] && p[k].toString().trim() !== "" && p[k] !== "Denumire";
+                const keys = Object.keys(p);
+                const kDen = keys.find(key => key.trim() === "Denumire");
+                return p[kDen] && p[kDen].toString().trim() !== "" && p[kDen] !== "Denumire";
             });
 
-            // Salvăm în memoria specifică categoriei
             localStorage.setItem(`dmauto_products_${category}`, JSON.stringify(filtered));
             
-            // Dacă categoria procesată este cea activă, afișăm produsele
             if (selectedCategory === category) {
                 allProducts = filtered;
                 renderProducts(allProducts);
                 const countEl = document.getElementById('productCount');
-                if(countEl) countEl.innerText = allProducts.length + " Produse în " + category;
+                if(countEl) countEl.innerText = allProducts.length + " Modele în categoria " + category;
             }
         }
 
@@ -494,7 +486,7 @@
             if (!tbody) return;
             
             if (products.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" class="p-10 text-center text-gray-400 italic">Niciun produs găsit.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="3" class="p-10 text-center text-gray-400 italic">Niciun produs găsit în această listă.</td></tr>';
                 return;
             }
 
@@ -509,7 +501,7 @@
                     <tr class="${currentQty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100">
                         <td class="pr-2 py-4 pl-2 font-black text-dm-blue uppercase leading-tight tracking-tighter text-base">${denumire}<br><span class="text-xs font-bold text-gray-500 italic opacity-80 mt-1 block">NET: ${pretFaraTva.toFixed(2)} RON</span></td>
                         <td class="py-4">
-                            <div class="flex items-center justify-center gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100">
+                            <div class="flex items-center justify-center gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100 shadow-inner">
                                 <button onclick="updateCart('${denumire.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button>
                                 <span class="font-black text-base w-7 text-center text-dm-blue">${currentQty}</span>
                                 <button onclick="updateCart('${denumire.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-md">+</button>
@@ -521,15 +513,19 @@
             tbody.innerHTML = html;
         }
 
-        // --- COȘ ȘI ISTORIC (LOGICA EXISTENTĂ) ---
         function updateCart(prodName, delta) {
-            // Căutăm produsul în categoria curentă
             const productData = allProducts.find(p => p[Object.keys(p).find(k => k.trim() === "Denumire")] === prodName);
-            if (!productData) return;
-            
-            if (!cart[prodName]) cart[prodName] = { quantity: 0, data: productData, category: selectedCategory };
-            cart[prodName].quantity += delta;
-            if (cart[prodName].quantity <= 0) delete cart[prodName];
+            if (!productData) {
+                // Dacă nu e în categoria curentă, îl căutăm în coș (pentru modificări din coș)
+                if (cart[prodName]) {
+                    cart[prodName].quantity += delta;
+                    if (cart[prodName].quantity <= 0) delete cart[prodName];
+                }
+            } else {
+                if (!cart[prodName]) cart[prodName] = { quantity: 0, data: productData, category: selectedCategory };
+                cart[prodName].quantity += delta;
+                if (cart[prodName].quantity <= 0) delete cart[prodName];
+            }
             
             saveAgentData();
             renderProducts(allProducts);
@@ -615,7 +611,7 @@
                 trimiteWhatsApp(totalNoVat.toFixed(2), timestamp, cart);
                 cart = {}; saveAgentData(); updateBadge(); switchView('history');
             } else {
-                alert("Progresul a fost salvat în Istoric ca Ciornă.");
+                alert("Comanda a fost salvată ca Ciornă în Istoric.");
                 switchView('history');
             }
         }
