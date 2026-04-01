@@ -115,20 +115,19 @@
             background: linear-gradient(135deg, #003366 0%, #001a33 100%);
         }
 
-        /* Stil foi de calcul (Tabs) */
         .sheet-tab {
-            padding: 8px 16px;
+            padding: 10px 20px;
             border-radius: 12px;
             font-weight: 800;
             text-transform: uppercase;
-            font-size: 11px;
+            font-size: 12px;
             transition: all 0.2s;
             white-space: nowrap;
         }
         .sheet-tab-active {
             background-color: #003366;
             color: #ffcc00;
-            box-shadow: 0 4px 10px rgba(0, 51, 102, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 51, 102, 0.3);
         }
         .sheet-tab-inactive {
             background-color: #f1f5f9;
@@ -214,10 +213,8 @@
                 </div>
             </div>
 
-            <!-- SECȚIUNE FOI (TABS) - Apare doar la Banner/Multi-sheet -->
-            <div id="sheet-selector" class="px-4 mb-4 flex gap-2 overflow-x-auto no-scrollbar view-hidden">
-                <!-- Butoane foi de calcul generate aici -->
-            </div>
+            <!-- SELECTOR FOI -->
+            <div id="sheet-selector" class="px-4 mb-4 flex gap-2 overflow-x-auto no-scrollbar view-hidden"></div>
 
             <div id="product-section" class="px-4 view-hidden">
                 <div class="flex justify-between items-center mb-3 px-1">
@@ -343,7 +340,6 @@
     </div>
 
     <script>
-        // --- CONFIGURAȚII ---
         const TVA_RATE = 1.21; 
         const AGENTS = {
             'calin': { pass: 'mocean', name: 'Călin Mocean' },
@@ -362,7 +358,7 @@
         let cart = {};
         let selectedCategory = null;
         let activeSheetName = null;
-        let workbookData = null; // Reține workbook-ul curent pentru switch sheets
+        let currentCategoryData = {}; // Obiect care retine toate foile pentru categoria curenta
         let currentActiveView = 'catalog';
         let currentViewingOrderIndex = null;
         window.orderHistory = [];
@@ -373,12 +369,10 @@
             });
         }
 
-        // --- AUTENTIFICARE ---
         function handleLogin() {
             const user = document.getElementById('login-user').value.toLowerCase().trim();
             const pass = document.getElementById('login-pass').value.trim();
             const errorEl = document.getElementById('login-error');
-
             if (AGENTS[user] && AGENTS[user].pass === pass) {
                 currentAgent = { id: user, name: AGENTS[user].name };
                 localStorage.setItem('dmauto_session', JSON.stringify(currentAgent));
@@ -417,15 +411,13 @@
             localStorage.setItem(cartKey, JSON.stringify(cart));
         }
 
-        // --- CATEGORII ȘI DATE MULTI-SHEET ---
         async function selectCategory(category) {
             selectedCategory = category;
             activeSheetName = null;
-            workbookData = null;
+            currentCategoryData = {};
             
             document.getElementById('productTableBody').innerHTML = '<tr><td colspan="3" class="p-10 text-center text-dm-blue font-bold italic">Se accesează oferta...</td></tr>';
             document.getElementById('sheet-selector').classList.add('view-hidden');
-            allProducts = [];
             
             document.getElementById('product-section').classList.remove('view-hidden');
             document.getElementById('category-placeholder').classList.add('view-hidden');
@@ -442,38 +434,50 @@
 
         async function syncCategoryData(category) {
             const fileName = CATEGORY_FILES[category];
-            if (!fileName) return;
+            const localKey = `dmauto_cache_${category}`;
+            
+            // Incarcam din cache intai
+            const cached = localStorage.getItem(localKey);
+            if (cached) {
+                currentCategoryData = JSON.parse(cached);
+                const sheetNames = Object.keys(currentCategoryData);
+                renderSheetSelector(sheetNames);
+                loadSheet(sheetNames[0]);
+            }
 
-            // Încearcăm să aducem fișierul nou de pe GitHub
+            if (window.location.protocol === 'blob:') return;
+
             try {
                 const encodedFile = encodeURIComponent(fileName);
                 const response = await fetch(window.location.pathname.includes('DM-Auto-App') ? `./${encodedFile}` : encodedFile);
                 
                 if (response.ok) {
                     const data = await response.arrayBuffer();
-                    workbookData = XLSX.read(data, {type: 'array'});
-                    renderSheetSelector(workbookData.SheetNames);
-                    // Încărcăm primul sheet implicit
-                    loadSheet(workbookData.SheetNames[0]);
-                } else {
-                    // Dacă Cloud eșuează, verificăm dacă avem ceva în memorie
-                    const localKey = `dmauto_last_wb_${category}`;
-                    const savedJSON = localStorage.getItem(localKey);
-                    if (savedJSON) {
-                        const parsed = JSON.parse(savedJSON);
-                        renderSheetSelector(Object.keys(parsed));
-                        allProducts = parsed[Object.keys(parsed)[0]];
-                        renderProducts(allProducts);
-                        activeSheetName = Object.keys(parsed)[0];
-                    } else {
-                        document.getElementById('productTableBody').innerHTML = `
-                            <tr><td colspan="3" class="p-10 text-center text-gray-400 italic text-sm">
-                                Fișierul "${fileName}" nu a fost găsit pe GitHub.<br>Urcă fișierul pentru a vedea produsele.
-                            </td></tr>`;
-                    }
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    
+                    // Resetam datele pentru a procesa tot workbook-ul
+                    currentCategoryData = {};
+                    workbook.SheetNames.forEach(name => {
+                        const rawJson = XLSX.utils.sheet_to_json(workbook.Sheets[name], { header: 1 });
+                        // Gasim rândul antetului automat (unde apare "Denumire")
+                        let headerIdx = rawJson.findIndex(row => row.some(cell => cell && cell.toString().toLowerCase().includes("denumire")));
+                        headerIdx = headerIdx === -1 ? 0 : headerIdx;
+                        
+                        const sheetJson = XLSX.utils.sheet_to_json(workbook.Sheets[name], { range: headerIdx, defval: "" });
+                        const filtered = sheetJson.filter(p => {
+                            const k = Object.keys(p).find(key => key.trim().toLowerCase() === "denumire");
+                            return p[k] && p[k].toString().trim() !== "" && p[k].toString().toLowerCase() !== "denumire";
+                        });
+                        currentCategoryData[name] = filtered;
+                    });
+
+                    localStorage.setItem(localKey, JSON.stringify(currentCategoryData));
+                    const sheetNames = Object.keys(currentCategoryData);
+                    renderSheetSelector(sheetNames);
+                    loadSheet(sheetNames[0]);
                 }
             } catch (e) { 
-                console.warn(`Eroare la accesarea fișierului ${category}`); 
+                console.error("Eroare incarcare:", e);
             }
         }
 
@@ -483,7 +487,6 @@
                 container.classList.add('view-hidden');
                 return;
             }
-
             container.classList.remove('view-hidden');
             container.innerHTML = sheetNames.map(name => `
                 <button onclick="loadSheet('${name}')" id="btn-sheet-${name}" 
@@ -494,67 +497,36 @@
         }
 
         function loadSheet(sheetName) {
-            if (!workbookData) return;
+            if (!currentCategoryData[sheetName]) return;
             activeSheetName = sheetName;
-            
-            const sheet = workbookData.Sheets[sheetName];
-            const json = XLSX.utils.sheet_to_json(sheet, { range: 3, defval: "" });
-            
-            allProducts = json.filter(p => {
-                const keys = Object.keys(p);
-                const kDen = keys.find(key => key.trim() === "Denumire");
-                return p[kDen] && p[kDen].toString().trim() !== "" && p[kDen] !== "Denumire";
-            });
+            allProducts = currentCategoryData[sheetName];
 
-            // Actualizăm selectorul vizual
+            // Update UI selector
             const container = document.getElementById('sheet-selector');
-            container.querySelectorAll('button').forEach(btn => {
-                btn.classList.replace('sheet-tab-active', 'sheet-tab-inactive');
-            });
+            container.querySelectorAll('button').forEach(btn => btn.classList.replace('sheet-tab-active', 'sheet-tab-inactive'));
             const activeBtn = document.getElementById(`btn-sheet-${sheetName}`);
             if (activeBtn) activeBtn.classList.replace('sheet-tab-inactive', 'sheet-tab-active');
 
             renderProducts(allProducts);
             document.getElementById('productCount').innerText = allProducts.length + " Produse în " + sheetName;
-
-            // Salvare backup local (simplificată)
-            const localKey = `dmauto_last_wb_${selectedCategory}`;
-            let currentStorage = JSON.parse(localStorage.getItem(localKey) || '{}');
-            currentStorage[sheetName] = allProducts;
-            localStorage.setItem(localKey, JSON.stringify(currentStorage));
         }
 
-        function triggerManualSync() {
-            if (selectedCategory) syncCategoryData(selectedCategory);
-            else alert("Selectează o categorie.");
-        }
-
-        function resetSelection() {
-            selectedCategory = null;
-            allProducts = [];
-            document.getElementById('product-section').classList.add('view-hidden');
-            document.getElementById('sheet-selector').classList.add('view-hidden');
-            document.getElementById('category-placeholder').classList.remove('view-hidden');
-            ['Ravenol', 'Banner', 'Cyclon', 'Cemsa'].forEach(cat => {
-                const card = document.getElementById(`card-${cat}`);
-                if (card) card.classList.remove('selected-category');
-            });
-        }
-
-        // --- UI RENDER ---
         function renderProducts(products) {
             const tbody = document.getElementById('productTableBody');
             if (!tbody) return;
             if (products.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" class="p-10 text-center text-gray-400 italic">Niciun produs găsit.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="3" class="p-10 text-center text-gray-400 italic">Niciun produs găsit în această listă.</td></tr>';
                 return;
             }
             let html = '';
             products.forEach(p => {
                 const keys = Object.keys(p);
-                const denumire = p[keys.find(k => k.trim() === "Denumire")] || "";
-                const pretFaraTva = formatPriceNum(p[keys.find(k => k.trim() === "Pret fara TVA")]);
+                const kDen = keys.find(k => k.trim().toLowerCase() === "denumire");
+                const kPret = keys.find(k => k.trim().toLowerCase() === "pret fara tva");
+                const denumire = p[kDen] || "";
+                const pretFaraTva = formatPriceNum(p[kPret]);
                 const currentQty = cart[denumire] ? cart[denumire].quantity : 0;
+                
                 html += `
                     <tr class="${currentQty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100">
                         <td class="pr-2 py-4 pl-2 font-black text-dm-blue uppercase leading-tight tracking-tighter text-base">${denumire}<br><span class="text-xs font-bold text-gray-500 italic opacity-80 mt-1 block">NET: ${pretFaraTva.toFixed(2)} RON</span></td>
@@ -572,13 +544,11 @@
         }
 
         function updateCart(prodName, delta) {
-            const productData = allProducts.find(p => p[Object.keys(p).find(k => k.trim() === "Denumire")] === prodName);
+            const productData = allProducts.find(p => p[Object.keys(p).find(k => k.trim().toLowerCase() === "denumire")] === prodName);
             if (!productData && !cart[prodName]) return;
-            
             if (!cart[prodName]) cart[prodName] = { quantity: 0, data: productData, category: selectedCategory, sheet: activeSheetName };
             cart[prodName].quantity += delta;
             if (cart[prodName].quantity <= 0) delete cart[prodName];
-            
             saveAgentData();
             renderProducts(allProducts);
             if (currentActiveView === 'cart') renderCart();
@@ -606,13 +576,15 @@
             emptyMsg.classList.add('view-hidden');
             items.forEach(item => {
                 const keys = Object.keys(item.data);
-                const name = item.data[keys.find(k => k.trim() === "Denumire")];
-                const pFara = formatPriceNum(item.data[keys.find(k => k.trim() === "Pret fara TVA")]);
+                const kDen = keys.find(k => k.trim().toLowerCase() === "denumire");
+                const kPret = keys.find(k => k.trim().toLowerCase() === "pret fara tva");
+                const name = item.data[kDen];
+                const pFara = formatPriceNum(item.data[kPret]);
                 const subtotal = item.quantity * pFara;
                 totalNoVat += subtotal;
                 html += `
                     <tr class="border-b border-gray-100">
-                        <td class="pr-2 py-4 pl-2 font-black text-dm-blue uppercase leading-tight tracking-tighter text-base">${name}<br><span class="text-xs font-bold text-gray-500 italic mt-1 block">${pFara.toFixed(2)} RON (Net) | ${item.sheet || 'Geral'}</span></td>
+                        <td class="pr-2 py-4 pl-2 font-black text-dm-blue uppercase leading-tight tracking-tighter text-base">${name}<br><span class="text-xs font-bold text-gray-500 italic mt-1 block">${pFara.toFixed(2)} RON (Net) | ${item.sheet || 'General'}</span></td>
                         <td class="py-4">
                             <div class="flex items-center justify-center gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100">
                                 <button onclick="updateCart('${name.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button>
@@ -635,7 +607,10 @@
             if (items.length === 0) return;
             const timestamp = new Date().toLocaleString('ro-RO');
             let totalNoVat = 0;
-            items.forEach(item => totalNoVat += item.quantity * formatPriceNum(item.data[Object.keys(item.data).find(k => k.trim() === "Pret fara TVA")]));
+            items.forEach(item => {
+                const kPret = Object.keys(item.data).find(k => k.trim().toLowerCase() === "pret fara tva");
+                totalNoVat += item.quantity * formatPriceNum(item.data[kPret]);
+            });
             window.orderHistory.unshift({ timestamp, total: totalNoVat.toFixed(2), items: items.length, cartData: JSON.parse(JSON.stringify(cart)), status: isDraft ? 'Ciornă' : 'Trimisă' });
             saveAgentData();
             if (!isDraft) { trimiteWhatsApp(totalNoVat.toFixed(2), timestamp, cart); cart = {}; saveAgentData(); updateBadge(); switchView('history'); }
@@ -647,8 +622,10 @@
             let msg = `Salut! Comandă DM Auto Sebeș (Agent: ${currentAgent.name})\nData: ${timestamp}\n\n`;
             items.forEach(item => {
                 const keys = Object.keys(item.data);
-                const name = item.data[keys.find(k => k.trim() === "Denumire")];
-                const pFara = formatPriceNum(item.data[keys.find(k => k.trim() === "Pret fara TVA")]);
+                const kDen = keys.find(k => k.trim().toLowerCase() === "denumire");
+                const kPret = keys.find(k => k.trim().toLowerCase() === "pret fara tva");
+                const name = item.data[kDen];
+                const pFara = formatPriceNum(item.data[kPret]);
                 msg += `• ${item.quantity} x ${name} (${pFara.toFixed(2)} RON/buc Net) = ${(item.quantity * pFara).toFixed(2)} RON\n`;
             });
             msg += `\nTOTAL NET: ${totalNoVat} RON\nTOTAL CU TVA (21%): ${(totalNoVat * TVA_RATE).toFixed(2)} RON`;
@@ -680,29 +657,30 @@
             let html = '';
             Object.values(order.cartData).forEach(item => {
                 const keys = Object.keys(item.data);
-                const name = item.data[keys.find(k => k.trim() === "Denumire")];
-                const pFara = formatPriceNum(item.data[keys.find(k => k.trim() === "Pret fara TVA")]);
-                html += `<div class="flex justify-between items-center text-sm py-2 border-b border-gray-50 last:border-0"><span class="font-bold text-dm-blue uppercase truncate pr-4 leading-tight">${name}</span><span class="font-black bg-gray-50 px-2 py-1 rounded">${item.quantity} x ${pFara.toFixed(2)}</span></div>`;
+                const kDen = keys.find(k => k.trim().toLowerCase() === "denumire");
+                const kPret = keys.find(k => k.trim().toLowerCase() === "pret fara tva");
+                html += `<div class="flex justify-between items-center text-sm py-2 border-b border-gray-50 last:border-0"><span class="font-bold text-dm-blue uppercase truncate pr-4 leading-tight">${item.data[kDen]}</span><span class="font-black bg-gray-50 px-2 py-1 rounded">${item.quantity} x ${formatPriceNum(item.data[kPret]).toFixed(2)}</span></div>`;
             });
             document.getElementById('order-details-items').innerHTML = html;
         }
 
         function incarcaComandaInCos() { if (currentViewingOrderIndex === null) return; cart = JSON.parse(JSON.stringify(window.orderHistory[currentViewingOrderIndex].cartData)); saveAgentData(); renderCart(); switchView('cart'); updateBadge(); }
-        
         function retrimiteComandaDirect() {
             if (currentViewingOrderIndex === null) return;
             const order = window.orderHistory[currentViewingOrderIndex];
             trimiteWhatsApp(order.total, order.timestamp, order.cartData);
             if (order.status === 'Ciornă') { window.orderHistory[currentViewingOrderIndex].status = 'Trimisă'; saveAgentData(); switchView('history'); }
         }
-
         function stergeComandaCurenta() { if (currentViewingOrderIndex === null) return; if (confirm("Ștergi comanda?")) { window.orderHistory.splice(currentViewingOrderIndex, 1); saveAgentData(); switchView('history'); } }
-        
         function formatPriceNum(val) { if (!val && val !== 0) return 0; if (typeof val === 'number') return val; return parseFloat(val.toString().replace(',', '.')) || 0; }
+        function triggerManualSync() { if (selectedCategory) selectCategory(selectedCategory); else alert("Selectează o categorie."); }
 
         function filterProducts() {
             const q = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = allProducts.filter(p => p[Object.keys(p).find(key => key.trim() === "Denumire")].toString().toLowerCase().includes(q));
+            const filtered = allProducts.filter(p => {
+                const k = Object.keys(p).find(key => key.trim().toLowerCase() === "denumire");
+                return p[k] && p[k].toString().toLowerCase().includes(q);
+            });
             renderProducts(filtered);
         }
 
