@@ -479,7 +479,9 @@
             container.querySelectorAll('button').forEach(btn => btn.classList.replace('sheet-tab-active', 'sheet-tab-inactive'));
             const activeBtn = document.getElementById(`btn-sheet-${sheetName}`);
             if (activeBtn) activeBtn.classList.replace('sheet-tab-inactive', 'sheet-tab-active');
-            renderProducts(allProducts);
+            
+            // Respectăm filtrul din bara de căutare la schimbarea foii
+            filterProducts();
             document.getElementById('productCount').innerText = allProducts.length + " Produse în " + sheetName;
         }
 
@@ -496,7 +498,6 @@
                 const pretFaraTva = formatPriceNum(p[kPret]);
                 const currentQty = cart[denumire] ? cart[denumire].quantity : 0;
                 
-                // MĂRIRE FONT PREȚ NET SUB DENUMIRE PENTRU OVIDIU
                 html += `
                     <tr class="${currentQty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100">
                         <td class="pr-2 py-4 pl-4 font-black text-dm-blue uppercase leading-tight tracking-tighter text-sm">
@@ -518,6 +519,7 @@
             tbody.innerHTML = html;
         }
 
+        // FIX: Acum updateCart folosește filterProducts() în loc de renderProducts(allProducts)
         function updateCart(prodName, delta) {
             const productData = allProducts.find(p => p[Object.keys(p).find(k => k.trim().toLowerCase() === "denumire")] === prodName);
             if (!productData && !cart[prodName]) return;
@@ -525,7 +527,10 @@
             cart[prodName].quantity += delta;
             if (cart[prodName].quantity <= 0) delete cart[prodName];
             saveAgentData();
-            renderProducts(allProducts);
+            
+            // Aceasta este modificarea cheie: reaplicăm filtrul curent
+            filterProducts(); 
+            
             if (currentActiveView === 'cart') renderCart();
             updateBadge();
         }
@@ -558,7 +563,6 @@
                 const subtotal = item.quantity * pFara;
                 totalNoVat += subtotal;
                 
-                // MĂRIRE FONT PREȚ NET ÎN COȘ
                 html += `
                     <tr class="border-b border-gray-100">
                         <td class="pr-2 py-4 pl-4 font-black text-dm-blue uppercase leading-tight tracking-tighter text-sm">
@@ -580,7 +584,7 @@
             document.getElementById('totalWithVat').innerText = (totalNoVat * TVA_RATE).toFixed(2) + ' RON';
         }
 
-        function golesteCos() { if(confirm("Golești coșul?")) { cart = {}; saveAgentData(); updateBadge(); renderCart(); renderProducts(allProducts); } }
+        function golesteCos() { if(confirm("Golești coșul?")) { cart = {}; saveAgentData(); updateBadge(); renderCart(); filterProducts(); } }
 
         function salveazaComanda(isDraft = false) {
             const items = Object.values(cart);
@@ -640,6 +644,7 @@
         function formatPriceNum(val) { if (!val && val !== 0) return 0; if (typeof val === 'number') return val; return parseFloat(val.toString().replace(',', '.')) || 0; }
         function triggerManualSync() { if (selectedCategory) selectCategory(selectedCategory); else alert("Selectează o categorie."); }
 
+        // MODIFICARE: Funcție de filtrare centralizată
         function filterProducts() {
             const q = document.getElementById('searchInput').value.toLowerCase();
             const filtered = allProducts.filter(p => {
