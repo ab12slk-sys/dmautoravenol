@@ -30,26 +30,26 @@
         .category-card {
             position: relative;
             overflow: hidden;
-            border-radius: 1rem;
-            aspect-ratio: 16/11;
+            border-radius: 1.25rem;
+            aspect-ratio: 16/10;
             background-size: cover;
             background-position: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
             cursor: pointer;
-            transition: all 0.2s ease;
-            border: 3px solid transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 4px solid transparent;
         }
 
         .category-card:active { transform: scale(0.95); }
 
         .category-overlay {
-            background: linear-gradient(to top, rgba(0, 30, 60, 0.9) 0%, rgba(0, 30, 60, 0.2) 60%, transparent 100%);
+            background: linear-gradient(to top, rgba(0, 30, 60, 0.95) 0%, rgba(0, 30, 60, 0.4) 60%, transparent 100%);
             position: absolute;
             inset: 0;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
-            padding: 1rem;
+            padding: 1.25rem;
         }
 
         .quick-order-table th {
@@ -57,7 +57,7 @@
             color: #64748b;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            padding: 12px 8px;
+            padding: 14px 8px;
             position: sticky;
             top: 0;
             background: #f8fafc;
@@ -65,46 +65,47 @@
         }
 
         .qty-btn {
-            width: 48px;
-            height: 48px;
+            width: 52px;
+            height: 52px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 14px;
+            border-radius: 16px;
             font-weight: 900;
             transition: all 0.1s ease;
         }
         
-        .qty-btn:active { transform: scale(0.9); }
+        .qty-btn:active { transform: scale(0.85); }
 
         .cart-badge {
             position: absolute;
-            top: -5px;
-            right: -5px;
+            top: -8px;
+            right: -8px;
             background: #ffcc00;
             color: #003366;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 900;
-            width: 24px;
-            height: 24px;
+            width: 26px;
+            height: 26px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 2px solid white;
+            border: 3px solid white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         .view-hidden { display: none !important; }
         
         .selected-category {
             border-color: #ffcc00;
-            transform: scale(1.02);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            transform: scale(1.03);
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);
         }
 
         .header-logo-container {
-            width: 54px;
-            height: 54px;
+            width: 60px;
+            height: 60px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -115,28 +116,8 @@
             background: linear-gradient(135deg, #003366 0%, #001a33 100%);
         }
 
-        .sheet-tab {
-            padding: 12px 24px;
-            border-radius: 14px;
-            font-weight: 800;
-            text-transform: uppercase;
-            font-size: 13px;
-            transition: all 0.2s;
-            white-space: nowrap;
-        }
-        .sheet-tab-active {
-            background-color: #003366;
-            color: #ffcc00;
-            box-shadow: 0 4px 12px rgba(0, 51, 102, 0.3);
-        }
-        .sheet-tab-inactive {
-            background-color: #f1f5f9;
-            color: #64748b;
-            border: 1px solid #e2e8f0;
-        }
-
         .client-card {
-            border-left: 8px solid #e2e8f0;
+            border-left: 10px solid #e2e8f0;
             transition: all 0.2s;
         }
         .client-card.active-client {
@@ -145,62 +126,61 @@
         }
 
         .btn-save-client {
-            width: 48px;
-            height: 48px;
+            width: 50px;
+            height: 50px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 12px;
+            border-radius: 14px;
         }
 
-        /* Hide scrollbar but keep functionality */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="pb-32">
+<body class="pb-36">
 
     <!-- ECRAN LOGIN -->
-    <div id="view-login" class="fixed inset-0 z-[100] login-gradient flex flex-col items-center justify-center p-6">
+    <div id="view-login" class="fixed inset-0 z-[100] login-gradient flex flex-col items-center justify-center p-6 text-center">
         <div class="w-full max-w-sm">
-            <div class="flex flex-col items-center mb-10">
-                <img src="logo_dmauto.png" alt="DM Auto Logo" class="h-24 mb-4 object-contain" onerror="this.src='https://via.placeholder.com/150?text=DM+AUTO'">
-                <h2 class="text-dm-yellow font-black text-xl tracking-widest italic uppercase text-center">Portal Agenți</h2>
+            <div class="flex flex-col items-center mb-12">
+                <img src="logo_dmauto.png" alt="DM Auto Logo" class="h-28 mb-6 object-contain" onerror="this.src='https://via.placeholder.com/150?text=DM+AUTO'">
+                <h2 class="text-dm-yellow font-black text-2xl tracking-widest italic uppercase">Portal Agenți</h2>
             </div>
 
-            <div class="bg-white/10 backdrop-blur-md p-8 rounded-3xl border border-white/20 shadow-2xl">
+            <div class="bg-white/10 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white/20 shadow-2xl">
                 <div class="mb-6">
-                    <label class="block text-white/60 text-[10px] font-black uppercase mb-2 ml-1">Utilizator</label>
+                    <label class="block text-white/50 text-[10px] font-black uppercase mb-2 ml-1 text-left">Utilizator</label>
                     <input type="text" id="login-user" placeholder="nume agent" 
-                           class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white text-sm focus:outline-none focus:border-dm-yellow transition-all">
+                           class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white text-lg focus:outline-none focus:border-dm-yellow transition-all">
                 </div>
                 <div class="mb-8">
-                    <label class="block text-white/60 text-[10px] font-black uppercase mb-2 ml-1">Parolă</label>
+                    <label class="block text-white/50 text-[10px] font-black uppercase mb-2 ml-1 text-left">Parolă</label>
                     <input type="password" id="login-pass" placeholder="••••••••" 
-                           class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white text-sm focus:outline-none focus:border-dm-yellow transition-all">
+                           class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white text-lg focus:outline-none focus:border-dm-yellow transition-all">
                 </div>
-                <button onclick="handleLogin()" class="w-full bg-dm-yellow text-dm-blue py-4 rounded-xl font-black uppercase shadow-xl active:scale-95 transition-all">
+                <button onclick="handleLogin()" class="w-full bg-dm-yellow text-dm-blue py-5 rounded-2xl font-black uppercase shadow-xl active:scale-95 transition-all text-lg">
                     Autentificare 🚀
                 </button>
-                <div id="login-error" class="mt-4 text-red-400 text-[10px] font-bold text-center hidden uppercase tracking-tighter">
+                <div id="login-error" class="mt-4 text-red-400 text-xs font-black hidden uppercase tracking-tighter">
                     Date de acces incorecte!
                 </div>
             </div>
-            <p class="text-white/30 text-center mt-10 text-[9px] font-bold uppercase tracking-widest">© 2026 DM Auto Sebeș</p>
+            <p class="text-white/20 text-center mt-12 text-[10px] font-bold uppercase tracking-[0.3em]">© 2026 DM Auto Sebeș</p>
         </div>
     </div>
 
     <!-- CONȚINUT APLICAȚIE -->
     <div id="app-content" class="view-hidden">
-        <header class="bg-dm-blue text-white p-5 pb-6 shadow-xl rounded-b-[2.5rem]">
-            <div class="flex items-center gap-4 mb-5">
+        <header class="bg-dm-blue text-white p-5 pb-8 shadow-2xl rounded-b-[3rem]">
+            <div class="flex items-center gap-5 mb-6">
                 <div class="header-logo-container">
                     <img src="logo_dmauto.png" alt="Logo" class="max-h-full max-w-full object-contain">
                 </div>
                 <div class="flex-1">
-                    <h1 class="text-sm font-medium opacity-90">Salut, <span id="agent-display-name" class="font-black text-white">Agent!</span></h1>
+                    <h1 class="text-sm font-medium opacity-80">Salut, <span id="agent-display-name" class="font-black text-white">Agent!</span></h1>
                     <!-- Caseta Client Uriașă -->
-                    <button onclick="switchView('clients')" class="mt-2 w-full bg-black/40 border border-white/20 p-4 rounded-xl flex flex-col items-start gap-1 active:scale-95 transition-all shadow-inner">
+                    <button onclick="switchView('clients')" class="mt-2 w-full bg-black/40 border border-white/10 p-4 rounded-2xl flex flex-col items-start gap-1 active:scale-95 transition-all shadow-inner">
                         <span class="text-[10px] font-black text-dm-yellow uppercase tracking-[0.2em] opacity-80">Client Selectat:</span>
                         <div class="flex items-center justify-between w-full">
                             <span id="header-client-name" class="text-xl font-black truncate leading-none text-left">Neselectat 👤</span>
@@ -208,16 +188,16 @@
                         </div>
                     </button>
                 </div>
-                <button onclick="triggerManualSync()" class="bg-white/10 p-3 rounded-2xl border border-white/20 active:scale-90 transition-all">
-                    <span class="text-xl">🔄</span>
+                <button onclick="triggerManualSync()" class="bg-white/10 p-4 rounded-2xl border border-white/20 active:scale-90 transition-all shadow-lg">
+                    <span class="text-2xl">🔄</span>
                 </button>
             </div>
 
             <div id="search-container" class="relative">
-                <input type="text" id="searchInput" onkeyup="if(event.key === 'Enter') filterProducts()" placeholder="Caută produs..." 
-                       class="w-full p-4 pr-14 rounded-xl text-gray-800 text-base focus:outline-none shadow-2xl border-none font-semibold">
-                <div onclick="filterProducts()" class="absolute right-4 top-4 text-gray-300 cursor-pointer active:scale-90 active:text-dm-blue transition-all">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <input type="text" id="searchInput" onkeyup="if(event.key === 'Enter') filterProducts()" placeholder="Caută produs în listă..." 
+                       class="w-full p-5 pr-16 rounded-2xl text-gray-800 text-lg focus:outline-none shadow-2xl border-none font-semibold">
+                <div onclick="filterProducts()" class="absolute right-5 top-4 text-gray-300 cursor-pointer active:scale-90 active:text-dm-blue transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                 </div>
@@ -227,10 +207,10 @@
         <!-- CATALOG CATEGORII -->
         <div id="view-catalog" class="active-view">
             <div class="p-4 grid grid-cols-2 gap-4">
-                <div id="card-Inventar" onclick="selectCategory('Inventar')" class="category-card col-span-2 !aspect-[24/9]" style="background-color: #1e293b;">
+                <div id="card-Inventar" onclick="selectCategory('Inventar')" class="category-card col-span-2 !aspect-[26/9]" style="background-color: #1e293b;">
                     <div class="category-overlay">
-                        <h3 class="text-dm-yellow font-black text-lg uppercase italic tracking-widest">📦 STOC REAL / INVENTAR</h3>
-                        <p class="text-white/50 text-[11px] uppercase font-bold tracking-tighter">Vezi toată marfa din gestiune</p>
+                        <h3 class="text-dm-yellow font-black text-xl uppercase italic tracking-widest leading-none">📦 TOATE PRODUSELE</h3>
+                        <p class="text-white/50 text-xs uppercase font-bold tracking-tighter mt-1">Stoc Real & Inventar Complet</p>
                     </div>
                 </div>
                 <div id="card-Ravenol" onclick="selectCategory('Ravenol')" class="category-card" style="background-image: url('ravenol.jpg');">
@@ -243,52 +223,49 @@
                     <div class="category-overlay"><h3 class="text-white font-black text-sm uppercase italic tracking-tighter">CYCLON</h3></div>
                 </div>
                 <div id="card-Cemsa" onclick="selectCategory('Cemsa')" class="category-card" style="background-image: url('cemsa.jpg');">
-                    <div class="category-overlay"><h3 class="text-white font-black text-sm uppercase italic tracking-tighter">CEMSA</h3></div>
+                    <div class="category-overlay"><h3 class="text-white font-black text-sm uppercase italic tracking-tighter">CEMSA / ALTELE</h3></div>
                 </div>
             </div>
 
-            <!-- Selector de Sheet-uri (pentru Banner/Inventar multi-sheet) -->
-            <div id="sheet-selector" class="px-4 mb-4 flex gap-2 overflow-x-auto no-scrollbar view-hidden"></div>
-
             <div id="product-section" class="px-4 view-hidden">
-                <div class="flex justify-between items-center mb-3 px-1">
-                    <div class="flex items-center gap-2">
-                        <h3 id="selected-category-title" class="text-sm font-black uppercase tracking-widest text-dm-blue italic">Produse</h3>
-                        <button onclick="resetSelection()" class="text-[10px] bg-gray-200 px-3 py-1 rounded text-gray-600 font-bold uppercase active:bg-gray-300">Închide</button>
+                <div class="flex justify-between items-center mb-4 px-1">
+                    <div class="flex items-center gap-3">
+                        <h3 id="selected-category-title" class="text-base font-black uppercase tracking-widest text-dm-blue italic">Produse</h3>
+                        <button onclick="resetSelection()" class="text-xs bg-gray-200 px-4 py-1.5 rounded-xl text-gray-600 font-black uppercase active:bg-gray-300">Închide</button>
                     </div>
-                    <span id="productCount" class="text-[11px] text-gray-400 font-bold uppercase italic tracking-tighter">...</span>
+                    <span id="productCount" class="text-xs text-gray-400 font-bold uppercase italic tracking-tighter">...</span>
                 </div>
-                <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 mb-8">
+                <div class="bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-gray-100 mb-10">
                     <div class="overflow-x-auto max-h-[60vh]">
                         <table class="w-full text-left quick-order-table">
                             <thead class="bg-gray-50 border-b border-gray-100">
                                 <tr>
-                                    <th class="w-1/2 pl-4">Produs / Stoc / Preț NET</th>
-                                    <th class="text-center">Cantitate</th>
-                                    <th class="text-right pr-4">Total</th>
+                                    <th class="w-1/2 pl-6">Produs / Stoc / Preț NET</th>
+                                    <th class="text-center">Comandă</th>
+                                    <th class="text-right pr-6">Total</th>
                                 </tr>
                             </thead>
-                            <tbody id="productTableBody" class="divide-y divide-gray-50 text-sm"></tbody>
+                            <tbody id="productTableBody" class="divide-y divide-gray-100 text-sm"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
             
-            <div id="category-placeholder" class="p-10 text-center">
-                <div class="bg-gray-50 border-2 border-dashed border-gray-200 rounded-3xl p-8">
-                    <span class="text-5xl block mb-4">👇</span>
-                    <p class="text-gray-400 font-black uppercase text-[13px] tracking-widest text-balance leading-relaxed">Alege o categorie de mai sus pentru a vedea oferta</p>
+            <div id="category-placeholder" class="p-12 text-center">
+                <div class="bg-gray-50 border-2 border-dashed border-gray-200 rounded-[2.5rem] p-10">
+                    <span class="text-6xl block mb-5">👇</span>
+                    <p class="text-gray-400 font-black uppercase text-sm tracking-widest text-balance leading-relaxed">Alege o categorie pentru a vedea marfa</p>
                 </div>
             </div>
         </div>
 
         <!-- LISTA CLIENTI -->
         <div id="view-clients" class="view-hidden p-4">
-            <h2 class="text-xl font-black text-dm-blue uppercase italic mb-4">👤 Selectează Clientul</h2>
+            <h2 class="text-2xl font-black text-dm-blue uppercase italic mb-6">👤 Selectează Clientul</h2>
             <div class="relative mb-6">
-                <input type="text" id="clientSearch" onkeyup="filterClients()" placeholder="Nume, Localitate sau CIF..." 
-                       class="w-full p-4 pr-12 rounded-xl text-gray-800 text-base focus:outline-none shadow-xl border border-gray-100 font-semibold">
-                <div class="absolute right-4 top-4 text-gray-300 text-xl">🔍</div>
+                <input type="text" id="clientSearch" onkeyup="filterClients()" placeholder="Nume magazin, localitate sau CIF..." 
+                       class="w-full p-5 pr-14 rounded-2xl text-gray-800 text-lg focus:outline-none shadow-xl border border-gray-100 font-semibold">
+                <div class="absolute right-5 top-5 text-gray-300 text-2xl">🔍</div>
             </div>
             
             <div class="flex gap-2 mb-6 overflow-x-auto pb-2 no-scrollbar">
@@ -301,99 +278,96 @@
 
         <!-- COȘ COMANDĂ -->
         <div id="view-cart" class="view-hidden p-4">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-black text-dm-blue uppercase italic">🛒 Coș Comandă (TVA 21%)</h2>
-                <button onclick="golesteCos()" class="text-[11px] font-bold text-red-500 uppercase">Golește tot</button>
-            </div>
+            <h2 class="text-2xl font-black text-dm-blue uppercase italic mb-6">🛒 Coș Comandă (21% TVA)</h2>
             
-            <div id="cart-client-banner" class="bg-dm-yellow/20 border border-dm-yellow/30 p-4 rounded-xl mb-4 flex justify-between items-center">
-                <div class="flex-1 min-w-0 pr-4">
-                    <p class="text-[10px] font-black uppercase text-dm-blue/60 leading-none">Pentru Clientul:</p>
-                    <p id="cart-client-name" class="text-base font-black text-dm-blue uppercase tracking-tighter mt-1 truncate">Neselectat!</p>
+            <div id="cart-client-banner" class="bg-dm-yellow/20 border border-dm-yellow/30 p-5 rounded-[1.5rem] mb-6 flex justify-between items-center">
+                <div class="flex-1 min-w-0 pr-6">
+                    <p class="text-[10px] font-black uppercase text-dm-blue/60 tracking-widest leading-none">Pentru Clientul:</p>
+                    <p id="cart-client-name" class="text-lg font-black text-dm-blue uppercase tracking-tighter mt-1 truncate">Neselectat!</p>
                 </div>
-                <button onclick="switchView('clients')" class="text-[10px] font-black bg-dm-blue text-white px-4 py-2 rounded-lg uppercase flex-shrink-0">Schimbă</button>
+                <button onclick="switchView('clients')" class="text-xs font-black bg-dm-blue text-white px-5 py-3 rounded-xl uppercase flex-shrink-0 shadow-lg">Schimbă</button>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden mb-6">
+            <div class="bg-white rounded-[2rem] shadow-2xl border border-gray-100 overflow-hidden mb-8">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left quick-order-table">
                         <thead class="bg-gray-50 border-b border-gray-100">
                             <tr>
-                                <th class="w-1/2 pl-4">Produs / Preț NET</th>
+                                <th class="w-1/2 pl-6">Produs / Preț NET</th>
                                 <th class="text-center">Cantitate</th>
-                                <th class="text-right pr-4">Total Net</th>
+                                <th class="text-right pr-6">Total Net</th>
                             </tr>
                         </thead>
-                        <tbody id="cart-content-table" class="divide-y divide-gray-50 text-base"></tbody>
+                        <tbody id="cart-content-table" class="divide-y divide-gray-100 text-base"></tbody>
                     </table>
                 </div>
-                <div id="cart-empty-msg" class="p-10 text-center text-gray-400 uppercase font-black text-sm italic view-hidden">Coșul este gol</div>
+                <div id="cart-empty-msg" class="p-16 text-center text-gray-400 uppercase font-black text-sm italic view-hidden tracking-widest">Coșul este gol</div>
             </div>
 
-            <div id="cart-summary-box" class="bg-dm-blue text-white rounded-2xl p-6 shadow-2xl">
-                <div class="flex justify-between items-end border-b border-white/10 pb-3 mb-3">
-                    <span class="text-sm uppercase font-black text-dm-yellow">Total Comandă (Net)</span>
-                    <span id="totalNoVat" class="text-3xl font-black italic text-white">0.00 RON</span>
+            <div id="cart-summary-box" class="bg-dm-blue text-white rounded-[2.5rem] p-8 shadow-2xl">
+                <div class="flex justify-between items-end border-b border-white/10 pb-5 mb-5">
+                    <span class="text-xs uppercase font-black text-dm-yellow tracking-widest">Total Comandă (Net)</span>
+                    <span id="totalNoVat" class="text-4xl font-black italic text-white tracking-tighter">0.00 RON</span>
                 </div>
-                <div class="flex justify-between items-center opacity-70 mb-5">
-                    <span class="text-[12px] uppercase font-bold tracking-tight">Total cu TVA (21%)</span>
-                    <span id="totalWithVat" class="text-xl font-bold text-white">0.00 RON</span>
+                <div class="flex justify-between items-center opacity-70 mb-8">
+                    <span class="text-sm uppercase font-bold tracking-tight">Total Final cu TVA (21%)</span>
+                    <span id="totalWithVat" class="text-2xl font-bold text-white tracking-tighter">0.00 RON</span>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <button onclick="salveazaComanda(true)" class="bg-blue-600 text-white py-5 rounded-xl font-black uppercase shadow-lg active:scale-95 transition-all flex flex-col items-center justify-center gap-1 text-[11px]">
-                        <span class="text-2xl">💾</span> SALVEAZĂ
+                <div class="grid grid-cols-2 gap-5">
+                    <button onclick="salveazaComanda(true)" class="bg-blue-600 text-white py-6 rounded-2xl font-black uppercase shadow-xl active:scale-95 transition-all text-sm flex flex-col items-center gap-1">
+                        <span class="text-3xl">💾</span> SALVEAZĂ
                     </button>
-                    <button id="btnFinalizeWhatsApp" onclick="salveazaComanda(false)" class="bg-dm-yellow text-dm-blue py-5 rounded-xl font-black uppercase shadow-lg active:scale-95 transition-all flex flex-col items-center justify-center gap-1 text-[11px]">
-                        <span class="text-2xl">🚀</span> TRIMITE
+                    <button id="btnFinalizeWhatsApp" onclick="salveazaComanda(false)" class="bg-dm-yellow text-dm-blue py-6 rounded-2xl font-black uppercase shadow-xl active:scale-95 transition-all text-sm flex flex-col items-center gap-1">
+                        <span class="text-3xl">🚀</span> TRIMITE
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- ISTORIC COMEMZI -->
+        <!-- ISTORIC -->
         <div id="view-history" class="view-hidden p-4">
-            <h2 class="text-xl font-black text-dm-blue uppercase mb-4 italic">📋 Istoric Comenzi</h2>
-            <div id="history-content" class="space-y-4"></div>
+            <h2 class="text-2xl font-black text-dm-blue uppercase italic mb-6">📋 Istoric Comenzi</h2>
+            <div id="history-content" class="space-y-5"></div>
         </div>
 
-        <!-- DETALII COMANDĂ DIN ISTORIC -->
+        <!-- DETALII COMANDĂ -->
         <div id="view-order-details" class="view-hidden p-4">
-            <button onclick="switchView('history')" class="mb-4 text-dm-blue font-bold uppercase text-[12px] flex items-center gap-2">
+            <button onclick="switchView('history')" class="mb-6 text-dm-blue font-black uppercase text-xs flex items-center gap-2 tracking-widest">
                 <span>←</span> ÎNAPOI LA ISTORIC
             </button>
-            <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 mb-6">
-                <div id="order-details-header" class="border-b border-gray-100 pb-5 mb-5"></div>
-                <div id="order-details-items" class="space-y-4 mb-8"></div>
-                <div class="flex flex-col gap-3">
-                    <div class="grid grid-cols-2 gap-3">
-                        <button onclick="incarcaComandaInCos()" class="bg-dm-blue text-white py-4 rounded-xl font-black uppercase shadow-lg active:scale-95 transition-all text-[11px] flex items-center justify-center gap-2">
+            <div class="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 p-8 mb-8">
+                <div id="order-details-header" class="border-b border-gray-100 pb-6 mb-6"></div>
+                <div id="order-details-items" class="space-y-5 mb-10"></div>
+                <div class="flex flex-col gap-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <button onclick="incarcaComandaInCos()" class="bg-dm-blue text-white py-5 rounded-2xl font-black uppercase shadow-lg active:scale-95 transition-all text-xs flex items-center justify-center gap-2">
                             <span>🔄</span> MODIFICĂ
                         </button>
-                        <button onclick="retrimiteComandaDirect()" class="bg-dm-yellow text-dm-blue py-4 rounded-xl font-black uppercase shadow-lg active:scale-95 transition-all text-[11px] flex items-center justify-center gap-2">
+                        <button onclick="retrimiteComandaDirect()" class="bg-dm-yellow text-dm-blue py-5 rounded-2xl font-black uppercase shadow-lg active:scale-95 transition-all text-xs flex items-center justify-center gap-2">
                             <span>🚀</span> TRIMITE
                         </button>
                     </div>
-                    <button onclick="stergeComandaCurenta()" class="w-full bg-red-500 text-white py-4 rounded-xl font-black uppercase shadow-lg active:scale-95 transition-all text-[11px] flex items-center justify-center gap-2">
+                    <button onclick="stergeComandaCurenta()" class="w-full bg-red-500 text-white py-5 rounded-2xl font-black uppercase shadow-lg active:scale-95 transition-all text-xs flex items-center justify-center gap-2">
                         <span>🗑️</span> ȘTERGE COMANDA
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- NAVIGARE JOS -->
-        <nav class="fixed bottom-0 w-full bg-white border-t border-gray-100 p-3 flex justify-around shadow-2xl z-50">
+        <!-- NAVIGARE -->
+        <nav class="fixed bottom-0 w-full bg-white border-t border-gray-100 p-4 flex justify-around shadow-[0_-15px_30px_-10px_rgba(0,0,0,0.1)] z-50 rounded-t-[2.5rem]">
             <button onclick="switchView('catalog')" class="nav-btn flex flex-col items-center text-dm-blue" id="nav-catalog">
-                <span class="text-3xl font-bold">🏠</span><span class="text-[10px] font-black uppercase mt-1">Catalog</span>
+                <span class="text-4xl font-bold">🏠</span><span class="text-[10px] font-black uppercase mt-1">Catalog</span>
             </button>
             <button onclick="switchView('cart')" class="nav-btn flex flex-col items-center text-gray-400 relative" id="nav-cart">
-                <span class="text-3xl font-bold">🛒</span><span class="text-[10px] font-black uppercase mt-1">Coș</span>
+                <span class="text-4xl font-bold">🛒</span><span class="text-[10px] font-black uppercase mt-1">Coș</span>
                 <div id="cartBadge" class="cart-badge hidden">0</div>
             </button>
             <button onclick="switchView('history')" class="nav-btn flex flex-col items-center text-gray-400" id="nav-history">
-                <span class="text-3xl font-bold">📋</span><span class="text-[10px] font-black uppercase mt-1">Istoric</span>
+                <span class="text-4xl font-bold">📋</span><span class="text-[10px] font-black uppercase mt-1">Istoric</span>
             </button>
             <button onclick="handleLogout()" class="flex flex-col items-center text-gray-300">
-                <span class="text-3xl font-bold">🚪</span><span class="text-[10px] font-black uppercase mt-1">Ieșire</span>
+                <span class="text-4xl font-bold">🚪</span><span class="text-[10px] font-black uppercase mt-1">Ieșire</span>
             </button>
         </nav>
     </div>
@@ -405,25 +379,18 @@
             'ovidiu': { pass: 'rahovean', name: 'Ovidiu Rahovean', filter: 'RAHOVEAN' }
         };
 
-        const CATEGORY_FILES = {
-            'Ravenol': 'OFERTA PRET RAVENOL 16.03.26.xlsx',
-            'Banner': 'OFERTA_PRET_BANNER.xlsx',
-            'Cyclon': 'OFERTA_CYCLON.xlsx',
-            'Cemsa': 'OFERTA_CEMSA.xlsx',
-            'Inventar': 'INVENTAR_STOC.xlsx'
-        };
+        const MASTER_FILE = 'INVENTAR_STOC.xlsx';
         const CLIENTS_FILE = 'LISTA_CLIENTI.xlsx';
 
         let currentAgent = null;
-        let allProducts = []; 
+        let allProductsRaw = []; // Toate produsele din fișierul master
         let allClients = [];
         let savedClientNames = []; 
         let showOnlyMyClients = true;
         let selectedClient = null;
         let cart = {};
         let selectedCategory = null;
-        let activeSheetName = null;
-        let currentCategoryData = {}; 
+        let currentCategoryData = {}; // Produsele filtrate pentru categoria curentă
         let currentActiveView = 'catalog';
         let currentViewingOrderIndex = null;
         window.orderHistory = [];
@@ -434,6 +401,7 @@
             });
         }
 
+        // --- AUTENTIFICARE ---
         function handleLogin() {
             const user = document.getElementById('login-user').value.toLowerCase().trim();
             const pass = document.getElementById('login-pass').value.trim();
@@ -456,6 +424,7 @@
             document.getElementById('app-content').classList.remove('view-hidden');
             document.getElementById('agent-display-name').innerText = currentAgent.name;
             loadAgentData();
+            syncMasterData();
             syncClients();
         }
 
@@ -477,6 +446,81 @@
             localStorage.setItem(`dmauto_cart_${currentAgent.id}`, JSON.stringify(cart));
             localStorage.setItem(`dmauto_client_${currentAgent.id}`, JSON.stringify(selectedClient));
             localStorage.setItem(`dmauto_saved_clients_${currentAgent.id}`, JSON.stringify(savedClientNames));
+        }
+
+        // --- GESTIUNE DATE MASTER (INVENTAR_STOC.xlsx) ---
+        async function syncMasterData() {
+            const localKey = `dmauto_master_cache`;
+            const cached = localStorage.getItem(localKey);
+            if (cached) {
+                allProductsRaw = JSON.parse(cached);
+                console.log("Master data loaded from cache.");
+            }
+
+            if (window.location.protocol === 'blob:') return;
+
+            try {
+                const response = await fetch(window.location.pathname.includes('DM-Auto-App') ? `./${MASTER_FILE}` : MASTER_FILE);
+                if (response.ok) {
+                    const data = await response.arrayBuffer();
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rawJson = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                    
+                    // Gasire header "Denumire"
+                    let headerIdx = rawJson.findIndex(row => row && row.some(cell => cell && cell.toString().toLowerCase().includes("denumire")));
+                    headerIdx = headerIdx === -1 ? 0 : headerIdx;
+                    
+                    const json = XLSX.utils.sheet_to_json(sheet, { range: headerIdx, defval: "" });
+                    allProductsRaw = json.filter(p => {
+                        const kDen = Object.keys(p).find(k => k.trim().toLowerCase().includes("denumire"));
+                        return p[kDen] && p[kDen].toString().trim() !== "" && p[kDen].toString().toLowerCase() !== "denumire";
+                    });
+
+                    localStorage.setItem(localKey, JSON.stringify(allProductsRaw));
+                    console.log("Master data synchronized from GitHub.");
+                }
+            } catch (e) { console.error("Eroare master data:", e); }
+        }
+
+        // --- FILTRARE PE CATEGORII (Logica cerută) ---
+        function getProductsForCategory(category) {
+            if (category === 'Inventar') return allProductsRaw;
+
+            return allProductsRaw.filter(p => {
+                const kDen = Object.keys(p).find(k => k.trim().toLowerCase().includes("denumire"));
+                const name = p[kDen]?.toString().toUpperCase() || "";
+
+                if (category === 'Ravenol') return name.startsWith('RAV');
+                if (category === 'Cyclon') return name.startsWith('CYC');
+                if (category === 'Banner') return name.startsWith('BANNER');
+                
+                // Categoria CEMSA: orice nu incepe cu prefixele de mai sus
+                if (category === 'Cemsa') {
+                    return !name.startsWith('RAV') && !name.startsWith('CYC') && !name.startsWith('BANNER');
+                }
+                return false;
+            });
+        }
+
+        async function selectCategory(category) {
+            document.getElementById('searchInput').value = '';
+            selectedCategory = category;
+            
+            document.getElementById('product-section').classList.remove('view-hidden');
+            document.getElementById('category-placeholder').classList.add('view-hidden');
+            document.getElementById('selected-category-title').innerText = category === 'Inventar' ? "TOATE PRODUSELE" : category;
+            
+            ['Ravenol', 'Banner', 'Cyclon', 'Cemsa', 'Inventar'].forEach(cat => {
+                const card = document.getElementById(`card-${cat}`);
+                if (card) card.classList.toggle('selected-category', cat === category);
+            });
+
+            // Preluăm datele filtrate din memoria master
+            currentCategoryData = getProductsForCategory(category);
+            filterProducts(); // Aplică eventualele filtre de căutare și randează
+
+            document.getElementById('product-section').scrollIntoView({ behavior: 'smooth' });
         }
 
         // --- CLIENTI ---
@@ -556,13 +600,13 @@
                 const isSaved = savedClientNames.includes(name);
                 return `
                 <div onclick="selectClient('${name.replace(/'/g, "\\'")}', '${loc.replace(/'/g, "\\'")}', '${cif.replace(/'/g, "\\'")}', '${rc.replace(/'/g, "\\'")}')" 
-                     class="client-card bg-white p-5 rounded-2xl shadow-md active:scale-95 transition-all cursor-pointer flex justify-between items-center ${isActive ? 'active-client' : ''}">
+                     class="client-card bg-white p-6 rounded-3xl shadow-lg active:scale-[0.98] transition-all cursor-pointer flex justify-between items-center ${isActive ? 'active-client' : ''}">
                     <div class="flex-1 min-w-0 pr-4">
                         <p class="text-2xl font-black text-dm-blue uppercase leading-tight truncate">${name}</p>
                         <p class="text-base font-bold text-gray-400 mt-2 uppercase tracking-wide">📍 ${loc}</p>
-                        <div class="mt-2 flex gap-4 text-xs font-black text-blue-600/70 uppercase"><span>CIF: ${cif}</span><span>RC: ${rc}</span></div>
+                        <div class="mt-3 flex gap-4 text-xs font-black text-blue-600/70 uppercase"><span>CIF: ${cif}</span><span>RC: ${rc}</span></div>
                     </div>
-                    <button onclick="toggleSaveClient('${name.replace(/'/g, "\\'")}', event)" class="btn-save-client flex-shrink-0 ${isSaved ? 'bg-dm-yellow text-dm-blue' : 'bg-gray-100 text-gray-400'}"><span class="text-2xl">${isSaved ? '⭐' : '☆'}</span></button>
+                    <button onclick="toggleSaveClient('${name.replace(/'/g, "\\'")}', event)" class="btn-save-client flex-shrink-0 ${isSaved ? 'bg-dm-yellow text-dm-blue shadow-lg' : 'bg-gray-100 text-gray-400'}"><span class="text-2xl">${isSaved ? '⭐' : '☆'}</span></button>
                 </div>`;
             }).join('');
         }
@@ -578,86 +622,22 @@
                 elCart.classList.remove('text-red-500');
             } else {
                 elHeader.innerText = "Neselectat 👤";
-                elHeader.className = "text-xl font-black truncate leading-none text-white text-left";
+                elHeader.className = "text-xl font-black truncate leading-none text-white text-left opacity-40";
                 elCart.innerText = "ATENȚIE: NICIUN CLIENT SELECTAT!";
                 elCart.classList.add('text-red-500');
             }
         }
 
-        // --- CATALOG SI STOC ---
-        async function selectCategory(category) {
-            document.getElementById('searchInput').value = '';
-            selectedCategory = category; activeSheetName = null; currentCategoryData = {};
-            document.getElementById('productTableBody').innerHTML = '<tr><td colspan="3" class="p-10 text-center text-dm-blue font-bold italic">Se accesează datele...</td></tr>';
-            document.getElementById('sheet-selector').classList.add('view-hidden');
-            document.getElementById('product-section').classList.remove('view-hidden');
-            document.getElementById('category-placeholder').classList.add('view-hidden');
-            document.getElementById('selected-category-title').innerText = category;
-            
-            ['Ravenol', 'Banner', 'Cyclon', 'Cemsa', 'Inventar'].forEach(cat => {
-                const card = document.getElementById(`card-${cat}`);
-                if (card) card.classList.toggle('selected-category', cat === category);
-            });
-            await syncCategoryData(category);
-            document.getElementById('product-section').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        async function syncCategoryData(category) {
-            const fileName = CATEGORY_FILES[category];
-            const localKey = `dmauto_cache_${category}`;
-            const cached = localStorage.getItem(localKey);
-            if (cached) { currentCategoryData = JSON.parse(cached); const sheetNames = Object.keys(currentCategoryData); renderSheetSelector(sheetNames); loadSheet(sheetNames[0]); }
-            if (window.location.protocol === 'blob:') return;
-            try {
-                const encodedFile = encodeURIComponent(fileName);
-                const response = await fetch(window.location.pathname.includes('DM-Auto-App') ? `./${encodedFile}` : encodedFile);
-                if (response.ok) {
-                    const data = await response.arrayBuffer();
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    currentCategoryData = {};
-                    workbook.SheetNames.forEach(name => {
-                        const rawJson = XLSX.utils.sheet_to_json(workbook.Sheets[name], { header: 1 });
-                        let headerIdx = rawJson.findIndex(row => row && row.some(cell => cell && cell.toString().toLowerCase().includes("denumire")));
-                        headerIdx = headerIdx === -1 ? 0 : headerIdx;
-                        const sheetJson = XLSX.utils.sheet_to_json(workbook.Sheets[name], { range: headerIdx, defval: "" });
-                        currentCategoryData[name] = sheetJson.filter(p => {
-                            const k = Object.keys(p).find(key => key.trim().toLowerCase().includes("denumire") || key.trim().toLowerCase().includes("produs"));
-                            return p[k] && p[k].toString().trim() !== "" && p[k].toString().toLowerCase() !== "denumire";
-                        });
-                    });
-                    localStorage.setItem(localKey, JSON.stringify(currentCategoryData));
-                    const sheetNames = Object.keys(currentCategoryData);
-                    renderSheetSelector(sheetNames);
-                    loadSheet(sheetNames[0]);
-                }
-            } catch (e) { console.error("Eroare brand:", e); }
-        }
-
-        function renderSheetSelector(sheetNames) {
-            const container = document.getElementById('sheet-selector');
-            if (sheetNames.length <= 1) { container.classList.add('view-hidden'); return; }
-            container.classList.remove('view-hidden');
-            container.innerHTML = sheetNames.map(name => `<button onclick="loadSheet('${name}')" id="btn-sheet-${name}" class="sheet-tab ${activeSheetName === name ? 'sheet-tab-active' : 'sheet-tab-inactive'}">${name}</button>`).join('');
-        }
-
-        function loadSheet(sheetName) {
-            if (!currentCategoryData[sheetName]) return;
-            activeSheetName = sheetName; allProducts = currentCategoryData[sheetName];
-            const container = document.getElementById('sheet-selector');
-            container.querySelectorAll('button').forEach(btn => btn.classList.replace('sheet-tab-active', 'sheet-tab-inactive'));
-            const activeBtn = document.getElementById(`btn-sheet-${sheetName}`);
-            if (activeBtn) activeBtn.classList.replace('sheet-tab-inactive', 'sheet-tab-active');
-            filterProducts();
-        }
-
+        // --- UI RENDER PRODUSE ---
         function renderProducts(products) {
             const tbody = document.getElementById('productTableBody');
             if (!tbody) return;
-            if (products.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-10 text-center text-gray-400 italic font-bold text-base">Niciun produs găsit conform căutării.</td></tr>'; return; }
+            if (products.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-16 text-center text-gray-400 italic font-black text-base">Niciun produs găsit.</td></tr>'; return; }
+            
             let html = '';
             products.forEach(p => {
                 const keys = Object.keys(p);
-                const kDen = keys.find(k => k.trim().toLowerCase() === "denumire" || k.trim().toLowerCase().includes("produs"));
+                const kDen = keys.find(k => k.trim().toLowerCase().includes("denumire") || k.trim().toLowerCase().includes("produs"));
                 const kPret = keys.find(k => k.trim().toLowerCase().includes("pret") || k.trim().toLowerCase().includes("vanzare"));
                 const kStoc = keys.find(k => k.trim().toLowerCase() === "stoc");
                 
@@ -671,38 +651,42 @@
 
                 html += `
                     <tr class="${currentQty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100">
-                        <td class="pr-2 py-6 pl-4 font-black text-dm-blue uppercase leading-tight tracking-tighter text-sm">
+                        <td class="pr-2 py-7 pl-6 font-black text-dm-blue uppercase leading-tight tracking-tighter text-sm">
                             ${denumire}
-                            <div class="flex flex-wrap items-center gap-4 mt-3">
+                            <div class="flex flex-wrap items-center gap-5 mt-4">
                                 <span class="text-3xl font-black text-blue-600 tracking-tight">${pret.toFixed(2)} <span class="text-xs opacity-60">Net</span></span>
-                                ${stocVal !== null ? `<span class="text-lg font-black ${stocColor} px-4 py-1 rounded-xl border-2">STOC: ${stocVal.toFixed(0)}</span>` : ''}
+                                ${stocVal !== null ? `<span class="text-lg font-black ${stocColor} px-4 py-1.5 rounded-2xl border-2">STOC: ${stocVal.toFixed(0)}</span>` : ''}
                             </div>
                         </td>
-                        <td class="py-6">
-                            <div class="flex items-center justify-center gap-3 bg-gray-50 rounded-2xl p-1 border border-gray-100 shadow-inner">
+                        <td class="py-7">
+                            <div class="flex items-center justify-center gap-4 bg-gray-50 rounded-[1.5rem] p-1.5 border border-gray-100 shadow-inner">
                                 <button onclick="updateCart('${denumire.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button>
                                 <span class="font-black text-3xl w-12 text-center text-dm-blue">${currentQty}</span>
-                                <button onclick="updateCart('${denumire.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-md">+</button>
+                                <button onclick="updateCart('${denumire.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-xl">+</button>
                             </div>
                         </td>
-                        <td class="text-right pr-4 py-6 font-black text-dm-blue text-sm">
+                        <td class="text-right pr-6 py-7 font-black text-dm-blue text-sm">
                              <div class="flex flex-col items-end">
-                                <span class="text-base">${(currentQty * pret).toFixed(2)}</span>
-                                <span class="text-[9px] opacity-40 uppercase">Total Net</span>
+                                <span class="text-xl tracking-tighter">${(currentQty * pret).toFixed(2)}</span>
+                                <span class="text-[10px] opacity-30 uppercase tracking-widest">RON</span>
                              </div>
                         </td>
                     </tr>`;
             });
             tbody.innerHTML = html;
+            document.getElementById('productCount').innerText = products.length + " POZITII";
         }
 
         function updateCart(prodName, delta) {
-            const productData = allProducts.find(p => p[Object.keys(p).find(k => k.trim().toLowerCase().includes("denumire") || k.trim().toLowerCase().includes("produs"))] === prodName);
+            const productData = allProductsRaw.find(p => p[Object.keys(p).find(k => k.trim().toLowerCase().includes("denumire") || k.trim().toLowerCase().includes("produs"))] === prodName);
             if (!productData && !cart[prodName]) return;
-            if (!cart[prodName]) cart[prodName] = { quantity: 0, data: productData, category: selectedCategory, sheet: activeSheetName };
+            if (!cart[prodName]) cart[prodName] = { quantity: 0, data: productData, category: selectedCategory };
             cart[prodName].quantity += delta;
             if (cart[prodName].quantity <= 0) delete cart[prodName];
-            saveAgentData(); filterProducts(); if (currentActiveView === 'cart') renderCart(); updateBadge();
+            saveAgentData();
+            filterProducts(); 
+            if (currentActiveView === 'cart') renderCart();
+            updateBadge();
         }
 
         function updateBadge() { const count = Object.values(cart).reduce((sum, item) => sum + item.quantity, 0); const badge = document.getElementById('cartBadge'); if (badge) { badge.innerText = count; badge.classList.toggle('hidden', count === 0); } }
@@ -715,17 +699,18 @@
             emptyMsg.classList.add('view-hidden');
             items.forEach(item => {
                 const keys = Object.keys(item.data); 
-                const kDen = keys.find(k => k.trim().toLowerCase() === "denumire") || keys.find(k => k.trim().toLowerCase().includes("produs"));
+                const kDen = keys.find(k => k.trim().toLowerCase().includes("denumire") || k.trim().toLowerCase().includes("produs"));
                 const kPret = keys.find(k => k.trim().toLowerCase().includes("pret") || k.trim().toLowerCase().includes("vanzare"));
                 const name = item.data[kDen]; const pFara = formatPriceNum(item.data[kPret]); const subtotal = item.quantity * pFara; totalNoVat += subtotal;
-                html += `<tr class="border-b border-gray-100"><td class="pr-2 py-5 pl-4 font-black text-dm-blue uppercase leading-tight tracking-tighter text-base">${name}<br><span class="text-2xl font-black text-blue-600 mt-2 block tracking-tight">${pFara.toFixed(2)} RON</span></td><td class="py-5"><div class="flex items-center justify-center gap-3 bg-gray-50 rounded-xl p-1 border border-gray-100"><button onclick="updateCart('${name.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button><span class="font-black text-2xl w-10 text-center text-dm-blue">${item.quantity}</span><button onclick="updateCart('${name.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-md">+</button></div></td><td class="text-right pr-4 py-5 font-black text-dm-blue text-sm">${subtotal.toFixed(2)} RON</td></tr>`;
+                html += `<tr class="border-b border-gray-100"><td class="pr-2 py-6 pl-6 font-black text-dm-blue uppercase leading-tight tracking-tighter text-base">${name}<br><span class="text-2xl font-black text-blue-600 mt-2 block tracking-tight">${pFara.toFixed(2)} RON</span></td><td class="py-6"><div class="flex items-center justify-center gap-4 bg-gray-50 rounded-2xl p-1.5 border border-gray-100"><button onclick="updateCart('${name.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button><span class="font-black text-2xl w-12 text-center text-dm-blue">${item.quantity}</span><button onclick="updateCart('${name.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-md">+</button></div></td><td class="text-right pr-6 py-6 font-black text-dm-blue text-sm">${subtotal.toFixed(2)} RON</td></tr>`;
             });
             tbody.innerHTML = html; document.getElementById('totalNoVat').innerText = totalNoVat.toFixed(2) + ' RON'; document.getElementById('totalWithVat').innerText = (totalNoVat * TVA_RATE).toFixed(2) + ' RON';
         }
 
         function golesteCos() { if(confirm("Golești tot coșul actual?")) { cart = {}; saveAgentData(); updateBadge(); renderCart(); filterProducts(); } }
+        
         function salveazaComanda(isDraft = false) {
-            if (!selectedClient && !isDraft) { alert("TE RUGĂM SĂ SELECTEZI UN CLIENT!"); switchView('clients'); return; }
+            if (!selectedClient && !isDraft) { alert("SELECTEAZĂ UN CLIENT!"); switchView('clients'); return; }
             const items = Object.values(cart); if (items.length === 0) return;
             const timestamp = new Date().toLocaleString('ro-RO'); let totalNoVat = 0;
             items.forEach(item => { 
@@ -737,38 +722,56 @@
         }
 
         function trimiteWhatsApp(timestamp, cartDataObj) {
-            const items = Object.values(cartDataObj); const clientInfo = selectedClient ? `CLIENT: ${selectedClient.name} (${selectedClient.loc})` : "CLIENT: NESPECIFICAT";
+            const items = Object.values(cartDataObj); 
+            const clientInfo = selectedClient ? `CLIENT: ${selectedClient.name} (${selectedClient.loc})` : "CLIENT: NESPECIFICAT";
             let msg = `Salut! Comandă DM Auto Sebeș\nAGENT: ${currentAgent.name}\n${clientInfo}\nData: ${timestamp}\n\n`;
-            items.forEach(item => { const kDen = Object.keys(item.data).find(k => k.trim().toLowerCase() === "denumire") || Object.keys(item.data).find(k => k.trim().toLowerCase().includes("produs")); msg += `• ${item.quantity} x ${item.data[kDen]}\n`; });
+            items.forEach(item => { 
+                const kDen = Object.keys(item.data).find(k => k.trim().toLowerCase().includes("denumire") || k.trim().toLowerCase().includes("produs")); 
+                msg += `• ${item.quantity} x ${item.data[kDen]}\n`; 
+            });
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
         }
 
         function renderHistory() {
-            const container = document.getElementById('history-content'); if (!container) return; if (window.orderHistory.length === 0) { container.innerHTML = '<div class="p-10 text-center text-gray-400 italic text-sm font-bold">Nicio comandă trimisă sau salvată.</div>'; return; }
-            container.innerHTML = window.orderHistory.map((order, index) => `<div onclick="veziDetaliiComanda(${index})" class="bg-white p-6 rounded-3xl shadow-md border-l-8 border-dm-yellow active:scale-[0.98] cursor-pointer"><div class="flex justify-between items-start mb-3"><span class="text-xs font-black text-gray-400 uppercase italic">${order.timestamp}</span><span class="${order.status === 'Ciornă' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'} text-[11px] font-black px-4 py-1.5 rounded-full uppercase">${order.status}</span></div><p class="text-xl font-black text-dm-blue uppercase mb-3 leading-tight">${order.client ? order.client.name : 'Client necunoscut'}</p><div class="flex justify-between items-end border-t border-gray-50 pt-3"><p class="text-sm font-bold text-gray-400 uppercase">${order.items} PRODUSE</p><p class="text-xl font-black text-dm-blue">${order.total} RON NET</p></div></div>`).join('');
+            const container = document.getElementById('history-content'); if (!container) return; if (window.orderHistory.length === 0) { container.innerHTML = '<div class="p-16 text-center text-gray-400 italic text-sm font-bold tracking-widest">Nicio comandă în istoric.</div>'; return; }
+            container.innerHTML = window.orderHistory.map((order, index) => `<div onclick="veziDetaliiComanda(${index})" class="bg-white p-7 rounded-[2rem] shadow-xl border-l-[12px] border-dm-yellow active:scale-[0.98] transition-all cursor-pointer"><div class="flex justify-between items-start mb-4"><span class="text-xs font-black text-gray-400 uppercase italic tracking-tighter">${order.timestamp}</span><span class="${order.status === 'Ciornă' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'} text-[11px] font-black px-4 py-2 rounded-xl uppercase">${order.status}</span></div><p class="text-2xl font-black text-dm-blue uppercase mb-4 leading-none truncate">${order.client ? order.client.name : 'Client necunoscut'}</p><div class="flex justify-between items-end border-t border-gray-50 pt-4"><p class="text-xs font-bold text-gray-400 uppercase tracking-widest">${order.items} PRODUSE</p><p class="text-2xl font-black text-dm-blue tracking-tighter">${order.total} RON NET</p></div></div>`).join('');
         }
 
         function veziDetaliiComanda(index) {
             currentViewingOrderIndex = index; const order = window.orderHistory[index]; switchView('order-details');
-            document.getElementById('order-details-header').innerHTML = `<div class="flex justify-between items-center mb-3"><h3 class="text-sm font-black text-gray-400 uppercase italic">COMANDA DIN ${order.timestamp.split(',')[0]}</h3><span class="text-[10px] font-black bg-gray-100 px-3 py-1 rounded-full uppercase">${order.status}</span></div><p class="text-2xl font-black text-dm-blue uppercase mb-4 leading-tight">${order.client ? order.client.name + ' (' + order.client.loc + ')' : 'Client nespecificat'}</p><p class="text-3xl font-black text-dm-blue italic">${order.total} RON <span class="text-sm uppercase opacity-50 not-italic">NET</span></p>`;
-            let html = ''; Object.values(order.cartData).forEach(item => { const keys = Object.keys(item.data); const kDen = keys.find(k => k.trim().toLowerCase() === "denumire") || keys.find(k => k.trim().toLowerCase().includes("produs")); const kPret = keys.find(k => k.trim().toLowerCase().includes("pret") || k.trim().toLowerCase().includes("vanzare")); html += `<div class="flex justify-between items-center text-sm py-4 border-b border-gray-50 last:border-0"><div class="flex flex-col"><span class="font-bold text-dm-blue uppercase leading-tight text-base">${item.data[kDen]}</span><span class="text-xl font-black text-blue-600 mt-1">${formatPriceNum(item.data[kPret]).toFixed(2)}</span></div><span class="font-black bg-gray-100 px-4 py-2 rounded-2xl text-2xl">x ${item.quantity}</span></div>`; });
+            document.getElementById('order-details-header').innerHTML = `<div class="flex justify-between items-center mb-4"><h3 class="text-xs font-black text-gray-400 uppercase italic">DETALII COMANDĂ</h3><span class="text-[11px] font-black bg-gray-100 px-4 py-2 rounded-xl uppercase">${order.status}</span></div><p class="text-3xl font-black text-dm-blue uppercase mb-4 leading-tight">${order.client ? order.client.name : 'Client nespecificat'}</p><div class="flex justify-between items-end"><p class="text-4xl font-black text-dm-blue italic tracking-tighter">${order.total} RON <span class="text-xs uppercase opacity-40 not-italic">NET</span></p><p class="text-xs font-black text-gray-400 italic mb-1">${order.timestamp}</p></div>`;
+            let html = ''; Object.values(order.cartData).forEach(item => { const keys = Object.keys(item.data); const kDen = keys.find(k => k.trim().toLowerCase() === "denumire") || keys.find(k => k.trim().toLowerCase().includes("produs")); const kPret = keys.find(k => k.trim().toLowerCase().includes("pret") || k.trim().toLowerCase().includes("vanzare")); html += `<div class="flex justify-between items-center text-sm py-5 border-b border-gray-50 last:border-0"><div class="flex flex-col"><span class="font-black text-dm-blue uppercase leading-tight text-lg">${item.data[kDen]}</span><span class="text-xl font-black text-blue-600 mt-1">${formatPriceNum(item.data[kPret]).toFixed(2)}</span></div><span class="font-black bg-gray-100 px-5 py-3 rounded-2xl text-2xl shadow-inner">x ${item.quantity}</span></div>`; });
             document.getElementById('order-details-items').innerHTML = html;
         }
 
         function incarcaComandaInCos() { if (currentViewingOrderIndex === null) return; const order = window.orderHistory[currentViewingOrderIndex]; cart = JSON.parse(JSON.stringify(order.cartData)); selectedClient = order.client; saveAgentData(); updateClientUI(); renderCart(); switchView('cart'); updateBadge(); }
-        function retrimiteComandaDirect() { if (currentViewingOrderIndex === null) return; const order = window.orderHistory[currentViewingOrderIndex]; selectedClient = order.client; trimiteWhatsApp(order.timestamp, order.cartData); if (order.status === 'Ciornă') { window.orderHistory[currentViewingOrderIndex].status = 'Trimisă'; saveAgentData(); switchView('history'); } }
+        function retrimiteComandaDirect() { if (currentViewingOrderIndex === null) return; const order = window.orderHistory[currentViewingOrderIndex]; selectedClient = order.client; trimiteWhatsApp(order.timestamp, order.cartData); if (order.status === 'Ciornă') { window.orderHistory[currentViewingOrderIndex].status = 'Trimisă'; saveAgentData(); renderHistory(); } }
         function stergeComandaCurenta() { if (currentViewingOrderIndex === null) return; if (confirm("Ești sigur că vrei să ștergi această comandă?")) { window.orderHistory.splice(currentViewingOrderIndex, 1); saveAgentData(); switchView('history'); } }
         
-        function formatPriceNum(val) { 
-            if (!val && val !== 0) return 0; 
-            if (typeof val === 'number') return val; 
-            let s = val.toString().replace(/\./g, '').replace(',', '.');
-            return parseFloat(s) || 0; 
+        function formatPriceNum(val) { if (!val && val !== 0) return 0; if (typeof val === 'number') return val; let s = val.toString().replace(/\./g, '').replace(',', '.'); return parseFloat(s) || 0; }
+        function triggerManualSync() { syncMasterData(); syncClients(); if(selectedCategory) selectCategory(selectedCategory); }
+        
+        function filterProducts() { 
+            const q = document.getElementById('searchInput').value.toLowerCase().trim(); 
+            const filtered = currentCategoryData.filter(p => { 
+                const k = Object.keys(p).find(key => key.trim().toLowerCase().includes("denumire") || key.trim().toLowerCase().includes("produs")); 
+                return p[k]?.toString().toLowerCase().includes(q); 
+            }); 
+            renderProducts(filtered); 
+        }
+        
+        function resetSelection() {
+            document.getElementById('searchInput').value = '';
+            selectedCategory = null;
+            document.getElementById('product-section').classList.add('view-hidden');
+            document.getElementById('category-placeholder').classList.remove('view-hidden');
+            ['Ravenol', 'Banner', 'Cyclon', 'Cemsa', 'Inventar'].forEach(cat => {
+                const card = document.getElementById(`card-${cat}`);
+                if (card) card.classList.remove('selected-category');
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function triggerManualSync() { if (selectedCategory) syncCategoryData(selectedCategory); syncClients(); }
-        function filterProducts() { const q = document.getElementById('searchInput').value.toLowerCase().trim(); const filtered = allProducts.filter(p => { const k = Object.keys(p).find(key => key.trim().toLowerCase() === "denumire") || Object.keys(p).find(key => key.trim().toLowerCase().includes("produs")); return p[k]?.toString().toLowerCase().includes(q); }); renderProducts(filtered); }
-        
         function switchView(viewName) { 
             currentActiveView = viewName; 
             const views = ['catalog', 'cart', 'history', 'order-details', 'clients']; 
