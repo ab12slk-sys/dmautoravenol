@@ -212,7 +212,7 @@
             </div>
 
             <div id="search-container" class="relative">
-                <input type="text" id="searchInput" onkeyup="if(event.key === 'Enter') filterProducts()" placeholder="Caută în categoria selectată..." 
+                <input type="text" id="searchInput" onkeyup="if(event.key === 'Enter') filterProducts()" placeholder="Caută produs..." 
                        class="w-full p-4 pr-12 rounded-xl text-gray-800 text-base focus:outline-none shadow-2xl border-none font-semibold">
                 <div onclick="filterProducts()" class="absolute right-4 top-4 text-gray-300 cursor-pointer active:scale-90 active:text-dm-blue transition-all">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -225,17 +225,23 @@
         <!-- CATALOG -->
         <div id="view-catalog" class="active-view">
             <div class="p-4 grid grid-cols-2 gap-4">
+                <div id="card-Inventar" onclick="selectCategory('Inventar')" class="category-card col-span-2 !aspect-[21/9]" style="background-color: #1e293b;">
+                    <div class="category-overlay">
+                        <h3 class="text-dm-yellow font-black text-sm uppercase italic tracking-widest">📦 STOC REAL / INVENTAR</h3>
+                        <p class="text-white/50 text-[10px] uppercase font-bold">Toate produsele din gestiune</p>
+                    </div>
+                </div>
                 <div id="card-Ravenol" onclick="selectCategory('Ravenol')" class="category-card" style="background-image: url('ravenol.jpg');">
-                    <div class="category-overlay"><h3 class="text-white font-black text-sm uppercase italic tracking-tighter">RAVENOL</h3></div>
+                    <div class="category-overlay"><h3 class="text-white font-black text-xs uppercase italic tracking-tighter">RAVENOL</h3></div>
                 </div>
                 <div id="card-Banner" onclick="selectCategory('Banner')" class="category-card" style="background-image: url('banner.jpg');">
-                    <div class="category-overlay"><h3 class="text-white font-black text-sm uppercase italic tracking-tighter">BANNER</h3></div>
+                    <div class="category-overlay"><h3 class="text-white font-black text-xs uppercase italic tracking-tighter">BANNER</h3></div>
                 </div>
                 <div id="card-Cyclon" onclick="selectCategory('Cyclon')" class="category-card" style="background-image: url('cyclon.jpg');">
-                    <div class="category-overlay"><h3 class="text-white font-black text-sm uppercase italic tracking-tighter">CYCLON</h3></div>
+                    <div class="category-overlay"><h3 class="text-white font-black text-xs uppercase italic tracking-tighter">CYCLON</h3></div>
                 </div>
                 <div id="card-Cemsa" onclick="selectCategory('Cemsa')" class="category-card" style="background-image: url('cemsa.jpg');">
-                    <div class="category-overlay"><h3 class="text-white font-black text-sm uppercase italic tracking-tighter">CEMSA</h3></div>
+                    <div class="category-overlay"><h3 class="text-white font-black text-xs uppercase italic tracking-tighter">CEMSA</h3></div>
                 </div>
             </div>
 
@@ -254,7 +260,7 @@
                         <table class="w-full text-left quick-order-table">
                             <thead class="bg-gray-50 border-b border-gray-100">
                                 <tr>
-                                    <th class="w-1/2 pl-4">Produs / Preț NET</th>
+                                    <th class="w-1/2 pl-4">Produs / Stoc / Preț</th>
                                     <th class="text-center">Cantitate</th>
                                     <th class="text-right pr-4">Subtotal</th>
                                 </tr>
@@ -268,7 +274,7 @@
             <div id="category-placeholder" class="p-10 text-center">
                 <div class="bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl p-8">
                     <span class="text-4xl block mb-3">👇</span>
-                    <p class="text-gray-400 font-black uppercase text-[12px] tracking-widest text-balance leading-relaxed">Selectează o categorie de mai sus</p>
+                    <p class="text-gray-400 font-black uppercase text-[12px] tracking-widest text-balance leading-relaxed">Selectează o categorie sau Inventarul</p>
                 </div>
             </div>
         </div>
@@ -293,7 +299,7 @@
         <!-- COȘ -->
         <div id="view-cart" class="view-hidden p-4">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-black text-dm-blue uppercase italic">🛒 Coș Comandă</h2>
+                <h2 class="text-xl font-black text-dm-blue uppercase italic">🛒 Coș Comandă (TVA 21%)</h2>
                 <button onclick="golesteCos()" class="text-[11px] font-bold text-red-500 uppercase">Golește tot</button>
             </div>
             
@@ -399,7 +405,8 @@
             'Ravenol': 'OFERTA PRET RAVENOL 16.03.26.xlsx',
             'Banner': 'OFERTA_PRET_BANNER.xlsx',
             'Cyclon': 'OFERTA_CYCLON.xlsx',
-            'Cemsa': 'OFERTA_CEMSA.xlsx'
+            'Cemsa': 'OFERTA_CEMSA.xlsx',
+            'Inventar': 'INVENTAR_STOC.xlsx'
         };
         const CLIENTS_FILE = 'LISTA_CLIENTI.xlsx';
 
@@ -468,14 +475,11 @@
             localStorage.setItem(`dmauto_saved_clients_${currentAgent.id}`, JSON.stringify(savedClientNames));
         }
 
-        // --- GESTIUNE CLIENTI (cu Date Fiscale) ---
+        // --- CLIENTI ---
         async function syncClients() {
             const localKey = `dmauto_cache_clients`;
             const cached = localStorage.getItem(localKey);
-            if (cached) {
-                allClients = JSON.parse(cached);
-                filterClients();
-            }
+            if (cached) { allClients = JSON.parse(cached); filterClients(); }
             if (window.location.protocol === 'blob:') return;
             try {
                 const response = await fetch(window.location.pathname.includes('DM-Auto-App') ? `./${CLIENTS_FILE}` : CLIENTS_FILE);
@@ -522,15 +526,12 @@
                 const kLoc = keys.find(k => k.trim().toLowerCase() === "localitate");
                 const kAgent = keys.find(k => k.trim().toLowerCase() === "den_agent");
                 const kCIF = keys.find(k => k.trim().toLowerCase() === "cod_fiscal");
-                
-                const matchesSearch = c[kName]?.toString().toLowerCase().includes(q) || 
-                                     c[kLoc]?.toString().toLowerCase().includes(q) ||
-                                     c[kCIF]?.toString().toLowerCase().includes(q);
-                
+                const name = c[kName]?.toString() || "";
+                const matchesSearch = name.toLowerCase().includes(q) || c[kLoc]?.toString().toLowerCase().includes(q) || c[kCIF]?.toString().toLowerCase().includes(q);
                 let matchesAgent = true;
                 if (showOnlyMyClients && currentAgent) {
                     const isOfficiallyMine = c[kAgent]?.toString().toUpperCase().includes(currentAgent.filter);
-                    const isManuallySaved = savedClientNames.includes(c[kName]?.toString());
+                    const isManuallySaved = savedClientNames.includes(name);
                     matchesAgent = isOfficiallyMine || isManuallySaved;
                 }
                 return matchesSearch && matchesAgent;
@@ -547,63 +548,49 @@
                 const loc = c[keys.find(k => k.trim().toLowerCase() === "localitate")] || "-";
                 const cif = c[keys.find(k => k.trim().toLowerCase() === "cod_fiscal")] || "-";
                 const rc = c[keys.find(k => k.trim().toLowerCase() === "reg_com")] || "-";
-                
                 const isActive = selectedClient && selectedClient.name === name;
                 const isSaved = savedClientNames.includes(name);
-                
                 return `
                 <div onclick="selectClient('${name.replace(/'/g, "\\'")}', '${loc.replace(/'/g, "\\'")}', '${cif.replace(/'/g, "\\'")}', '${rc.replace(/'/g, "\\'")}')" 
                      class="client-card bg-white p-5 rounded-2xl shadow-md active:scale-95 transition-all cursor-pointer flex justify-between items-center ${isActive ? 'active-client' : ''}">
                     <div class="flex-1 min-w-0">
                         <p class="text-xl font-black text-dm-blue uppercase leading-tight truncate">${name}</p>
                         <p class="text-sm font-bold text-gray-400 mt-2 uppercase tracking-wide">📍 ${loc}</p>
-                        <!-- DATE FISCALE ADĂUGATE -->
-                        <div class="mt-2 flex gap-3 text-[11px] font-black text-blue-600/70 uppercase">
-                            <span>CIF: ${cif}</span>
-                            <span>RC: ${rc}</span>
-                        </div>
+                        <div class="mt-2 flex gap-3 text-[11px] font-black text-blue-600/70 uppercase"><span>CIF: ${cif}</span><span>RC: ${rc}</span></div>
                     </div>
-                    <button onclick="toggleSaveClient('${name.replace(/'/g, "\\'")}', event)" 
-                            class="btn-save-client ml-4 ${isSaved ? 'bg-dm-yellow text-dm-blue' : 'bg-gray-100 text-gray-400'}">
-                        <span class="text-xl">${isSaved ? '⭐' : '☆'}</span>
-                    </button>
+                    <button onclick="toggleSaveClient('${name.replace(/'/g, "\\'")}', event)" class="btn-save-client ml-4 ${isSaved ? 'bg-dm-yellow text-dm-blue' : 'bg-gray-100 text-gray-400'}"><span class="text-xl">${isSaved ? '⭐' : '☆'}</span></button>
                 </div>`;
             }).join('');
         }
 
-        function selectClient(name, loc, cif, rc) {
-            selectedClient = { name, loc, cif, rc };
-            saveAgentData();
-            updateClientUI();
-            switchView('catalog');
-        }
-
+        function selectClient(name, loc, cif, rc) { selectedClient = { name, loc, cif, rc }; saveAgentData(); updateClientUI(); switchView('catalog'); }
         function updateClientUI() {
             const elHeader = document.getElementById('header-client-name');
             const elCart = document.getElementById('cart-client-name');
             if (selectedClient) {
                 elHeader.innerText = selectedClient.name;
-                elHeader.className = "text-lg font-black truncate leading-none text-dm-yellow";
+                elHeader.className = "text-lg font-black truncate leading-none text-dm-yellow text-left";
                 elCart.innerText = `${selectedClient.name} (${selectedClient.loc})`;
                 elCart.classList.remove('text-red-500');
             } else {
                 elHeader.innerText = "Neselectat 👤";
-                elHeader.className = "text-lg font-black truncate leading-none text-white";
+                elHeader.className = "text-lg font-black truncate leading-none text-white text-left";
                 elCart.innerText = "ATENȚIE: NICIUN CLIENT SELECTAT!";
                 elCart.classList.add('text-red-500');
             }
         }
 
-        // --- BRANDURI ---
+        // --- PRODUSE SI STOC ---
         async function selectCategory(category) {
             document.getElementById('searchInput').value = '';
             selectedCategory = category; activeSheetName = null; currentCategoryData = {};
-            document.getElementById('productTableBody').innerHTML = '<tr><td colspan="3" class="p-10 text-center text-dm-blue font-bold italic">Se accesează oferta...</td></tr>';
+            document.getElementById('productTableBody').innerHTML = '<tr><td colspan="3" class="p-10 text-center text-dm-blue font-bold italic">Se încarcă datele...</td></tr>';
             document.getElementById('sheet-selector').classList.add('view-hidden');
             document.getElementById('product-section').classList.remove('view-hidden');
             document.getElementById('category-placeholder').classList.add('view-hidden');
             document.getElementById('selected-category-title').innerText = category;
-            ['Ravenol', 'Banner', 'Cyclon', 'Cemsa'].forEach(cat => {
+            
+            ['Ravenol', 'Banner', 'Cyclon', 'Cemsa', 'Inventar'].forEach(cat => {
                 const card = document.getElementById(`card-${cat}`);
                 if (card) card.classList.toggle('selected-category', cat === category);
             });
@@ -629,11 +616,10 @@
                         let headerIdx = rawJson.findIndex(row => row && row.some(cell => cell && cell.toString().toLowerCase().includes("denumire")));
                         headerIdx = headerIdx === -1 ? 0 : headerIdx;
                         const sheetJson = XLSX.utils.sheet_to_json(workbook.Sheets[name], { range: headerIdx, defval: "" });
-                        const filtered = sheetJson.filter(p => {
+                        currentCategoryData[name] = sheetJson.filter(p => {
                             const k = Object.keys(p).find(key => key.trim().toLowerCase() === "denumire");
                             return p[k] && p[k].toString().trim() !== "" && p[k].toString().toLowerCase() !== "denumire";
                         });
-                        currentCategoryData[name] = filtered;
                     });
                     localStorage.setItem(localKey, JSON.stringify(currentCategoryData));
                     const sheetNames = Object.keys(currentCategoryData);
@@ -667,16 +653,26 @@
             let html = '';
             products.forEach(p => {
                 const keys = Object.keys(p);
-                const kDen = keys.find(k => k.trim().toLowerCase() === "denumire");
-                const kPret = keys.find(k => k.trim().toLowerCase() === "pret fara tva");
+                const kDen = keys.find(k => k.trim().toLowerCase() === "denumire" || k.trim().toLowerCase().includes("produs"));
+                const kPret = keys.find(k => k.trim().toLowerCase().includes("pret") || k.trim().toLowerCase().includes("vanzare"));
+                const kStoc = keys.find(k => k.trim().toLowerCase() === "stoc");
+                
                 const denumire = p[kDen] || "";
-                const pretFaraTva = formatPriceNum(p[kPret]);
+                const pret = formatPriceNum(p[kPret]);
+                const stocRaw = p[kStoc];
+                const stocVal = stocRaw !== undefined ? parseFloat(stocRaw.toString().replace(',', '.')) : null;
+                
                 const currentQty = cart[denumire] ? cart[denumire].quantity : 0;
+                const stocColor = stocVal > 0 ? 'text-green-600' : 'text-red-500';
+
                 html += `
                     <tr class="${currentQty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100">
-                        <td class="pr-2 py-4 pl-4 font-black text-dm-blue uppercase leading-tight tracking-tighter text-sm">
+                        <td class="pr-2 py-5 pl-4 font-black text-dm-blue uppercase leading-tight tracking-tighter text-sm">
                             ${denumire}
-                            <br><span class="text-2xl font-black text-blue-600 mt-2 block tracking-tight">${pretFaraTva.toFixed(2)} RON <span class="text-[10px] uppercase opacity-60">Net</span></span>
+                            <div class="flex items-center gap-4 mt-2">
+                                <span class="text-2xl font-black text-blue-600 tracking-tight">${pret.toFixed(2)} <span class="text-[9px] opacity-60">RON</span></span>
+                                ${stocVal !== null ? `<span class="text-base font-black ${stocColor} bg-gray-100 px-2 py-0.5 rounded-lg border border-gray-200">STOC: ${stocVal.toFixed(0)}</span>` : ''}
+                            </div>
                         </td>
                         <td class="py-4">
                             <div class="flex items-center justify-center gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100 shadow-inner">
@@ -685,14 +681,14 @@
                                 <button onclick="updateCart('${denumire.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-md">+</button>
                             </div>
                         </td>
-                        <td class="text-right pr-4 py-4 font-black text-dm-blue text-sm">${(currentQty * pretFaraTva).toFixed(2)} <span class="text-[9px]">RON</span></td>
+                        <td class="text-right pr-4 py-4 font-black text-dm-blue text-sm">${(currentQty * pret).toFixed(2)}</td>
                     </tr>`;
             });
             tbody.innerHTML = html;
         }
 
         function updateCart(prodName, delta) {
-            const productData = allProducts.find(p => p[Object.keys(p).find(k => k.trim().toLowerCase() === "denumire")] === prodName);
+            const productData = allProducts.find(p => p[Object.keys(p).find(k => k.trim().toLowerCase().includes("denumire") || k.trim().toLowerCase().includes("produs"))] === prodName);
             if (!productData && !cart[prodName]) return;
             if (!cart[prodName]) cart[prodName] = { quantity: 0, data: productData, category: selectedCategory, sheet: activeSheetName };
             cart[prodName].quantity += delta;
@@ -709,9 +705,11 @@
             if (items.length === 0) { tbody.innerHTML = ''; emptyMsg.classList.remove('view-hidden'); document.getElementById('totalNoVat').innerText = '0.00 RON'; document.getElementById('totalWithVat').innerText = '0.00 RON'; return; }
             emptyMsg.classList.add('view-hidden');
             items.forEach(item => {
-                const keys = Object.keys(item.data); const kDen = keys.find(k => k.trim().toLowerCase() === "denumire"); const kPret = keys.find(k => k.trim().toLowerCase() === "pret fara tva");
+                const keys = Object.keys(item.data); 
+                const kDen = keys.find(k => k.trim().toLowerCase().includes("denumire") || k.trim().toLowerCase().includes("produs"));
+                const kPret = keys.find(k => k.trim().toLowerCase().includes("pret") || k.trim().toLowerCase().includes("vanzare"));
                 const name = item.data[kDen]; const pFara = formatPriceNum(item.data[kPret]); const subtotal = item.quantity * pFara; totalNoVat += subtotal;
-                html += `<tr class="border-b border-gray-100"><td class="pr-2 py-4 pl-4 font-black text-dm-blue uppercase leading-tight tracking-tighter text-sm">${name}<br><span class="text-xl font-black text-blue-600 mt-2 block tracking-tight">${pFara.toFixed(2)} RON <span class="text-[10px] uppercase opacity-60">Net</span></span></td><td class="py-4"><div class="flex items-center justify-center gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100"><button onclick="updateCart('${name.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button><span class="font-black text-xl w-8 text-center text-dm-blue">${item.quantity}</span><button onclick="updateCart('${name.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-md">+</button></div></td><td class="text-right pr-4 py-4 font-black text-dm-blue text-sm">${subtotal.toFixed(2)} RON</td></tr>`;
+                html += `<tr class="border-b border-gray-100"><td class="pr-2 py-4 pl-4 font-black text-dm-blue uppercase leading-tight tracking-tighter text-sm">${name}<br><span class="text-xl font-black text-blue-600 mt-2 block tracking-tight">${pFara.toFixed(2)} RON</span></td><td class="py-4"><div class="flex items-center justify-center gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100"><button onclick="updateCart('${name.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button><span class="font-black text-xl w-8 text-center text-dm-blue">${item.quantity}</span><button onclick="updateCart('${name.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-md">+</button></div></td><td class="text-right pr-4 py-4 font-black text-dm-blue text-sm">${subtotal.toFixed(2)} RON</td></tr>`;
             });
             tbody.innerHTML = html; document.getElementById('totalNoVat').innerText = totalNoVat.toFixed(2) + ' RON'; document.getElementById('totalWithVat').innerText = (totalNoVat * TVA_RATE).toFixed(2) + ' RON';
         }
@@ -721,7 +719,10 @@
             if (!selectedClient && !isDraft) { alert("SELECTEAZĂ UN CLIENT!"); switchView('clients'); return; }
             const items = Object.values(cart); if (items.length === 0) return;
             const timestamp = new Date().toLocaleString('ro-RO'); let totalNoVat = 0;
-            items.forEach(item => { const kPret = Object.keys(item.data).find(k => k.trim().toLowerCase() === "pret fara tva"); totalNoVat += item.quantity * formatPriceNum(item.data[kPret]); });
+            items.forEach(item => { 
+                const kPret = Object.keys(item.data).find(k => k.trim().toLowerCase().includes("pret") || k.trim().toLowerCase().includes("vanzare"));
+                totalNoVat += item.quantity * formatPriceNum(item.data[kPret]); 
+            });
             window.orderHistory.unshift({ timestamp, total: totalNoVat.toFixed(2), items: items.length, cartData: JSON.parse(JSON.stringify(cart)), status: isDraft ? 'Ciornă' : 'Trimisă', client: selectedClient });
             saveAgentData(); if (!isDraft) { trimiteWhatsApp(timestamp, cart); cart = {}; selectedClient = null; saveAgentData(); updateBadge(); updateClientUI(); switchView('history'); } else { alert("Salvat."); switchView('history'); }
         }
@@ -729,7 +730,7 @@
         function trimiteWhatsApp(timestamp, cartDataObj) {
             const items = Object.values(cartDataObj); const clientInfo = selectedClient ? `CLIENT: ${selectedClient.name} (${selectedClient.loc})` : "CLIENT: NESPECIFICAT";
             let msg = `Salut! Comandă DM Auto Sebeș\nAGENT: ${currentAgent.name}\n${clientInfo}\nData: ${timestamp}\n\n`;
-            items.forEach(item => { const kDen = Object.keys(item.data).find(k => k.trim().toLowerCase() === "denumire"); msg += `• ${item.quantity} x ${item.data[kDen]}\n`; });
+            items.forEach(item => { const kDen = Object.keys(item.data).find(k => k.trim().toLowerCase().includes("denumire") || k.trim().toLowerCase().includes("produs")); msg += `• ${item.quantity} x ${item.data[kDen]}\n`; });
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
         }
 
@@ -741,16 +742,16 @@
         function veziDetaliiComanda(index) {
             currentViewingOrderIndex = index; const order = window.orderHistory[index]; switchView('order-details');
             document.getElementById('order-details-header').innerHTML = `<div class="flex justify-between items-center mb-2"><h3 class="text-sm font-black text-gray-400 uppercase italic">COMANDA ${order.timestamp.split(',')[0]}</h3><span class="text-[10px] font-black bg-gray-100 px-3 py-1 rounded-full uppercase">${order.status}</span></div><p class="text-lg font-black text-dm-blue uppercase mb-3">${order.client ? order.client.name + ' (' + order.client.loc + ')' : 'Client nespecificat'}</p><p class="text-2xl font-black text-dm-blue italic">${order.total} RON <span class="text-sm uppercase opacity-50 not-italic">NET</span></p>`;
-            let html = ''; Object.values(order.cartData).forEach(item => { const keys = Object.keys(item.data); const kDen = keys.find(k => k.trim().toLowerCase() === "denumire"); const kPret = keys.find(k => k.trim().toLowerCase() === "pret fara tva"); html += `<div class="flex justify-between items-center text-sm py-3 border-b border-gray-50 last:border-0"><div class="flex flex-col"><span class="font-bold text-dm-blue uppercase leading-tight">${item.data[kDen]}</span><span class="text-lg font-black text-blue-600">${formatPriceNum(item.data[kPret]).toFixed(2)}</span></div><span class="font-black bg-gray-100 px-3 py-2 rounded-xl text-lg">x ${item.quantity}</span></div>`; });
+            let html = ''; Object.values(order.cartData).forEach(item => { const keys = Object.keys(item.data); const kDen = keys.find(k => k.trim().toLowerCase().includes("denumire") || k.trim().toLowerCase().includes("produs")); const kPret = keys.find(k => k.trim().toLowerCase().includes("pret") || k.trim().toLowerCase().includes("vanzare")); html += `<div class="flex justify-between items-center text-sm py-3 border-b border-gray-50 last:border-0"><div class="flex flex-col"><span class="font-bold text-dm-blue uppercase leading-tight">${item.data[kDen]}</span><span class="text-lg font-black text-blue-600">${formatPriceNum(item.data[kPret]).toFixed(2)}</span></div><span class="font-black bg-gray-100 px-3 py-2 rounded-xl text-lg">x ${item.quantity}</span></div>`; });
             document.getElementById('order-details-items').innerHTML = html;
         }
 
         function incarcaComandaInCos() { if (currentViewingOrderIndex === null) return; const order = window.orderHistory[currentViewingOrderIndex]; cart = JSON.parse(JSON.stringify(order.cartData)); selectedClient = order.client; saveAgentData(); updateClientUI(); renderCart(); switchView('cart'); updateBadge(); }
         function retrimiteComandaDirect() { if (currentViewingOrderIndex === null) return; const order = window.orderHistory[currentViewingOrderIndex]; selectedClient = order.client; trimiteWhatsApp(order.timestamp, order.cartData); if (order.status === 'Ciornă') { window.orderHistory[currentViewingOrderIndex].status = 'Trimisă'; saveAgentData(); switchView('history'); } }
         function stergeComandaCurenta() { if (currentViewingOrderIndex === null) return; if (confirm("Ștergi comanda?")) { window.orderHistory.splice(currentViewingOrderIndex, 1); saveAgentData(); switchView('history'); } }
-        function formatPriceNum(val) { if (!val && val !== 0) return 0; if (typeof val === 'number') return val; return parseFloat(val.toString().replace(',', '.')) || 0; }
-        function triggerManualSync() { if (selectedCategory) selectCategory(selectedCategory); syncClients(); }
-        function filterProducts() { const q = document.getElementById('searchInput').value.toLowerCase().trim(); const filtered = allProducts.filter(p => p[Object.keys(p).find(key => key.trim().toLowerCase() === "denumire")]?.toString().toLowerCase().includes(q)); renderProducts(filtered); }
+        function formatPriceNum(val) { if (!val && val !== 0) return 0; if (typeof val === 'number') return val; return parseFloat(val.toString().replace(/\./g, '').replace(',', '.')) || 0; }
+        function triggerManualSync() { if (selectedCategory) syncCategoryData(selectedCategory); syncClients(); }
+        function filterProducts() { const q = document.getElementById('searchInput').value.toLowerCase().trim(); const filtered = allProducts.filter(p => p[Object.keys(p).find(key => key.trim().toLowerCase().includes("denumire") || key.trim().toLowerCase().includes("produs"))]?.toString().toLowerCase().includes(q)); renderProducts(filtered); }
         function switchView(viewName) { currentActiveView = viewName; const views = ['catalog', 'cart', 'history', 'order-details', 'clients']; views.forEach(v => { const el = document.getElementById(`view-${v}`); if (el) el.classList.add('view-hidden'); const nav = document.getElementById(`nav-${v === 'order-details' || v === 'clients' ? 'history' : v}`); if (nav) { nav.classList.remove('text-dm-blue'); nav.classList.add('text-gray-400'); } }); document.getElementById(`view-${viewName}`).classList.remove('view-hidden'); const activeNavId = (viewName === 'order-details' || viewName === 'clients') ? 'nav-history' : `nav-${viewName}`; const currentNav = document.getElementById(activeNavId); if (currentNav) { currentNav.classList.remove('text-gray-400'); currentNav.classList.add('text-dm-blue'); } if (viewName === 'catalog') document.getElementById('search-container').classList.remove('view-hidden'); else document.getElementById('search-container').classList.add('view-hidden'); if (viewName === 'cart') renderCart(); if (viewName === 'history') renderHistory(); }
 
         window.addEventListener('load', () => { const session = localStorage.getItem('dmauto_session'); if (session) { currentAgent = JSON.parse(session); initApp(); } });
