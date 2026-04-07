@@ -20,6 +20,7 @@
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc;
             -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation; /* Optimizes for touch */
             overflow-x: hidden;
         }
 
@@ -36,11 +37,15 @@
             background-position: center;
             box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             border: 4px solid transparent;
         }
 
-        .category-card:active { transform: scale(0.95); }
+        /* Efect de apăsare tactilă îmbunătățit */
+        .category-card:active, .mode-btn:active, .qty-btn:active, .nav-btn:active { 
+            transform: scale(0.92); 
+            filter: brightness(0.9);
+        }
 
         .category-overlay {
             background: linear-gradient(to top, rgba(0, 30, 60, 0.95) 0%, rgba(0, 30, 60, 0.4) 60%, transparent 100%);
@@ -60,10 +65,7 @@
             justify-content: center;
             border-radius: 18px;
             font-weight: 900;
-            transition: all 0.1s ease;
         }
-        
-        .qty-btn:active { transform: scale(0.85); }
 
         .cart-badge {
             position: absolute;
@@ -80,7 +82,6 @@
             align-items: center;
             justify-content: center;
             border: 3px solid white;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
         .view-hidden { display: none !important; }
@@ -88,7 +89,6 @@
         .selected-category {
             border-color: #ffcc00;
             transform: scale(1.03);
-            box-shadow: 0 25px 30px -10px rgba(0,0,0,0.2);
         }
 
         .login-gradient {
@@ -110,10 +110,29 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            border-radius: 2rem;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 2.5rem;
+            box-shadow: 0 15px 30px -5px rgba(0,0,0,0.15);
         }
-        .mode-btn:active { transform: scale(0.92); }
+
+        /* Mesaj Notificare Custom */
+        #custom-toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: #1e293b;
+            color: white;
+            padding: 16px 32px;
+            border-radius: 20px;
+            font-weight: 800;
+            z-index: 200;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-transform: uppercase;
+            font-size: 14px;
+            border: 2px solid #ffcc00;
+        }
+        #custom-toast.show { transform: translateX(-50%) translateY(0); }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -121,29 +140,32 @@
 </head>
 <body class="pb-40">
 
+    <!-- Toast Personalizat (În loc de alert) -->
+    <div id="custom-toast">Mesaj Notificare</div>
+
     <!-- ECRAN LOGIN -->
-    <div id="view-login" class="fixed inset-0 z-[100] login-gradient flex flex-col items-center justify-center p-6">
+    <div id="view-login" class="fixed inset-0 z-[100] login-gradient flex flex-col items-center justify-center p-6 text-center">
         <div class="w-full max-w-sm">
-            <div class="flex flex-col items-center mb-12 text-center">
+            <div class="flex flex-col items-center mb-12">
                 <img src="logo_dmauto.png" alt="DM Auto Logo" class="h-32 mb-6 object-contain" onerror="this.src='https://via.placeholder.com/150?text=DM+AUTO'">
                 <h2 class="text-dm-yellow font-black text-2xl tracking-widest italic uppercase">Portal Agenți</h2>
             </div>
 
             <div class="bg-white/10 backdrop-blur-xl p-8 rounded-[3rem] border border-white/20 shadow-2xl">
-                <div class="mb-6">
+                <div class="mb-6 text-left">
                     <label class="block text-white/50 text-[10px] font-black uppercase mb-2 ml-1">Utilizator</label>
                     <input type="text" id="login-user" placeholder="nume agent" 
                            class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white text-lg focus:outline-none focus:border-dm-yellow transition-all">
                 </div>
-                <div class="mb-10">
+                <div class="mb-10 text-left">
                     <label class="block text-white/50 text-[10px] font-black uppercase mb-2 ml-1">Parolă</label>
                     <input type="password" id="login-pass" placeholder="••••••••" 
                            class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white text-lg focus:outline-none focus:border-dm-yellow transition-all">
                 </div>
-                <button onclick="handleLogin()" class="w-full bg-dm-yellow text-dm-blue py-6 rounded-2xl font-black uppercase shadow-xl active:scale-95 transition-all text-xl">
+                <button onclick="handleLogin()" class="w-full bg-dm-yellow text-dm-blue py-6 rounded-2xl font-black uppercase shadow-xl active:scale-95 transition-all text-xl tracking-tighter">
                     Autentificare 🚀
                 </button>
-                <div id="login-error" class="mt-5 text-red-400 text-xs font-black hidden text-center uppercase tracking-tighter">
+                <div id="login-error" class="mt-5 text-red-400 text-xs font-black hidden uppercase tracking-tighter">
                     Date de acces incorecte!
                 </div>
             </div>
@@ -152,12 +174,17 @@
 
     <!-- CONȚINUT APLICAȚIE -->
     <div id="app-content" class="view-hidden">
-        <header class="bg-dm-blue text-white p-5 pb-10 shadow-2xl rounded-b-[3.5rem]">
+        <header class="bg-dm-blue text-white p-5 pb-10 shadow-2xl rounded-b-[3.5rem] sticky top-0 z-40">
             <div class="flex items-center gap-5 mb-8">
+                <!-- BUTON BACK (Nou) -->
+                <button id="header-back-btn" onclick="goBack()" class="bg-white/10 p-4 rounded-2xl border border-white/20 active:scale-90 transition-all shadow-lg view-hidden">
+                    <span class="text-2xl font-black">⬅️</span>
+                </button>
+
                 <div class="flex-1">
                     <h1 class="text-sm font-medium opacity-70">Salut, <span id="agent-display-name" class="font-black text-white">Agent!</span></h1>
                     <button onclick="switchView('clients')" class="mt-3 w-full bg-black/40 border border-white/20 p-5 rounded-2xl flex flex-col items-start gap-1 active:scale-95 transition-all shadow-inner">
-                        <span class="text-[10px] font-black text-dm-yellow uppercase tracking-[0.2em] opacity-80">Client Selectat:</span>
+                        <span class="text-[10px] font-black text-dm-yellow uppercase tracking-[0.2em] opacity-80">Client Actual:</span>
                         <div class="flex items-center justify-between w-full">
                             <span id="header-client-name" class="text-2xl font-black truncate leading-none text-left">Neselectat 👤</span>
                             <span class="text-dm-yellow text-xl">➔</span>
@@ -170,7 +197,7 @@
             </div>
 
             <div id="search-container" class="relative">
-                <input type="text" id="searchInput" onkeyup="if(event.key === 'Enter') filterProducts()" placeholder="Caută în listă..." 
+                <input type="text" id="searchInput" onkeyup="if(event.key === 'Enter') filterProducts()" placeholder="Caută marfă..." 
                        class="w-full p-6 pr-20 rounded-3xl text-gray-800 text-xl focus:outline-none shadow-2xl border-none font-semibold">
                 <div onclick="filterProducts()" class="absolute right-6 top-5 text-gray-300 cursor-pointer active:scale-90 active:text-dm-blue transition-all">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -180,13 +207,13 @@
             </div>
         </header>
 
-        <!-- CATALOG CATEGORII -->
+        <!-- CATALOG -->
         <div id="view-catalog" class="active-view">
             <div class="p-4 grid grid-cols-2 gap-5">
                 <div id="card-Inventar" onclick="selectCategory('Inventar')" class="category-card col-span-2 !aspect-[28/9]" style="background-color: #1e293b;">
                     <div class="category-overlay">
                         <h3 class="text-dm-yellow font-black text-2xl uppercase italic tracking-widest leading-none">📦 TOATE PRODUSELE</h3>
-                        <p class="text-white/50 text-xs uppercase font-bold tracking-tighter mt-1">Stoc Real & Inventar</p>
+                        <p class="text-white/50 text-xs uppercase font-bold tracking-tighter mt-1">Sursă: INVENTAR_STOC.xlsx</p>
                     </div>
                 </div>
                 <div id="card-Ravenol" onclick="selectCategory('Ravenol')" class="category-card" style="background-image: url('ravenol.jpg');">
@@ -213,8 +240,8 @@
                 <div class="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100 mb-12">
                     <div class="overflow-x-auto max-h-[60vh]">
                         <table class="w-full text-left">
-                            <thead class="bg-gray-50 border-b border-gray-100 uppercase text-[10px] font-black text-gray-400 tracking-widest">
-                                <tr><th class="pl-8 py-4">Reper / Stoc / Preț</th><th class="text-center">Cant.</th><th class="pr-8 text-right">Total</th></tr>
+                            <thead class="bg-gray-50 border-b border-gray-100 uppercase text-[10px] font-black text-gray-400">
+                                <tr><th class="pl-8 py-4">Reper / Stoc / Preț</th><th class="text-center">Adaugă</th><th class="pr-8 text-right">Subtotal</th></tr>
                             </thead>
                             <tbody id="productTableBody" class="divide-y divide-gray-100"></tbody>
                         </table>
@@ -234,84 +261,61 @@
         <div id="view-clients" class="view-hidden p-5">
             <div class="flex justify-between items-center mb-8">
                 <h2 class="text-3xl font-black text-dm-blue uppercase italic leading-none">👤 Baza Clienți</h2>
-                <button onclick="switchView('add-client')" class="bg-dm-yellow text-dm-blue px-6 py-4 rounded-2xl font-black text-xs uppercase shadow-xl active:scale-95 transition-all">+ Client Nou</button>
+                <button onclick="switchView('add-client')" class="bg-dm-yellow text-dm-blue px-6 py-4 rounded-2xl font-black text-xs uppercase shadow-xl">+ Client Nou</button>
             </div>
-            
             <div class="relative mb-8">
-                <input type="text" id="clientSearch" onkeyup="filterClients()" placeholder="Nume, Oraș, CIF sau Telefon..." 
+                <input type="text" id="clientSearch" onkeyup="filterClients()" placeholder="Nume, Oraș sau CIF..." 
                        class="w-full p-6 rounded-3xl text-gray-800 text-xl focus:outline-none shadow-xl border border-gray-100 font-semibold">
             </div>
-            
             <div class="flex gap-3 mb-8 overflow-x-auto pb-2 no-scrollbar">
                 <button onclick="toggleClientFilter(true)" id="btnFilterMyClients" class="sheet-tab sheet-tab-active shadow-lg">Zona Mea ⭐</button>
                 <button onclick="toggleClientFilter(false)" id="btnFilterAllClients" class="sheet-tab sheet-tab-inactive shadow-md">Toți Clienții</button>
             </div>
-
             <div id="clients-list" class="space-y-5 overflow-y-auto max-h-[55vh] pr-2"></div>
         </div>
 
-        <!-- ADAUGARE CLIENT NOU -->
+        <!-- ADAUGARE CLIENT -->
         <div id="view-add-client" class="view-hidden p-5">
-            <button onclick="switchView('clients')" class="mb-8 text-dm-blue font-black uppercase text-sm flex items-center gap-3 tracking-widest">
-                <span>←</span> ÎNAPOI LA LISTĂ
-            </button>
-            <h2 class="text-3xl font-black text-dm-blue uppercase italic mb-8 italic">➕ Creează Client Nou</h2>
+            <h2 class="text-3xl font-black text-dm-blue uppercase italic mb-8">➕ Creează Client</h2>
             <div class="bg-white p-8 rounded-[3rem] shadow-2xl border border-gray-100 space-y-6">
                 <div>
-                    <label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Denumire Magazin / Service</label>
-                    <input type="text" id="new-client-name" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase">
+                    <label class="block text-[10px] font-black uppercase text-gray-400 mb-2">Denumire Firmă</label>
+                    <input type="text" id="new-client-name" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold uppercase">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Localitate</label>
-                    <input type="text" id="new-client-loc" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase">
+                    <label class="block text-[10px] font-black uppercase text-gray-400 mb-2">Localitate</label>
+                    <input type="text" id="new-client-loc" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold uppercase">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Cod Fiscal (CIF)</label>
-                        <input type="text" id="new-client-cif" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Reg. Com.</label>
-                        <input type="text" id="new-client-rc" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase">
-                    </div>
+                    <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2">CIF</label><input type="text" id="new-client-cif" class="w-full p-5 bg-gray-50 border-none rounded-2xl font-bold uppercase"></div>
+                    <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2">Reg. Com.</label><input type="text" id="new-client-rc" class="w-full p-5 bg-gray-50 border-none rounded-2xl font-bold uppercase"></div>
                 </div>
-                <div>
-                    <label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Nr. Telefon</label>
-                    <input type="tel" id="new-client-tel" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all">
-                </div>
-                <button onclick="handleCreateClient()" class="w-full bg-dm-blue text-dm-yellow py-6 rounded-[2rem] font-black uppercase text-xl shadow-2xl active:scale-95 transition-all mt-4">
-                    Salvează Clientul ✅
-                </button>
+                <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2">Nr. Telefon</label><input type="tel" id="new-client-tel" class="w-full p-5 bg-gray-50 border-none rounded-2xl font-bold"></div>
+                <button onclick="handleCreateClient()" class="w-full bg-dm-blue text-dm-yellow py-6 rounded-[2rem] font-black uppercase text-xl shadow-2xl">Salvează Clientul ✅</button>
             </div>
         </div>
 
-        <!-- SELECTOR MOD: VÂNZARE / ÎNCASARE -->
+        <!-- SELECTOR MOD -->
         <div id="view-client-mode" class="view-hidden p-6 flex flex-col justify-center min-h-[70vh]">
             <h3 class="text-center text-gray-400 font-black uppercase tracking-[0.3em] mb-10">Ce dorești să faci?</h3>
             <div class="grid grid-cols-2 gap-8">
                 <button onclick="selectMode('vanzare')" class="mode-btn bg-dm-blue text-white shadow-2xl">
-                    <span class="text-7xl mb-4">🛒</span>
-                    <span class="font-black uppercase tracking-widest text-lg">Vânzare</span>
+                    <span class="text-7xl mb-4">🛒</span><span class="font-black uppercase tracking-widest text-lg">Vânzare</span>
                 </button>
                 <button onclick="selectMode('incasare')" class="mode-btn bg-green-600 text-white shadow-2xl">
-                    <span class="text-7xl mb-4">💰</span>
-                    <span class="font-black uppercase tracking-widest text-lg">Încasare</span>
+                    <span class="text-7xl mb-4">💰</span><span class="font-black uppercase tracking-widest text-lg">Încasare</span>
                 </button>
             </div>
-            <button onclick="switchView('clients')" class="mt-16 text-center text-dm-blue font-black uppercase tracking-widest text-sm opacity-50">Schimbă Clientul</button>
         </div>
 
-        <!-- VEDERE ÎNCASARE (Placeholder pentru sold) -->
+        <!-- VEDERE ÎNCASARE -->
         <div id="view-incasare" class="view-hidden p-6">
-            <button onclick="switchView('client-mode')" class="mb-8 text-dm-blue font-black uppercase text-sm flex items-center gap-3"><span>←</span> ÎNAPOI</button>
             <h2 class="text-3xl font-black text-green-700 uppercase italic mb-6 leading-none italic">💰 Modul Încasări</h2>
             <div class="bg-white p-8 rounded-[3rem] shadow-xl text-center">
                 <p class="text-gray-400 font-black uppercase text-xs mb-4">Sold Curent Client:</p>
                 <p id="display-sold" class="text-5xl font-black text-dm-blue tracking-tighter">0.00 RON</p>
-                <div class="mt-10 p-6 bg-yellow-50 rounded-2xl border border-yellow-100">
-                    <p class="text-xs text-yellow-700 font-bold uppercase tracking-widest leading-relaxed italic">
-                        Funcția de încasări va deveni activă după încărcarea fișierului de solduri.
-                    </p>
+                <div class="mt-10 p-6 bg-yellow-50 rounded-2xl border border-yellow-100 italic font-bold text-xs uppercase tracking-widest leading-relaxed">
+                    Funcția de încasări va deveni activă după încărcarea fișierului de solduri.
                 </div>
             </div>
         </div>
@@ -319,22 +323,22 @@
         <!-- COȘ -->
         <div id="view-cart" class="view-hidden p-5">
             <h2 class="text-3xl font-black text-dm-blue uppercase italic mb-8">🛒 Coș Comandă</h2>
-            <div id="cart-client-banner" class="bg-dm-yellow/20 border border-dm-yellow/30 p-6 rounded-[2rem] mb-8 flex justify-between items-center shadow-sm">
+            <div id="cart-client-banner" class="bg-dm-yellow/20 border border-dm-yellow/30 p-6 rounded-[2rem] mb-8 flex justify-between items-center">
                 <div class="flex-1 min-w-0 pr-8">
-                    <p class="text-[10px] font-black uppercase text-dm-blue/60 tracking-[0.2em] leading-none">Destinatar:</p>
+                    <p class="text-[10px] font-black uppercase text-dm-blue/60 tracking-widest leading-none">Destinatar:</p>
                     <p id="cart-client-name" class="text-xl font-black text-dm-blue uppercase tracking-tighter mt-2 truncate">Neselectat!</p>
                 </div>
-                <button onclick="switchView('clients')" class="text-xs font-black bg-dm-blue text-white px-6 py-4 rounded-2xl uppercase flex-shrink-0 shadow-xl">Modifică</button>
+                <button onclick="switchView('clients')" class="text-xs font-black bg-dm-blue text-white px-6 py-4 rounded-2xl uppercase shadow-xl">Modifică</button>
             </div>
             <div class="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden mb-10">
-                <div class="overflow-x-auto"><table class="w-full text-left"><thead class="bg-gray-50 border-b border-gray-100"><tr><th class="w-1/2 pl-8 text-base">Produs</th><th class="text-center">Cant.</th><th class="text-right pr-8">Net</th></tr></thead><tbody id="cart-content-table" class="divide-y divide-gray-100"></tbody></table></div>
-                <div id="cart-empty-msg" class="p-20 text-center text-gray-400 uppercase font-black text-lg italic view-hidden">Coș gol</div>
+                <div class="overflow-x-auto"><table class="w-full text-left"><thead class="bg-gray-50 border-b border-gray-100"><tr><th class="pl-8 py-4 text-base uppercase">Produs</th><th class="text-center text-base uppercase">Cant.</th><th class="pr-8 text-right text-base uppercase">Net</th></tr></thead><tbody id="cart-content-table" class="divide-y divide-gray-100"></tbody></table></div>
+                <div id="cart-empty-msg" class="p-20 text-center text-gray-400 uppercase font-black text-lg italic view-hidden">Coșul este gol</div>
             </div>
             <div id="cart-summary-box" class="bg-dm-blue text-white rounded-[3rem] p-10 shadow-2xl">
-                <div class="flex justify-between items-end border-b border-white/10 pb-6 mb-6"><span class="text-xs font-black text-dm-yellow tracking-[0.3em]">Total (Net)</span><span id="totalNoVat" class="text-5xl font-black italic tracking-tighter">0.00 RON</span></div>
+                <div class="flex justify-between items-end border-b border-white/10 pb-6 mb-6"><span class="text-xs font-black text-dm-yellow uppercase tracking-[0.3em]">Total (Net)</span><span id="totalNoVat" class="text-5xl font-black italic tracking-tighter">0.00 RON</span></div>
                 <div class="grid grid-cols-2 gap-6">
-                    <button onclick="salveazaComanda(true)" class="bg-blue-600 text-white py-7 rounded-[2rem] font-black uppercase shadow-2xl active:scale-95 transition-all text-base flex flex-col items-center gap-2"><span>💾</span> SALVEAZĂ</button>
-                    <button id="btnFinalizeWhatsApp" onclick="salveazaComanda(false)" class="bg-dm-yellow text-dm-blue py-7 rounded-[2rem] font-black uppercase shadow-2xl active:scale-95 transition-all text-base flex flex-col items-center gap-2"><span>🚀</span> TRIMITE</button>
+                    <button onclick="salveazaComanda(true)" class="bg-blue-600 text-white py-7 rounded-[2rem] font-black uppercase shadow-2xl flex flex-col items-center gap-2"><span>💾</span> SALVEAZĂ</button>
+                    <button id="btnFinalizeWhatsApp" onclick="salveazaComanda(false)" class="bg-dm-yellow text-dm-blue py-7 rounded-[2rem] font-black uppercase shadow-2xl flex flex-col items-center gap-2"><span>🚀</span> TRIMITE</button>
                 </div>
             </div>
         </div>
@@ -347,13 +351,12 @@
 
         <!-- DETALII ISTORIC -->
         <div id="view-order-details" class="view-hidden p-5">
-            <button onclick="switchView('history')" class="mb-8 text-dm-blue font-black uppercase text-sm flex items-center gap-3 tracking-widest"><span>←</span> ÎNAPOI LA LISTĂ</button>
             <div class="bg-white rounded-[3rem] shadow-2xl border border-gray-100 p-10 mb-10">
                 <div id="order-details-header" class="border-b border-gray-100 pb-8 mb-8"></div>
                 <div id="order-details-items" class="space-y-6 mb-12"></div>
                 <div class="flex flex-col gap-4">
-                    <div class="grid grid-cols-2 gap-5"><button onclick="incarcaComandaInCos()" class="bg-dm-blue text-white py-6 rounded-3xl font-black uppercase shadow-xl active:scale-95 transition-all text-sm">🔄 MODIFICĂ</button><button onclick="retrimiteComandaDirect()" class="bg-dm-yellow text-dm-blue py-6 rounded-3xl font-black uppercase shadow-xl active:scale-95 transition-all text-sm">🚀 TRIMITE</button></div>
-                    <button onclick="stergeComandaCurenta()" class="w-full bg-red-500 text-white py-6 rounded-3xl font-black uppercase shadow-xl active:scale-95 transition-all text-sm">🗑️ ȘTERGE</button>
+                    <div class="grid grid-cols-2 gap-5"><button onclick="incarcaComandaInCos()" class="bg-dm-blue text-white py-6 rounded-3xl font-black uppercase shadow-xl text-sm">🔄 MODIFICĂ</button><button onclick="retrimiteComandaDirect()" class="bg-dm-yellow text-dm-blue py-6 rounded-3xl font-black uppercase shadow-xl text-sm">🚀 TRIMITE</button></div>
+                    <button onclick="stergeComandaCurenta()" class="w-full bg-red-500 text-white py-6 rounded-3xl font-black uppercase shadow-xl text-sm">🗑️ ȘTERGE</button>
                 </div>
             </div>
         </div>
@@ -397,16 +400,88 @@
         let selectedCategory = null;
         let currentCategoryData = []; 
         let currentActiveView = 'catalog';
-        let currentViewingOrderIndex = null;
+        let navigationHistory = [];
         window.orderHistory = [];
 
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
-            });
+        // --- NAVIGATION & UI HELPERS ---
+        function showToast(msg) {
+            const toast = document.getElementById('custom-toast');
+            toast.innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        // --- AUTH ---
+        function switchView(viewName, saveHistory = true) {
+            if (saveHistory && currentActiveView !== viewName) {
+                navigationHistory.push(currentActiveView);
+            }
+            
+            currentActiveView = viewName;
+            const views = ['catalog', 'cart', 'history', 'order-details', 'clients', 'add-client', 'client-mode', 'incasare']; 
+            views.forEach(v => { const el = document.getElementById(`view-${v}`); if (el) el.classList.add('view-hidden'); });
+            
+            const target = document.getElementById(`view-${viewName}`);
+            if (target) target.classList.remove('view-hidden');
+            
+            // Header back button visibility
+            const backBtn = document.getElementById('header-back-btn');
+            if (viewName === 'catalog') backBtn.classList.add('view-hidden');
+            else backBtn.classList.remove('view-hidden');
+
+            // Nav icons
+            const navs = ['catalog', 'cart', 'history'];
+            navs.forEach(n => {
+                const el = document.getElementById(`nav-${n}`);
+                if (el) { el.classList.remove('text-dm-blue'); el.classList.add('text-gray-400'); }
+            });
+            
+            let activeNav = viewName;
+            if (['add-client', 'client-mode', 'incasare', 'clients'].includes(viewName)) activeNav = 'catalog';
+            if (viewName === 'order-details') activeNav = 'history';
+            
+            const currentNav = document.getElementById(`nav-${activeNav}`);
+            if (currentNav) { currentNav.classList.remove('text-gray-400'); currentNav.classList.add('text-dm-blue'); } 
+            
+            if (viewName === 'catalog') document.getElementById('search-container').classList.remove('view-hidden'); 
+            else document.getElementById('search-container').classList.add('view-hidden'); 
+            
+            if (viewName === 'cart') renderCart(); 
+            if (viewName === 'history') renderHistory(); 
+        }
+
+        function goBack() {
+            if (navigationHistory.length > 0) {
+                const prev = navigationHistory.pop();
+                switchView(prev, false);
+            } else {
+                switchView('catalog');
+            }
+        }
+
+        // --- TOUCH SWIPE DETECTION ---
+        let touchstartX = 0;
+        let touchendX = 0;
+        const mainNavOrder = ['catalog', 'cart', 'history'];
+
+        document.addEventListener('touchstart', e => touchstartX = e.changedTouches[0].screenX);
+        document.addEventListener('touchend', e => {
+            touchendX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const currentIdx = mainNavOrder.indexOf(currentActiveView);
+            if (currentIdx === -1) return; // Not on a main tab
+
+            if (touchendX < touchstartX - 80) { // Swipe Left -> Go Right
+                if (currentIdx < mainNavOrder.length - 1) switchView(mainNavOrder[currentIdx + 1]);
+            }
+            if (touchendX > touchstartX + 80) { // Swipe Right -> Go Left
+                if (currentIdx > 0) switchView(mainNavOrder[currentIdx - 1]);
+            }
+        }
+
+        // --- LOGICĂ LOGIN ---
         function handleLogin() {
             const user = document.getElementById('login-user').value.toLowerCase().trim();
             const pass = document.getElementById('login-pass').value.trim();
@@ -424,90 +499,32 @@
             document.getElementById('view-login').classList.add('view-hidden');
             document.getElementById('app-content').classList.remove('view-hidden');
             document.getElementById('agent-display-name').innerText = currentAgent.name;
-            loadAgentData();
-            syncMasterData();
-            syncClients();
+            loadAgentData(); syncMasterData(); syncClients();
         }
 
         function loadAgentData() {
-            const historyKey = `dmauto_history_${currentAgent.id}`;
-            const cartKey = `dmauto_cart_${currentAgent.id}`;
-            const clientKey = `dmauto_client_${currentAgent.id}`;
-            const savedKey = `dmauto_saved_clients_${currentAgent.id}`;
-            const manualKey = `dmauto_manual_clients_${currentAgent.id}`;
-            
-            window.orderHistory = JSON.parse(localStorage.getItem(historyKey) || '[]');
-            cart = JSON.parse(localStorage.getItem(cartKey) || '{}');
-            selectedClient = JSON.parse(localStorage.getItem(clientKey) || 'null');
-            savedClientNames = JSON.parse(localStorage.getItem(savedKey) || '[]');
-            manuallyCreatedClients = JSON.parse(localStorage.getItem(manualKey) || '[]');
-            
+            const id = currentAgent.id;
+            window.orderHistory = JSON.parse(localStorage.getItem(`dma_hist_${id}`) || '[]');
+            cart = JSON.parse(localStorage.getItem(`dma_cart_${id}`) || '{}');
+            selectedClient = JSON.parse(localStorage.getItem(`dma_cli_${id}`) || 'null');
+            savedClientNames = JSON.parse(localStorage.getItem(`dma_sv_cli_${id}`) || '[]');
+            manuallyCreatedClients = JSON.parse(localStorage.getItem(`dma_man_cli_${id}`) || '[]');
             updateBadge(); updateClientUI();
         }
 
         function saveAgentData() {
-            localStorage.setItem(`dmauto_history_${currentAgent.id}`, JSON.stringify(window.orderHistory));
-            localStorage.setItem(`dmauto_cart_${currentAgent.id}`, JSON.stringify(cart));
-            localStorage.setItem(`dmauto_client_${currentAgent.id}`, JSON.stringify(selectedClient));
-            localStorage.setItem(`dmauto_saved_clients_${currentAgent.id}`, JSON.stringify(savedClientNames));
-            localStorage.setItem(`dmauto_manual_clients_${currentAgent.id}`, JSON.stringify(manuallyCreatedClients));
+            const id = currentAgent.id;
+            localStorage.setItem(`dma_hist_${id}`, JSON.stringify(window.orderHistory));
+            localStorage.setItem(`dma_cart_${id}`, JSON.stringify(cart));
+            localStorage.setItem(`dma_cli_${id}`, JSON.stringify(selectedClient));
+            localStorage.setItem(`dma_sv_cli_${id}`, JSON.stringify(savedClientNames));
+            localStorage.setItem(`dma_man_cli_${id}`, JSON.stringify(manuallyCreatedClients));
         }
 
-        // --- MASTER DATA ---
-        async function syncMasterData() {
-            const cached = localStorage.getItem(`dmauto_master_cache`);
-            if (cached) { allProductsRaw = JSON.parse(cached); }
-            if (window.location.protocol === 'blob:') return;
-            try {
-                const response = await fetch(window.location.pathname.includes('DM-Auto-App') ? `./${MASTER_FILE}` : MASTER_FILE);
-                if (response.ok) {
-                    const data = await response.arrayBuffer();
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const rawJson = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-                    let headerIdx = rawJson.findIndex(row => row && row.some(cell => cell && cell.toString().toLowerCase().includes("denumire")));
-                    headerIdx = headerIdx === -1 ? 0 : headerIdx;
-                    const json = XLSX.utils.sheet_to_json(sheet, { range: headerIdx, defval: "" });
-                    allProductsRaw = json.filter(p => {
-                        const kDen = Object.keys(p).find(k => k.trim().toLowerCase().includes("denumire"));
-                        return p[kDen] && p[kDen].toString().trim() !== "";
-                    });
-                    localStorage.setItem(`dmauto_master_cache`, JSON.stringify(allProductsRaw));
-                }
-            } catch (e) { console.error("Eroare master data:", e); }
-        }
-
-        function getProductsForCategory(category) {
-            if (category === 'Inventar') return allProductsRaw;
-            return allProductsRaw.filter(p => {
-                const kDen = Object.keys(p).find(k => k.trim().toLowerCase().includes("denumire"));
-                const name = p[kDen]?.toString().toUpperCase() || "";
-                if (category === 'Ravenol') return name.startsWith('RAV');
-                if (category === 'Cyclon') return name.startsWith('CYC');
-                if (category === 'Banner') return name.startsWith('BANNER');
-                if (category === 'Cemsa') return !name.startsWith('RAV') && !name.startsWith('CYC') && !name.startsWith('BANNER');
-                return false;
-            });
-        }
-
-        async function selectCategory(category) {
-            document.getElementById('searchInput').value = '';
-            selectedCategory = category;
-            document.getElementById('product-section').classList.remove('view-hidden');
-            document.getElementById('category-placeholder').classList.add('view-hidden');
-            document.getElementById('selected-category-title').innerText = category === 'Inventar' ? "TOATE PRODUSELE" : category;
-            ['Ravenol', 'Banner', 'Cyclon', 'Cemsa', 'Inventar'].forEach(cat => {
-                const card = document.getElementById(`card-${cat}`);
-                if (card) card.classList.toggle('selected-category', cat === category);
-            });
-            currentCategoryData = getProductsForCategory(category);
-            filterProducts();
-            document.getElementById('product-section').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        // --- CLIENTI ---
+        // --- GESTIUNE CLIENTI ---
         async function syncClients() {
-            const cached = localStorage.getItem(`dmauto_cache_clients`);
+            const localKey = `dma_cache_cli`;
+            const cached = localStorage.getItem(localKey);
             if (cached) { allClients = JSON.parse(cached); filterClients(); }
             if (window.location.protocol === 'blob:') return;
             try {
@@ -517,98 +534,77 @@
                     const workbook = XLSX.read(data, {type: 'array'});
                     const sheet = workbook.Sheets[workbook.SheetNames[0]];
                     const rawJson = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-                    let headerIdx = rawJson.findIndex(row => row && row.some(cell => cell && cell.toString().toLowerCase().trim() === "denumire"));
-                    headerIdx = headerIdx === -1 ? 0 : headerIdx;
-                    const json = XLSX.utils.sheet_to_json(sheet, { range: headerIdx, defval: "" });
-                    allClients = json.filter(c => {
-                        const keys = Object.keys(c);
-                        const kName = keys.find(k => k.trim().toLowerCase() === "denumire");
-                        return c[kName] && c[kName].toString().trim() !== "";
-                    });
-                    localStorage.setItem(`dmauto_cache_clients`, JSON.stringify(allClients));
+                    let idx = rawJson.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().trim() === "denumire"));
+                    const json = XLSX.utils.sheet_to_json(sheet, { range: idx === -1 ? 0 : idx, defval: "" });
+                    allClients = json.filter(c => c[Object.keys(c).find(k => k.trim().toLowerCase() === "denumire")]?.toString().trim());
+                    localStorage.setItem(localKey, JSON.stringify(allClients));
                     filterClients();
                 }
-            } catch (e) { console.error("Eroare clienți:", e); }
+            } catch (e) { console.error("Eroare clienti:", e); }
         }
 
         function handleCreateClient() {
             const name = document.getElementById('new-client-name').value.trim().toUpperCase();
             const loc = document.getElementById('new-client-loc').value.trim().toUpperCase();
-            const cif = document.getElementById('new-client-cif').value.trim().toUpperCase();
-            const rc = document.getElementById('new-client-rc').value.trim().toUpperCase();
-            const tel = document.getElementById('new-client-tel').value.trim();
-
-            if (!name || !loc) { alert("Te rugăm să introduci cel puțin numele și localitatea!"); return; }
-
-            const newClient = { denumire: name, localitate: loc, cod_fiscal: cif, reg_com: rc, tel: tel, den_agent: currentAgent.filter, isManual: true };
-            manuallyCreatedClients.push(newClient);
+            if (!name || !loc) { showToast("INTRODU NUME ȘI LOCALITATE!"); return; }
+            const newCli = { denumire: name, localitate: loc, cod_fiscal: document.getElementById('new-client-cif').value.trim(), reg_com: document.getElementById('new-client-rc').value.trim(), tel: document.getElementById('new-client-tel').value.trim(), den_agent: currentAgent.filter, isManual: true };
+            manuallyCreatedClients.push(newCli);
             saveAgentData();
-            
-            // Reset fields
             ['new-client-name','new-client-loc','new-client-cif','new-client-rc','new-client-tel'].forEach(id => document.getElementById(id).value = '');
-            
-            alert("Clientul a fost creat și adăugat în listă!");
+            showToast("CLIENT CREAT!");
             filterClients();
             switchView('clients');
         }
 
-        function toggleClientFilter(onlyMine) {
-            showOnlyMyClients = onlyMine;
-            document.getElementById('btnFilterMyClients').className = `sheet-tab ${onlyMine ? 'sheet-tab-active' : 'sheet-tab-inactive'}`;
-            document.getElementById('btnFilterAllClients').className = `sheet-tab ${!onlyMine ? 'sheet-tab-active' : 'sheet-tab-inactive'}`;
+        function toggleClientFilter(mine) {
+            showOnlyMyClients = mine;
+            document.getElementById('btnFilterMyClients').className = `sheet-tab ${mine ? 'sheet-tab-active' : 'sheet-tab-inactive'}`;
+            document.getElementById('btnFilterAllClients').className = `sheet-tab ${!mine ? 'sheet-tab-active' : 'sheet-tab-inactive'}`;
             filterClients();
         }
 
-        function toggleSaveClient(name, event) {
-            event.stopPropagation();
-            const index = savedClientNames.indexOf(name);
-            if (index > -1) savedClientNames.splice(index, 1);
+        function toggleSaveClient(name, e) {
+            e.stopPropagation();
+            const idx = savedClientNames.indexOf(name);
+            if (idx > -1) savedClientNames.splice(idx, 1);
             else savedClientNames.push(name);
             saveAgentData(); filterClients();
         }
 
         function filterClients() {
             const q = document.getElementById('clientSearch').value.toLowerCase().trim();
-            const mergedClients = [...manuallyCreatedClients, ...allClients];
-            
-            const filtered = mergedClients.filter(c => {
-                const keys = Object.keys(c);
-                const name = c[keys.find(k => k.trim().toLowerCase() === "denumire")]?.toString() || "";
-                const loc = c[keys.find(k => k.trim().toLowerCase() === "localitate")]?.toString() || "";
-                const cif = c[keys.find(k => k.trim().toLowerCase() === "cod_fiscal")]?.toString() || "";
-                const tel = c[keys.find(k => k.trim().toLowerCase() === "tel")]?.toString() || "";
-                
-                const matchesSearch = name.toLowerCase().includes(q) || loc.toLowerCase().includes(q) || cif.toLowerCase().includes(q) || tel.includes(q);
-                
-                let matchesAgent = true;
+            const merged = [...manuallyCreatedClients, ...allClients];
+            const filtered = merged.filter(c => {
+                const kName = Object.keys(c).find(k => k.toLowerCase() === "denumire");
+                const kLoc = Object.keys(c).find(k => k.toLowerCase() === "localitate");
+                const kCIF = Object.keys(c).find(k => k.toLowerCase() === "cod_fiscal");
+                const name = c[kName]?.toString() || "";
+                const match = name.toLowerCase().includes(q) || c[kLoc]?.toString().toLowerCase().includes(q) || c[kCIF]?.toString().toLowerCase().includes(q);
+                let agentMatch = true;
                 if (showOnlyMyClients && currentAgent) {
-                    const agentInFile = c[keys.find(k => k.trim().toLowerCase() === "den_agent")]?.toString().toUpperCase() || "";
-                    matchesAgent = agentInFile.includes(currentAgent.filter) || savedClientNames.includes(name);
+                    const kAgent = Object.keys(c).find(k => k.toLowerCase() === "den_agent");
+                    agentMatch = (c[kAgent]?.toString().toUpperCase() || "").includes(currentAgent.filter) || savedClientNames.includes(name);
                 }
-                return matchesSearch && matchesAgent;
+                return match && agentMatch;
             });
             renderClients(filtered);
         }
 
         function renderClients(clients) {
             const container = document.getElementById('clients-list');
-            if (clients.length === 0) { container.innerHTML = '<p class="p-10 text-center text-gray-400 italic text-base">Niciun client găsit.</p>'; return; }
+            if (clients.length === 0) { container.innerHTML = '<p class="p-10 text-center text-gray-400 italic font-bold">Niciun client.</p>'; return; }
             container.innerHTML = clients.map(c => {
                 const keys = Object.keys(c);
-                const name = c[keys.find(k => k.trim().toLowerCase() === "denumire")];
-                const loc = c[keys.find(k => k.trim().toLowerCase() === "localitate")] || "-";
-                const cif = c[keys.find(k => k.trim().toLowerCase() === "cod_fiscal")] || "-";
-                const tel = c[keys.find(k => k.trim().toLowerCase() === "tel")] || "";
-                
-                const isActive = selectedClient && selectedClient.name === name;
+                const name = c[keys.find(k => k.toLowerCase() === "denumire")];
+                const loc = c[keys.find(k => k.toLowerCase() === "localitate")] || "-";
                 const isSaved = savedClientNames.includes(name);
                 return `
-                <div onclick="selectClient('${name.replace(/'/g, "\\'")}', '${loc.replace(/'/g, "\\'")}', '${cif}', '${c[keys.find(k => k.trim().toLowerCase() === "reg_com")]||''}', '${tel}')" 
-                     class="client-card bg-white p-6 rounded-[2rem] shadow-xl active:scale-[0.98] transition-all cursor-pointer flex justify-between items-center ${isActive ? 'active-client' : ''}">
+                <div onclick="selectClient('${name.replace(/'/g, "\\'")}', '${loc.replace(/'/g, "\\'")}', '${c[keys.find(k => k.toLowerCase() === "cod_fiscal")]||''}', '${c[keys.find(k => k.toLowerCase() === "reg_com")]||''}', '${c[keys.find(k => k.toLowerCase() === "tel")]||''}')" 
+                     class="client-card bg-white p-6 rounded-[2rem] shadow-xl active:scale-[0.98] transition-all cursor-pointer flex justify-between items-center ${selectedClient && selectedClient.name === name ? 'active-client' : ''}">
                     <div class="flex-1 min-w-0 pr-4">
                         <p class="text-2xl font-black text-dm-blue uppercase leading-tight truncate">${name}</p>
-                        <p class="text-base font-bold text-gray-400 mt-2 uppercase tracking-wide">📍 ${loc}</p>
-                        <div class="mt-2 text-xs font-black text-blue-600/70 uppercase">CIF: ${cif} ${tel ? '| 📞 ' + tel : ''}</div>
+                        <p class="text-base font-bold text-gray-400 mt-2">📍 ${loc}</p>
+                        <div class="mt-2 text-xs font-black text-blue-600/70 uppercase">CIF: ${c[keys.find(k => k.toLowerCase() === "cod_fiscal")]||'-'}</div>
                     </div>
                     <button onclick="toggleSaveClient('${name.replace(/'/g, "\\'")}', event)" class="btn-save-client flex-shrink-0 ${isSaved ? 'bg-dm-yellow text-dm-blue shadow-lg' : 'bg-gray-100 text-gray-400'}"><span class="text-3xl">${isSaved ? '⭐' : '☆'}</span></button>
                 </div>`;
@@ -617,195 +613,156 @@
 
         function selectClient(name, loc, cif, rc, tel) { 
             selectedClient = { name, loc, cif, rc, tel }; 
-            saveAgentData(); updateClientUI(); 
-            switchView('client-mode'); 
+            saveAgentData(); updateClientUI(); switchView('client-mode'); 
         }
 
         function selectMode(mode) {
             if (mode === 'vanzare') switchView('catalog');
-            else if (mode === 'incasare') {
-                // În viitor aici vom citi fișierul de solduri
-                document.getElementById('display-sold').innerText = "0.00 RON"; 
-                switchView('incasare');
-            }
+            else { document.getElementById('display-sold').innerText = "0.00 RON"; switchView('incasare'); }
         }
 
         function updateClientUI() {
-            const elHeader = document.getElementById('header-client-name');
-            const elCart = document.getElementById('cart-client-name');
+            const h = document.getElementById('header-client-name'), c = document.getElementById('cart-client-name');
             if (selectedClient) {
-                elHeader.innerText = selectedClient.name;
-                elHeader.className = "text-2xl font-black truncate leading-none text-dm-yellow text-left";
-                elCart.innerText = `${selectedClient.name} (${selectedClient.loc})`;
-                elCart.classList.remove('text-red-500');
+                h.innerText = selectedClient.name; h.className = "text-2xl font-black truncate leading-none text-dm-yellow text-left";
+                c.innerText = `${selectedClient.name} (${selectedClient.loc})`; c.classList.remove('text-red-500');
             } else {
-                elHeader.innerText = "Neselectat 👤";
-                elHeader.className = "text-2xl font-black truncate leading-none text-white text-left opacity-30";
-                elCart.innerText = "ATENȚIE: NICIUN CLIENT SELECTAT!";
-                elCart.classList.add('text-red-500');
+                h.innerText = "Neselectat 👤"; h.className = "text-2xl font-black truncate leading-none text-white text-left opacity-30";
+                c.innerText = "ATENȚIE: NICIUN CLIENT SELECTAT!"; c.classList.add('text-red-500');
             }
         }
 
-        // --- PRODUSE RENDER ---
+        // --- PRODUSE ---
+        async function syncMasterData() {
+            const cached = localStorage.getItem(`dma_mast_cache`);
+            if (cached) allProductsRaw = JSON.parse(cached);
+            if (window.location.protocol === 'blob:') return;
+            try {
+                const response = await fetch(window.location.pathname.includes('DM-Auto-App') ? `./${MASTER_FILE}` : MASTER_FILE);
+                if (response.ok) {
+                    const data = await response.arrayBuffer();
+                    const wb = XLSX.read(data, {type: 'array'});
+                    const sheet = wb.Sheets[wb.SheetNames[0]];
+                    const raw = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                    let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().includes("denumire")));
+                    allProductsRaw = XLSX.utils.sheet_to_json(sheet, { range: idx === -1 ? 0 : idx, defval: "" }).filter(p => p[Object.keys(p).find(k => k.toLowerCase().includes("denumire"))]);
+                    localStorage.setItem(`dma_mast_cache`, JSON.stringify(allProductsRaw));
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function selectCategory(category) {
+            document.getElementById('searchInput').value = ''; selectedCategory = category;
+            document.getElementById('product-section').classList.remove('view-hidden');
+            document.getElementById('category-placeholder').classList.add('view-hidden');
+            document.getElementById('selected-category-title').innerText = category === 'Inventar' ? "TOATE" : category;
+            ['Ravenol', 'Banner', 'Cyclon', 'Cemsa', 'Inventar'].forEach(cat => {
+                const card = document.getElementById(`card-${cat}`); if (card) card.classList.toggle('selected-category', cat === category);
+            });
+            currentCategoryData = allProductsRaw.filter(p => {
+                if (category === 'Inventar') return true;
+                const n = p[Object.keys(p).find(k => k.toLowerCase().includes("denumire"))]?.toString().toUpperCase() || "";
+                if (category === 'Ravenol') return n.startsWith('RAV');
+                if (category === 'Cyclon') return n.startsWith('CYC');
+                if (category === 'Banner') return n.startsWith('BANNER');
+                if (category === 'Cemsa') return !n.startsWith('RAV') && !n.startsWith('CYC') && !n.startsWith('BANNER');
+                return false;
+            });
+            filterProducts();
+            document.getElementById('product-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
         function renderProducts(products) {
             const tbody = document.getElementById('productTableBody');
             if (!tbody) return;
-            if (products.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-20 text-center text-gray-400 italic font-black text-lg">Niciun produs găsit.</td></tr>'; return; }
-            
-            let html = '';
-            products.forEach(p => {
-                const keys = Object.keys(p);
-                const kDen = keys.find(k => k.trim().toLowerCase().includes("denumire") || k.trim().toLowerCase().includes("produs"));
-                const kPret = keys.find(k => k.trim().toLowerCase().includes("pret") || k.trim().toLowerCase().includes("vanzare"));
-                const kStoc = keys.find(k => k.trim().toLowerCase() === "stoc");
-                
-                const denumire = p[kDen] || "";
-                const pret = formatPriceNum(p[kPret]);
-                const stocRaw = p[kStoc];
-                const stocVal = stocRaw !== undefined ? parseFloat(stocRaw.toString().replace(/\./g, '').replace(',', '.')) : null;
-                const currentQty = cart[denumire] ? cart[denumire].quantity : 0;
-                const stocColor = (stocVal > 0) ? 'text-green-600 bg-green-50 border-green-200' : 'text-red-500 bg-red-50 border-red-200';
-
-                html += `
-                    <tr class="${currentQty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100">
-                        <td class="pr-4 py-8 pl-8 font-black text-dm-blue uppercase leading-tight tracking-tighter">
-                            <span class="text-2xl block mb-3">${denumire}</span>
-                            <div class="flex flex-wrap items-center gap-4">
-                                <span class="text-lg font-black text-blue-600/80 tracking-tight">${pret.toFixed(2)} <span class="text-[9px] uppercase opacity-50">Net</span></span>
-                                ${stocVal !== null ? `<span class="text-xs font-black ${stocColor} px-3 py-1 rounded-xl border">STOC: ${stocVal.toFixed(0)}</span>` : ''}
-                            </div>
-                        </td>
-                        <td class="py-8">
-                            <div class="flex items-center justify-center gap-4 bg-gray-50 rounded-[1.5rem] p-1.5 border border-gray-100 shadow-inner">
-                                <button onclick="updateCart('${denumire.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100 text-3xl">-</button>
-                                <span class="font-black text-3xl w-14 text-center text-dm-blue">${currentQty}</span>
-                                <button onclick="updateCart('${denumire.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-xl text-3xl">+</button>
-                            </div>
-                        </td>
-                        <td class="text-right pr-8 py-8 font-black text-dm-blue">
-                             <div class="flex flex-col items-end">
-                                <span class="text-xl tracking-tighter">${(currentQty * pret).toFixed(2)}</span>
-                                <span class="text-[9px] opacity-20 uppercase tracking-widest">RON</span>
-                             </div>
-                        </td>
-                    </tr>`;
-            });
-            tbody.innerHTML = html;
+            if (products.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-20 text-center text-gray-400 font-black">Niciun produs.</td></tr>'; return; }
+            tbody.innerHTML = products.map(p => {
+                const kDen = Object.keys(p).find(k => k.toLowerCase().includes("denumire")), kPret = Object.keys(p).find(k => k.toLowerCase().includes("pret")), kStoc = Object.keys(p).find(k => k.toLowerCase() === "stoc");
+                const name = p[kDen], pret = formatPriceNum(p[kPret]), stocVal = p[kStoc] !== undefined ? parseFloat(p[kStoc].toString().replace(/\./g, '').replace(',', '.')) : null;
+                const qty = cart[name] ? cart[name].quantity : 0;
+                return `<tr class="${qty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100">
+                    <td class="px-8 py-8 font-black text-dm-blue uppercase tracking-tighter"><span class="text-2xl block mb-3 leading-tight">${name}</span>
+                        <div class="flex items-center gap-4"><span class="text-lg font-black text-blue-600/80">${pret.toFixed(2)} <span class="text-[9px] opacity-50">Net</span></span>
+                        ${stocVal !== null ? `<span class="text-xs font-black ${stocVal>0?'text-green-600 bg-green-50':'text-red-500 bg-red-50'} px-3 py-1 rounded-xl border">STOC: ${stocVal.toFixed(0)}</span>` : ''}</div></td>
+                    <td class="py-8"><div class="flex items-center justify-center gap-4 bg-gray-50 rounded-[1.5rem] p-1.5 border border-gray-100 shadow-inner">
+                        <button onclick="updateCart('${name.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100 text-3xl">-</button>
+                        <span class="font-black text-3xl w-14 text-center text-dm-blue">${qty}</span>
+                        <button onclick="updateCart('${name.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-xl text-3xl">+</button></div></td>
+                    <td class="text-right pr-8 py-8 font-black text-dm-blue text-xl">${(qty*pret).toFixed(2)}</td></tr>`;
+            }).join('');
         }
 
-        function updateCart(prodName, delta) {
-            const productData = allProductsRaw.find(p => p[Object.keys(p).find(k => k.trim().toLowerCase().includes("denumire") || k.trim().toLowerCase().includes("produs"))] === prodName);
-            if (!productData && !cart[prodName]) return;
-            if (!cart[prodName]) cart[prodName] = { quantity: 0, data: productData, category: selectedCategory };
-            cart[prodName].quantity += delta;
-            if (cart[prodName].quantity <= 0) delete cart[prodName];
+        function updateCart(name, d) {
+            const p = allProductsRaw.find(x => x[Object.keys(x).find(k => k.toLowerCase().includes("denumire"))] === name);
+            if (!p && !cart[name]) return;
+            if (!cart[name]) cart[name] = { quantity: 0, data: p, category: selectedCategory };
+            cart[name].quantity += d;
+            if (cart[name].quantity <= 0) delete cart[name];
             saveAgentData(); filterProducts(); if (currentActiveView === 'cart') renderCart(); updateBadge();
         }
 
-        function updateBadge() { const count = Object.values(cart).reduce((sum, item) => sum + item.quantity, 0); const badge = document.getElementById('cartBadge'); if (badge) { badge.innerText = count; badge.classList.toggle('hidden', count === 0); } }
+        function updateBadge() { const c = Object.values(cart).reduce((s, i) => s + i.quantity, 0); const b = document.getElementById('cartBadge'); if (b) { b.innerText = c; b.classList.toggle('hidden', c === 0); } }
 
         function renderCart() {
-            const tbody = document.getElementById('cart-content-table'); const emptyMsg = document.getElementById('cart-empty-msg');
-            if (!tbody) return;
-            let html = '', totalNoVat = 0; const items = Object.values(cart);
-            if (items.length === 0) { tbody.innerHTML = ''; emptyMsg.classList.remove('view-hidden'); document.getElementById('totalNoVat').innerText = '0.00 RON'; document.getElementById('totalWithVat').innerText = '0.00 RON'; return; }
-            emptyMsg.classList.add('view-hidden');
-            items.forEach(item => {
-                const keys = Object.keys(item.data); 
-                const kDen = keys.find(k => k.trim().toLowerCase() === "denumire") || keys.find(k => k.trim().toLowerCase().includes("produs"));
-                const kPret = keys.find(k => k.trim().toLowerCase().includes("pret") || k.trim().toLowerCase().includes("vanzare"));
-                const name = item.data[kDen]; const pFara = formatPriceNum(item.data[kPret]); const subtotal = item.quantity * pFara; totalNoVat += subtotal;
-                html += `<tr class="border-b border-gray-100"><td class="pr-4 py-6 pl-8 font-black text-dm-blue uppercase leading-tight tracking-tighter text-xl">${name}<br><span class="text-sm font-bold text-blue-600/60 mt-1 block tracking-tight">${pFara.toFixed(2)} RON</span></td><td class="py-6"><div class="flex items-center justify-center gap-4 bg-gray-50 rounded-2xl p-2 border border-gray-100"><button onclick="updateCart('${name.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button><span class="font-black text-3xl w-14 text-center text-dm-blue">${item.quantity}</span><button onclick="updateCart('${name.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-md">+</button></div></td><td class="text-right pr-8 py-6 font-black text-dm-blue text-lg">${subtotal.toFixed(2)}</td></tr>`;
-            });
-            tbody.innerHTML = html; document.getElementById('totalNoVat').innerText = totalNoVat.toFixed(2) + ' RON'; document.getElementById('totalWithVat').innerText = (totalNoVat * TVA_RATE).toFixed(2) + ' RON';
+            const tbody = document.getElementById('cart-content-table'), em = document.getElementById('cart-empty-msg'); if (!tbody) return;
+            let total = 0; const items = Object.values(cart);
+            if (items.length === 0) { tbody.innerHTML = ''; em.classList.remove('view-hidden'); document.getElementById('totalNoVat').innerText = '0.00 RON'; return; }
+            em.classList.add('view-hidden');
+            tbody.innerHTML = items.map(i => {
+                const kDen = Object.keys(i.data).find(k => k.toLowerCase().includes("denumire")), kPret = Object.keys(i.data).find(k => k.toLowerCase().includes("pret"));
+                const pFara = formatPriceNum(i.data[kPret]); total += i.quantity * pFara;
+                return `<tr class="border-b border-gray-100"><td class="px-8 py-6 font-black text-dm-blue uppercase text-xl">${i.data[kDen]}<br><span class="text-sm font-bold text-blue-600/60">${pFara.toFixed(2)} RON</span></td>
+                    <td class="py-6"><div class="flex items-center justify-center gap-4 bg-gray-50 rounded-2xl p-2 border border-gray-100"><button onclick="updateCart('${i.data[kDen].replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button><span class="font-black text-3xl w-14 text-center text-dm-blue">${i.quantity}</span><button onclick="updateCart('${i.data[kDen].replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-md">+</button></div></td>
+                    <td class="text-right pr-8 py-6 font-black text-dm-blue text-lg">${(i.quantity*pFara).toFixed(2)}</td></tr>`;
+            }).join('');
+            document.getElementById('totalNoVat').innerText = total.toFixed(2) + ' RON';
         }
 
-        function golesteCos() { if(confirm("Ștergi tot coșul actual?")) { cart = {}; saveAgentData(); updateBadge(); renderCart(); filterProducts(); } }
-        
-        function salveazaComanda(isDraft = false) {
-            if (!selectedClient && !isDraft) { alert("SELECTEAZĂ CLIENTUL!"); switchView('clients'); return; }
-            const items = Object.values(cart); if (items.length === 0) return;
-            const timestamp = new Date().toLocaleString('ro-RO'); let totalNoVat = 0;
-            items.forEach(item => { totalNoVat += item.quantity * formatPriceNum(item.data[Object.keys(item.data).find(k => k.trim().toLowerCase().includes("pret") || k.trim().toLowerCase().includes("vanzare"))]); });
-            window.orderHistory.unshift({ timestamp, total: totalNoVat.toFixed(2), items: items.length, cartData: JSON.parse(JSON.stringify(cart)), status: isDraft ? 'Ciornă' : 'Trimisă', client: selectedClient });
-            saveAgentData(); if (!isDraft) { trimiteWhatsApp(timestamp, cart); cart = {}; selectedClient = null; saveAgentData(); updateBadge(); updateClientUI(); switchView('history'); } else { alert("Progres salvat."); switchView('history'); }
+        function golesteCos() { if(confirm("Ștergi tot coșul?")) { cart = {}; saveAgentData(); updateBadge(); renderCart(); filterProducts(); } }
+        function salveazaComanda(isDraft) {
+            if (!selectedClient && !isDraft) { showToast("SELECTEAZĂ CLIENTUL!"); switchView('clients'); return; }
+            if (Object.keys(cart).length === 0) return;
+            const ts = new Date().toLocaleString('ro-RO'); let total = 0;
+            Object.values(cart).forEach(i => total += i.quantity * formatPriceNum(i.data[Object.keys(i.data).find(k => k.toLowerCase().includes("pret"))]));
+            window.orderHistory.unshift({ timestamp: ts, total: total.toFixed(2), items: Object.keys(cart).length, cartData: JSON.parse(JSON.stringify(cart)), status: isDraft ? 'Ciornă' : 'Trimisă', client: selectedClient });
+            saveAgentData(); if (!isDraft) { trimiteWhatsApp(ts, cart); cart = {}; selectedClient = null; saveAgentData(); updateBadge(); updateClientUI(); switchView('history'); } else { showToast("SALVAT!"); switchView('history'); }
         }
 
-        function trimiteWhatsApp(timestamp, cartDataObj) {
-            const items = Object.values(cartDataObj); 
-            const clientInfo = selectedClient ? `CLIENT: ${selectedClient.name} (${selectedClient.loc})` : "CLIENT: NESPECIFICAT";
-            let msg = `Salut! Comandă DM Auto Sebeș\nAGENT: ${currentAgent.name}\n${clientInfo}\nData: ${timestamp}\n\n`;
-            items.forEach(item => { msg += `• ${item.quantity} x ${item.data[Object.keys(item.data).find(k => k.trim().toLowerCase() === "denumire") || Object.keys(item.data).find(k => k.trim().toLowerCase().includes("produs"))]}\n`; });
+        function trimiteWhatsApp(ts, data) {
+            const cli = selectedClient ? `CLIENT: ${selectedClient.name} (${selectedClient.loc})` : "CLIENT: N/A";
+            let msg = `Salut! Comandă DM Auto Sebeș\nAGENT: ${currentAgent.name}\n${cli}\nData: ${ts}\n\n`;
+            Object.values(data).forEach(i => msg += `• ${i.quantity} x ${i.data[Object.keys(i.data).find(k => k.toLowerCase().includes("denumire"))]}\n`);
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
         }
 
         function renderHistory() {
-            const container = document.getElementById('history-content'); if (!container) return; if (window.orderHistory.length === 0) { container.innerHTML = '<div class="p-20 text-center text-gray-400 italic text-sm font-bold tracking-[0.2em]">Istoric gol.</div>'; return; }
-            container.innerHTML = window.orderHistory.map((order, index) => `<div onclick="veziDetaliiComanda(${index})" class="bg-white p-8 rounded-[2.5rem] shadow-xl border-l-[14px] border-dm-yellow active:scale-[0.98] transition-all cursor-pointer"><div class="flex justify-between items-start mb-5"><span class="text-xs font-black text-gray-400 uppercase italic tracking-widest">${order.timestamp}</span><span class="${order.status === 'Ciornă' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'} text-[11px] font-black px-5 py-2 rounded-2xl uppercase">${order.status}</span></div><p class="text-2xl font-black text-dm-blue uppercase mb-5 leading-none truncate">${order.client ? order.client.name : 'N/A'}</p><div class="flex justify-between items-end border-t border-gray-50 pt-5"><p class="text-xs font-bold text-gray-400 uppercase tracking-widest">${order.items} REPERE</p><p class="text-2xl font-black text-dm-blue tracking-tighter">${order.total} RON</p></div></div>`).join('');
+            const c = document.getElementById('history-content'); if (!c) return;
+            if (window.orderHistory.length === 0) { c.innerHTML = '<div class="p-20 text-center text-gray-400 font-black">ISTORIC GOL.</div>'; return; }
+            c.innerHTML = window.orderHistory.map((o, idx) => `<div onclick="veziDetaliiComanda(${idx})" class="bg-white p-8 rounded-[2.5rem] shadow-xl border-l-[14px] border-dm-yellow active:scale-[0.98] transition-all cursor-pointer">
+                <div class="flex justify-between items-start mb-5"><span class="text-xs font-black text-gray-400 italic">${o.timestamp}</span><span class="${o.status==='Ciornă'?'bg-blue-100 text-blue-700':'bg-green-100 text-green-700'} text-[11px] font-black px-5 py-2 rounded-2xl uppercase">${o.status}</span></div>
+                <p class="text-2xl font-black text-dm-blue uppercase mb-5 leading-none truncate">${o.client ? o.client.name : 'N/A'}</p>
+                <div class="flex justify-between items-end border-t border-gray-50 pt-5"><p class="text-xs font-bold text-gray-400 uppercase">${o.items} REPERE</p><p class="text-2xl font-black text-dm-blue">${o.total} RON</p></div></div>`).join('');
         }
 
-        function veziDetaliiComanda(index) {
-            currentViewingOrderIndex = index; const order = window.orderHistory[index]; switchView('order-details');
-            document.getElementById('order-details-header').innerHTML = `<div class="flex justify-between items-center mb-5"><h3 class="text-sm font-black text-gray-400 uppercase italic">DETALII COMANDĂ</h3><span class="text-[11px] font-black bg-gray-100 px-5 py-2 rounded-2xl uppercase">${order.status}</span></div><p class="text-3xl font-black text-dm-blue uppercase mb-5 leading-tight">${order.client ? order.client.name : '-'}</p><div class="flex justify-between items-end"><p class="text-5xl font-black text-dm-blue italic tracking-tighter">${order.total} <span class="text-sm uppercase opacity-30 not-italic">Net</span></p><p class="text-[10px] font-black text-gray-400 italic mb-2">${order.timestamp}</p></div>`;
-            let html = ''; Object.values(order.cartData).forEach(item => { const keys = Object.keys(item.data); const kDen = keys.find(k => k.trim().toLowerCase() === "denumire") || keys.find(k => k.trim().toLowerCase().includes("produs")); const kPret = keys.find(k => k.trim().toLowerCase() === "pret") || k.trim().toLowerCase().includes("vanzare"); html += `<div class="flex justify-between items-center text-sm py-6 border-b border-gray-50 last:border-0"><div class="flex flex-col"><span class="font-black text-dm-blue uppercase leading-tight text-xl">${item.data[kDen]}</span><span class="text-lg font-black text-blue-600/60 mt-1">${formatPriceNum(item.data[kPret]).toFixed(2)}</span></div><span class="font-black bg-gray-100 px-6 py-4 rounded-3xl text-3xl shadow-inner">x ${item.quantity}</span></div>`; });
-            document.getElementById('order-details-items').innerHTML = html;
+        function veziDetaliiComanda(idx) {
+            currentViewingOrderIndex = idx; const o = window.orderHistory[idx]; switchView('order-details');
+            document.getElementById('order-details-header').innerHTML = `<div class="flex justify-between items-center mb-5"><h3 class="text-sm font-black text-gray-400 uppercase italic">DETALII</h3><span class="text-[11px] font-black bg-gray-100 px-5 py-2 rounded-2xl uppercase">${o.status}</span></div><p class="text-3xl font-black text-dm-blue uppercase mb-5">${o.client ? o.client.name : '-'}</p><p class="text-5xl font-black text-dm-blue italic tracking-tighter">${o.total} RON</p>`;
+            document.getElementById('order-details-items').innerHTML = Object.values(o.cartData).map(i => {
+                const kDen = Object.keys(i.data).find(k => k.toLowerCase().includes("denumire")), kPret = Object.keys(i.data).find(k => k.toLowerCase().includes("pret"));
+                return `<div class="flex justify-between items-center text-sm py-6 border-b border-gray-50"><div class="flex flex-col"><span class="font-black text-dm-blue text-xl uppercase">${i.data[kDen]}</span><span class="text-lg font-black text-blue-600/60">${formatPriceNum(i.data[kPret]).toFixed(2)}</span></div><span class="font-black bg-gray-100 px-6 py-4 rounded-3xl text-3xl">x ${i.quantity}</span></div>`;
+            }).join('');
         }
 
-        function incarcaComandaInCos() { if (currentViewingOrderIndex === null) return; const order = window.orderHistory[currentViewingOrderIndex]; cart = JSON.parse(JSON.stringify(order.cartData)); selectedClient = order.client; saveAgentData(); updateClientUI(); renderCart(); switchView('cart'); updateBadge(); }
-        function retrimiteComandaDirect() { if (currentViewingOrderIndex === null) return; const order = window.orderHistory[currentViewingOrderIndex]; selectedClient = order.client; trimiteWhatsApp(order.timestamp, order.cartData); if (order.status === 'Ciornă') { window.orderHistory[currentViewingOrderIndex].status = 'Trimisă'; saveAgentData(); renderHistory(); } }
-        function stergeComandaCurenta() { if (currentViewingOrderIndex === null) return; if (confirm("Ștergi comanda definitiv?")) { window.orderHistory.splice(currentViewingOrderIndex, 1); saveAgentData(); switchView('history'); } }
+        function incarcaComandaInCos() { if (currentViewingOrderIndex === null) return; const o = window.orderHistory[currentViewingOrderIndex]; cart = JSON.parse(JSON.stringify(o.cartData)); selectedClient = o.client; saveAgentData(); updateClientUI(); switchView('cart'); }
+        function retrimiteComandaDirect() { if (currentViewingOrderIndex === null) return; const o = window.orderHistory[currentViewingOrderIndex]; selectedClient = o.client; trimiteWhatsApp(o.timestamp, o.cartData); if (o.status === 'Ciornă') { window.orderHistory[currentViewingOrderIndex].status = 'Trimisă'; saveAgentData(); renderHistory(); } }
+        function stergeComandaCurenta() { if (currentViewingOrderIndex === null) return; if (confirm("Ștergi definitiv?")) { window.orderHistory.splice(currentViewingOrderIndex, 1); saveAgentData(); switchView('history'); } }
         
         function formatPriceNum(val) { if (!val && val !== 0) return 0; if (typeof val === 'number') return val; let s = val.toString().replace(/\./g, '').replace(',', '.'); return parseFloat(s) || 0; }
-        function triggerManualSync() { syncMasterData(); syncClients(); if(selectedCategory) selectCategory(selectedCategory); }
-        
-        function filterProducts() { 
-            const q = document.getElementById('searchInput').value.toLowerCase().trim(); 
-            const filtered = currentCategoryData.filter(p => { 
-                const k = Object.keys(p).find(key => key.trim().toLowerCase() === "denumire") || Object.keys(p).find(key => key.trim().toLowerCase().includes("produs")); 
-                return p[k]?.toString().toLowerCase().includes(q); 
-            }); 
-            renderProducts(filtered); 
-        }
-        
-        function resetSelection() {
-            document.getElementById('searchInput').value = ''; selectedCategory = null;
-            document.getElementById('product-section').classList.add('view-hidden');
-            document.getElementById('category-placeholder').classList.remove('view-hidden');
-            ['Ravenol', 'Banner', 'Cyclon', 'Cemsa', 'Inventar'].forEach(cat => {
-                const card = document.getElementById(`card-${cat}`); if (card) card.classList.remove('selected-category');
-            });
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        function triggerManualSync() { syncMasterData(); syncClients(); if(selectedCategory) selectCategory(selectedCategory); showToast("SINCRONIZARE COMPLETĂ!"); }
+        function filterProducts() { const q = document.getElementById('searchInput').value.toLowerCase().trim(); renderProducts(currentCategoryData.filter(p => p[Object.keys(p).find(k => k.toLowerCase().includes("denumire"))]?.toString().toLowerCase().includes(q))); }
+        function resetSelection() { document.getElementById('searchInput').value = ''; selectedCategory = null; document.getElementById('product-section').classList.add('view-hidden'); document.getElementById('category-placeholder').classList.remove('view-hidden'); ['Ravenol', 'Banner', 'Cyclon', 'Cemsa', 'Inventar'].forEach(cat => { const card = document.getElementById(`card-${cat}`); if (card) card.classList.remove('selected-category'); }); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
-        function switchView(viewName) { 
-            currentActiveView = viewName; 
-            const views = ['catalog', 'cart', 'history', 'order-details', 'clients', 'add-client', 'client-mode', 'incasare']; 
-            views.forEach(v => { const el = document.getElementById(`view-${v}`); if (el) el.classList.add('view-hidden'); });
-            
-            document.getElementById(`view-${viewName}`).classList.remove('view-hidden'); 
-            
-            // Nav icons update
-            const navs = ['catalog', 'cart', 'history'];
-            navs.forEach(n => {
-                const el = document.getElementById(`nav-${n}`);
-                if (el) { el.classList.remove('text-dm-blue'); el.classList.add('text-gray-400'); }
-            });
-            
-            let activeNav = viewName;
-            if (['add-client', 'client-mode', 'incasare'].includes(viewName)) activeNav = 'catalog';
-            if (viewName === 'order-details') activeNav = 'history';
-            
-            const currentNav = document.getElementById(`nav-${activeNav}`);
-            if (currentNav) { currentNav.classList.remove('text-gray-400'); currentNav.classList.add('text-dm-blue'); } 
-            
-            if (viewName === 'catalog' || viewName === 'client-mode') document.getElementById('search-container').classList.remove('view-hidden'); 
-            else document.getElementById('search-container').classList.add('view-hidden'); 
-            
-            if (viewName === 'cart') renderCart(); 
-            if (viewName === 'history') renderHistory(); 
-        }
-
-        window.addEventListener('load', () => { const session = localStorage.getItem('dmauto_session'); if (session) { currentAgent = JSON.parse(session); initApp(); } });
+        window.addEventListener('load', () => { const s = localStorage.getItem('dmauto_session'); if (s) { currentAgent = JSON.parse(s); initApp(); } });
     </script>
 </body>
 </html>
