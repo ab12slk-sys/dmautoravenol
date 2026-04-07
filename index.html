@@ -20,7 +20,7 @@
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc;
             -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation; /* Optimizes for touch */
+            touch-action: manipulation;
             overflow-x: hidden;
         }
 
@@ -37,11 +37,10 @@
             background-position: center;
             box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             border: 4px solid transparent;
         }
 
-        /* Efect de apăsare tactilă îmbunătățit */
         .category-card:active, .mode-btn:active, .qty-btn:active, .nav-btn:active { 
             transform: scale(0.92); 
             filter: brightness(0.9);
@@ -58,12 +57,12 @@
         }
 
         .qty-btn {
-            width: 54px;
-            height: 54px;
+            width: 56px;
+            height: 56px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 18px;
+            border-radius: 20px;
             font-weight: 900;
         }
 
@@ -73,7 +72,7 @@
             right: -10px;
             background: #ffcc00;
             color: #003366;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 900;
             width: 28px;
             height: 28px;
@@ -82,6 +81,7 @@
             align-items: center;
             justify-content: center;
             border: 3px solid white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
         .view-hidden { display: none !important; }
@@ -114,23 +114,23 @@
             box-shadow: 0 15px 30px -5px rgba(0,0,0,0.15);
         }
 
-        /* Mesaj Notificare Custom */
         #custom-toast {
             position: fixed;
             top: 20px;
             left: 50%;
-            transform: translateX(-50%) translateY(-100px);
+            transform: translateX(-50%) translateY(-150px);
             background: #1e293b;
             color: white;
-            padding: 16px 32px;
-            border-radius: 20px;
+            padding: 18px 36px;
+            border-radius: 24px;
             font-weight: 800;
             z-index: 200;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
             transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             text-transform: uppercase;
             font-size: 14px;
             border: 2px solid #ffcc00;
+            text-align: center;
         }
         #custom-toast.show { transform: translateX(-50%) translateY(0); }
 
@@ -140,7 +140,6 @@
 </head>
 <body class="pb-40">
 
-    <!-- Toast Personalizat (În loc de alert) -->
     <div id="custom-toast">Mesaj Notificare</div>
 
     <!-- ECRAN LOGIN -->
@@ -150,24 +149,17 @@
                 <img src="logo_dmauto.png" alt="DM Auto Logo" class="h-32 mb-6 object-contain" onerror="this.src='https://via.placeholder.com/150?text=DM+AUTO'">
                 <h2 class="text-dm-yellow font-black text-2xl tracking-widest italic uppercase">Portal Agenți</h2>
             </div>
-
             <div class="bg-white/10 backdrop-blur-xl p-8 rounded-[3rem] border border-white/20 shadow-2xl">
                 <div class="mb-6 text-left">
                     <label class="block text-white/50 text-[10px] font-black uppercase mb-2 ml-1">Utilizator</label>
-                    <input type="text" id="login-user" placeholder="nume agent" 
-                           class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white text-lg focus:outline-none focus:border-dm-yellow transition-all">
+                    <input type="text" id="login-user" placeholder="nume agent" class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white text-lg focus:outline-none focus:border-dm-yellow transition-all">
                 </div>
                 <div class="mb-10 text-left">
                     <label class="block text-white/50 text-[10px] font-black uppercase mb-2 ml-1">Parolă</label>
-                    <input type="password" id="login-pass" placeholder="••••••••" 
-                           class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white text-lg focus:outline-none focus:border-dm-yellow transition-all">
+                    <input type="password" id="login-pass" placeholder="••••••••" class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white text-lg focus:outline-none focus:border-dm-yellow transition-all">
                 </div>
-                <button onclick="handleLogin()" class="w-full bg-dm-yellow text-dm-blue py-6 rounded-2xl font-black uppercase shadow-xl active:scale-95 transition-all text-xl tracking-tighter">
-                    Autentificare 🚀
-                </button>
-                <div id="login-error" class="mt-5 text-red-400 text-xs font-black hidden uppercase tracking-tighter">
-                    Date de acces incorecte!
-                </div>
+                <button onclick="handleLogin()" class="w-full bg-dm-yellow text-dm-blue py-6 rounded-2xl font-black uppercase shadow-xl active:scale-95 transition-all text-xl tracking-tighter">Autentificare 🚀</button>
+                <div id="login-error" class="mt-5 text-red-400 text-xs font-black hidden uppercase tracking-tighter text-center">Date incorecte!</div>
             </div>
         </div>
     </div>
@@ -176,28 +168,26 @@
     <div id="app-content" class="view-hidden">
         <header class="bg-dm-blue text-white p-5 pb-10 shadow-2xl rounded-b-[3.5rem] sticky top-0 z-40">
             <div class="flex items-center gap-5 mb-8">
-                <!-- BUTON BACK (Nou) -->
                 <button id="header-back-btn" onclick="goBack()" class="bg-white/10 p-4 rounded-2xl border border-white/20 active:scale-90 transition-all shadow-lg view-hidden">
                     <span class="text-2xl font-black">⬅️</span>
                 </button>
-
                 <div class="flex-1">
-                    <h1 class="text-sm font-medium opacity-70">Salut, <span id="agent-display-name" class="font-black text-white">Agent!</span></h1>
-                    <button onclick="switchView('clients')" class="mt-3 w-full bg-black/40 border border-white/20 p-5 rounded-2xl flex flex-col items-start gap-1 active:scale-95 transition-all shadow-inner">
-                        <span class="text-[10px] font-black text-dm-yellow uppercase tracking-[0.2em] opacity-80">Client Actual:</span>
+                    <h1 class="text-sm font-medium opacity-70 leading-none mb-1">Salut, <span id="agent-display-name" class="font-black text-white">Agent!</span></h1>
+                    <button onclick="switchView('clients')" class="mt-2 w-full bg-black/40 border border-white/20 p-4 rounded-2xl flex flex-col items-start gap-1 active:scale-95 transition-all shadow-inner">
+                        <span class="text-[9px] font-black text-dm-yellow uppercase tracking-[0.2em] opacity-80">Client Actual:</span>
                         <div class="flex items-center justify-between w-full">
                             <span id="header-client-name" class="text-2xl font-black truncate leading-none text-left">Neselectat 👤</span>
                             <span class="text-dm-yellow text-xl">➔</span>
                         </div>
                     </button>
                 </div>
-                <button onclick="triggerManualSync()" class="bg-white/10 p-5 rounded-2xl border border-white/20 active:scale-90 transition-all shadow-lg">
+                <button onclick="triggerManualSync()" class="bg-white/10 p-5 rounded-2xl border border-white/20 active:scale-90 transition-all shadow-lg flex-shrink-0">
                     <span class="text-3xl">🔄</span>
                 </button>
             </div>
 
             <div id="search-container" class="relative">
-                <input type="text" id="searchInput" onkeyup="if(event.key === 'Enter') filterProducts()" placeholder="Caută marfă..." 
+                <input type="text" id="searchInput" onkeyup="if(event.key === 'Enter') filterProducts()" placeholder="Caută marfă în listă..." 
                        class="w-full p-6 pr-20 rounded-3xl text-gray-800 text-xl focus:outline-none shadow-2xl border-none font-semibold">
                 <div onclick="filterProducts()" class="absolute right-6 top-5 text-gray-300 cursor-pointer active:scale-90 active:text-dm-blue transition-all">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -210,7 +200,7 @@
         <!-- CATALOG -->
         <div id="view-catalog" class="active-view">
             <div class="p-4 grid grid-cols-2 gap-5">
-                <div id="card-Inventar" onclick="selectCategory('Inventar')" class="category-card col-span-2 !aspect-[28/9]" style="background-color: #1e293b;">
+                <div id="card-Inventar" onclick="selectCategory('Inventar')" class="category-card col-span-2 !aspect-[30/9]" style="background-color: #1e293b;">
                     <div class="category-overlay">
                         <h3 class="text-dm-yellow font-black text-2xl uppercase italic tracking-widest leading-none">📦 TOATE PRODUSELE</h3>
                         <p class="text-white/50 text-xs uppercase font-bold tracking-tighter mt-1">Sursă: INVENTAR_STOC.xlsx</p>
@@ -233,7 +223,7 @@
             <div id="product-section" class="px-4 view-hidden">
                 <div class="flex justify-between items-center mb-5 px-1 pt-4">
                     <div class="flex items-center gap-4">
-                        <h3 id="selected-category-title" class="text-lg font-black uppercase tracking-widest text-dm-blue italic">Produse</h3>
+                        <h3 id="selected-category-title" class="text-xl font-black uppercase tracking-widest text-dm-blue italic">Produse</h3>
                         <button onclick="resetSelection()" class="text-xs bg-gray-200 px-5 py-2 rounded-2xl text-gray-600 font-black uppercase shadow-sm">Închide</button>
                     </div>
                 </div>
@@ -241,7 +231,7 @@
                     <div class="overflow-x-auto max-h-[60vh]">
                         <table class="w-full text-left">
                             <thead class="bg-gray-50 border-b border-gray-100 uppercase text-[10px] font-black text-gray-400">
-                                <tr><th class="pl-8 py-4">Reper / Stoc / Preț</th><th class="text-center">Adaugă</th><th class="pr-8 text-right">Subtotal</th></tr>
+                                <tr><th class="pl-8 py-5">Reper / Stoc / Preț</th><th class="text-center">Comandă</th><th class="pr-8 text-right">Subtotal</th></tr>
                             </thead>
                             <tbody id="productTableBody" class="divide-y divide-gray-100"></tbody>
                         </table>
@@ -251,21 +241,20 @@
             
             <div id="category-placeholder" class="p-12 text-center">
                 <div class="bg-gray-50 border-2 border-dashed border-gray-200 rounded-[3rem] p-12 shadow-inner">
-                    <span class="text-7xl block mb-6">👇</span>
-                    <p class="text-gray-400 font-black uppercase text-base tracking-widest">Alege o gamă de produse</p>
+                    <span class="text-7xl block mb-6 animate-bounce">👇</span>
+                    <p class="text-gray-400 font-black uppercase text-base tracking-widest">Selectează categoria</p>
                 </div>
             </div>
         </div>
 
-        <!-- LISTA CLIENTI -->
+        <!-- CLIENTI -->
         <div id="view-clients" class="view-hidden p-5">
             <div class="flex justify-between items-center mb-8">
                 <h2 class="text-3xl font-black text-dm-blue uppercase italic leading-none">👤 Baza Clienți</h2>
                 <button onclick="switchView('add-client')" class="bg-dm-yellow text-dm-blue px-6 py-4 rounded-2xl font-black text-xs uppercase shadow-xl">+ Client Nou</button>
             </div>
             <div class="relative mb-8">
-                <input type="text" id="clientSearch" onkeyup="filterClients()" placeholder="Nume, Oraș sau CIF..." 
-                       class="w-full p-6 rounded-3xl text-gray-800 text-xl focus:outline-none shadow-xl border border-gray-100 font-semibold">
+                <input type="text" id="clientSearch" onkeyup="filterClients()" placeholder="Nume firmă, Localitate sau CIF..." class="w-full p-6 rounded-3xl text-gray-800 text-xl focus:outline-none shadow-xl border border-gray-100 font-semibold">
             </div>
             <div class="flex gap-3 mb-8 overflow-x-auto pb-2 no-scrollbar">
                 <button onclick="toggleClientFilter(true)" id="btnFilterMyClients" class="sheet-tab sheet-tab-active shadow-lg">Zona Mea ⭐</button>
@@ -276,66 +265,55 @@
 
         <!-- ADAUGARE CLIENT -->
         <div id="view-add-client" class="view-hidden p-5">
-            <h2 class="text-3xl font-black text-dm-blue uppercase italic mb-8">➕ Creează Client</h2>
+            <h2 class="text-3xl font-black text-dm-blue uppercase italic mb-8 italic">➕ Creează Client Nou</h2>
             <div class="bg-white p-8 rounded-[3rem] shadow-2xl border border-gray-100 space-y-6">
-                <div>
-                    <label class="block text-[10px] font-black uppercase text-gray-400 mb-2">Denumire Firmă</label>
-                    <input type="text" id="new-client-name" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold uppercase">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-black uppercase text-gray-400 mb-2">Localitate</label>
-                    <input type="text" id="new-client-loc" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold uppercase">
-                </div>
+                <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Denumire Magazin / Service</label><input type="text" id="new-client-name" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
+                <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Localitate</label><input type="text" id="new-client-loc" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2">CIF</label><input type="text" id="new-client-cif" class="w-full p-5 bg-gray-50 border-none rounded-2xl font-bold uppercase"></div>
-                    <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2">Reg. Com.</label><input type="text" id="new-client-rc" class="w-full p-5 bg-gray-50 border-none rounded-2xl font-bold uppercase"></div>
+                    <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">CIF</label><input type="text" id="new-client-cif" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
+                    <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Reg. Com.</label><input type="text" id="new-client-rc" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
                 </div>
-                <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2">Nr. Telefon</label><input type="tel" id="new-client-tel" class="w-full p-5 bg-gray-50 border-none rounded-2xl font-bold"></div>
-                <button onclick="handleCreateClient()" class="w-full bg-dm-blue text-dm-yellow py-6 rounded-[2rem] font-black uppercase text-xl shadow-2xl">Salvează Clientul ✅</button>
+                <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Nr. Telefon</label><input type="tel" id="new-client-tel" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all"></div>
+                <button onclick="handleCreateClient()" class="w-full bg-dm-blue text-dm-yellow py-6 rounded-[2rem] font-black uppercase text-xl shadow-2xl active:scale-95 transition-all mt-4">Salvează Clientul ✅</button>
             </div>
         </div>
 
         <!-- SELECTOR MOD -->
         <div id="view-client-mode" class="view-hidden p-6 flex flex-col justify-center min-h-[70vh]">
-            <h3 class="text-center text-gray-400 font-black uppercase tracking-[0.3em] mb-10">Ce dorești să faci?</h3>
+            <h3 class="text-center text-gray-400 font-black uppercase tracking-[0.3em] mb-10">Ce operațiune dorești?</h3>
             <div class="grid grid-cols-2 gap-8">
-                <button onclick="selectMode('vanzare')" class="mode-btn bg-dm-blue text-white shadow-2xl">
-                    <span class="text-7xl mb-4">🛒</span><span class="font-black uppercase tracking-widest text-lg">Vânzare</span>
-                </button>
-                <button onclick="selectMode('incasare')" class="mode-btn bg-green-600 text-white shadow-2xl">
-                    <span class="text-7xl mb-4">💰</span><span class="font-black uppercase tracking-widest text-lg">Încasare</span>
-                </button>
+                <button onclick="selectMode('vanzare')" class="mode-btn bg-dm-blue text-white shadow-2xl"><span class="text-7xl mb-4">🛒</span><span class="font-black uppercase tracking-widest text-lg">Vânzare</span></button>
+                <button onclick="selectMode('incasare')" class="mode-btn bg-green-600 text-white shadow-2xl"><span class="text-7xl mb-4">💰</span><span class="font-black uppercase tracking-widest text-lg">Încasare</span></button>
             </div>
+            <button onclick="switchView('clients')" class="mt-16 text-center text-dm-blue font-black uppercase tracking-widest text-sm opacity-50 underline">Schimbă Clientul</button>
         </div>
 
         <!-- VEDERE ÎNCASARE -->
         <div id="view-incasare" class="view-hidden p-6">
             <h2 class="text-3xl font-black text-green-700 uppercase italic mb-6 leading-none italic">💰 Modul Încasări</h2>
-            <div class="bg-white p-8 rounded-[3rem] shadow-xl text-center">
-                <p class="text-gray-400 font-black uppercase text-xs mb-4">Sold Curent Client:</p>
+            <div class="bg-white p-10 rounded-[3rem] shadow-xl text-center">
+                <p class="text-gray-400 font-black uppercase text-xs mb-4">Sold Client Curent:</p>
                 <p id="display-sold" class="text-5xl font-black text-dm-blue tracking-tighter">0.00 RON</p>
-                <div class="mt-10 p-6 bg-yellow-50 rounded-2xl border border-yellow-100 italic font-bold text-xs uppercase tracking-widest leading-relaxed">
-                    Funcția de încasări va deveni activă după încărcarea fișierului de solduri.
-                </div>
+                <div class="mt-12 p-8 bg-yellow-50 rounded-3xl border border-yellow-100 text-yellow-700 font-bold text-xs uppercase tracking-[0.2em] leading-relaxed">Functia de încasări va fi activă după încărcarea listei de solduri.</div>
             </div>
         </div>
 
         <!-- COȘ -->
         <div id="view-cart" class="view-hidden p-5">
-            <h2 class="text-3xl font-black text-dm-blue uppercase italic mb-8">🛒 Coș Comandă</h2>
+            <h2 class="text-3xl font-black text-dm-blue uppercase italic mb-8">🛒 Finalizare Coș</h2>
             <div id="cart-client-banner" class="bg-dm-yellow/20 border border-dm-yellow/30 p-6 rounded-[2rem] mb-8 flex justify-between items-center">
                 <div class="flex-1 min-w-0 pr-8">
                     <p class="text-[10px] font-black uppercase text-dm-blue/60 tracking-widest leading-none">Destinatar:</p>
-                    <p id="cart-client-name" class="text-xl font-black text-dm-blue uppercase tracking-tighter mt-2 truncate">Neselectat!</p>
+                    <p id="cart-client-name" class="text-xl font-black text-dm-blue uppercase mt-2 truncate">Neselectat!</p>
                 </div>
-                <button onclick="switchView('clients')" class="text-xs font-black bg-dm-blue text-white px-6 py-4 rounded-2xl uppercase shadow-xl">Modifică</button>
+                <button onclick="switchView('clients')" class="text-xs font-black bg-dm-blue text-white px-6 py-4 rounded-2xl uppercase shadow-xl flex-shrink-0">Schimbă</button>
             </div>
             <div class="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden mb-10">
-                <div class="overflow-x-auto"><table class="w-full text-left"><thead class="bg-gray-50 border-b border-gray-100"><tr><th class="pl-8 py-4 text-base uppercase">Produs</th><th class="text-center text-base uppercase">Cant.</th><th class="pr-8 text-right text-base uppercase">Net</th></tr></thead><tbody id="cart-content-table" class="divide-y divide-gray-100"></tbody></table></div>
-                <div id="cart-empty-msg" class="p-20 text-center text-gray-400 uppercase font-black text-lg italic view-hidden">Coșul este gol</div>
+                <div class="overflow-x-auto"><table class="w-full text-left"><thead class="bg-gray-50 border-b border-gray-100 font-black uppercase text-[10px]"><tr><th class="pl-8 py-5">Produs</th><th class="text-center">Cant.</th><th class="pr-8 text-right">Net</th></tr></thead><tbody id="cart-content-table" class="divide-y divide-gray-100"></tbody></table></div>
+                <div id="cart-empty-msg" class="p-20 text-center text-gray-400 uppercase font-black text-lg italic view-hidden">Coș gol</div>
             </div>
             <div id="cart-summary-box" class="bg-dm-blue text-white rounded-[3rem] p-10 shadow-2xl">
-                <div class="flex justify-between items-end border-b border-white/10 pb-6 mb-6"><span class="text-xs font-black text-dm-yellow uppercase tracking-[0.3em]">Total (Net)</span><span id="totalNoVat" class="text-5xl font-black italic tracking-tighter">0.00 RON</span></div>
+                <div class="flex justify-between items-end border-b border-white/10 pb-6 mb-6"><span class="text-xs uppercase font-black text-dm-yellow tracking-widest">Total Net</span><span id="totalNoVat" class="text-5xl font-black italic tracking-tighter">0.00 RON</span></div>
                 <div class="grid grid-cols-2 gap-6">
                     <button onclick="salveazaComanda(true)" class="bg-blue-600 text-white py-7 rounded-[2rem] font-black uppercase shadow-2xl flex flex-col items-center gap-2"><span>💾</span> SALVEAZĂ</button>
                     <button id="btnFinalizeWhatsApp" onclick="salveazaComanda(false)" class="bg-dm-yellow text-dm-blue py-7 rounded-[2rem] font-black uppercase shadow-2xl flex flex-col items-center gap-2"><span>🚀</span> TRIMITE</button>
@@ -363,19 +341,10 @@
 
         <!-- NAVIGARE -->
         <nav class="fixed bottom-0 w-full bg-white border-t border-gray-100 p-5 flex justify-around shadow-[0_-20px_40px_-15px_rgba(0,0,0,0.15)] z-50 rounded-t-[3.5rem]">
-            <button onclick="switchView('catalog')" class="nav-btn flex flex-col items-center text-dm-blue" id="nav-catalog">
-                <span class="text-5xl font-bold">🏠</span><span class="text-[11px] font-black uppercase mt-1">Catalog</span>
-            </button>
-            <button onclick="switchView('cart')" class="nav-btn flex flex-col items-center text-gray-400 relative" id="nav-cart">
-                <span class="text-5xl font-bold">🛒</span><span class="text-[11px] font-black uppercase mt-1">Coș</span>
-                <div id="cartBadge" class="cart-badge hidden">0</div>
-            </button>
-            <button onclick="switchView('history')" class="nav-btn flex flex-col items-center text-gray-400" id="nav-history">
-                <span class="text-5xl font-bold">📋</span><span class="text-[11px] font-black uppercase mt-1">Istoric</span>
-            </button>
-            <button onclick="handleLogout()" class="flex flex-col items-center text-gray-300">
-                <span class="text-5xl font-bold">🚪</span><span class="text-[11px] font-black uppercase mt-1">Ieșire</span>
-            </button>
+            <button onclick="switchView('catalog')" class="nav-btn flex flex-col items-center text-dm-blue" id="nav-catalog"><span class="text-5xl font-bold">🏠</span><span class="text-[10px] font-black uppercase mt-1">Catalog</span></button>
+            <button onclick="switchView('cart')" class="nav-btn flex flex-col items-center text-gray-400 relative" id="nav-cart"><span class="text-5xl font-bold">🛒</span><div id="cartBadge" class="cart-badge hidden">0</div><span class="text-[10px] font-black uppercase mt-1">Coș</span></button>
+            <button onclick="switchView('history')" class="nav-btn flex flex-col items-center text-gray-400" id="nav-history"><span class="text-5xl font-bold">📋</span><span class="text-[10px] font-black uppercase mt-1">Istoric</span></button>
+            <button onclick="handleLogout()" class="flex flex-col items-center text-gray-300"><span class="text-5xl font-bold">🚪</span><span class="text-[10px] font-black uppercase mt-1">Ieșire</span></button>
         </nav>
     </div>
 
@@ -403,93 +372,55 @@
         let navigationHistory = [];
         window.orderHistory = [];
 
-        // --- NAVIGATION & UI HELPERS ---
         function showToast(msg) {
-            const toast = document.getElementById('custom-toast');
-            toast.innerText = msg;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
+            const t = document.getElementById('custom-toast'); t.innerText = msg; t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
         }
 
         function switchView(viewName, saveHistory = true) {
-            if (saveHistory && currentActiveView !== viewName) {
-                navigationHistory.push(currentActiveView);
-            }
-            
+            if (saveHistory && currentActiveView !== viewName) navigationHistory.push(currentActiveView);
             currentActiveView = viewName;
             const views = ['catalog', 'cart', 'history', 'order-details', 'clients', 'add-client', 'client-mode', 'incasare']; 
             views.forEach(v => { const el = document.getElementById(`view-${v}`); if (el) el.classList.add('view-hidden'); });
+            document.getElementById(`view-${viewName}`).classList.remove('view-hidden');
             
-            const target = document.getElementById(`view-${viewName}`);
-            if (target) target.classList.remove('view-hidden');
-            
-            // Header back button visibility
             const backBtn = document.getElementById('header-back-btn');
-            if (viewName === 'catalog') backBtn.classList.add('view-hidden');
-            else backBtn.classList.remove('view-hidden');
+            if (viewName === 'catalog') backBtn.classList.add('view-hidden'); else backBtn.classList.remove('view-hidden');
 
-            // Nav icons
             const navs = ['catalog', 'cart', 'history'];
-            navs.forEach(n => {
-                const el = document.getElementById(`nav-${n}`);
-                if (el) { el.classList.remove('text-dm-blue'); el.classList.add('text-gray-400'); }
-            });
-            
+            navs.forEach(n => { const el = document.getElementById(`nav-${n}`); if (el) { el.classList.remove('text-dm-blue'); el.classList.add('text-gray-400'); } });
             let activeNav = viewName;
             if (['add-client', 'client-mode', 'incasare', 'clients'].includes(viewName)) activeNav = 'catalog';
             if (viewName === 'order-details') activeNav = 'history';
+            const currentNav = document.getElementById(`nav-${activeNav}`); if (currentNav) { currentNav.classList.remove('text-gray-400'); currentNav.classList.add('text-dm-blue'); } 
             
-            const currentNav = document.getElementById(`nav-${activeNav}`);
-            if (currentNav) { currentNav.classList.remove('text-gray-400'); currentNav.classList.add('text-dm-blue'); } 
-            
-            if (viewName === 'catalog') document.getElementById('search-container').classList.remove('view-hidden'); 
-            else document.getElementById('search-container').classList.add('view-hidden'); 
-            
-            if (viewName === 'cart') renderCart(); 
-            if (viewName === 'history') renderHistory(); 
+            if (viewName === 'catalog') document.getElementById('search-container').classList.remove('view-hidden'); else document.getElementById('search-container').classList.add('view-hidden'); 
+            if (viewName === 'cart') renderCart(); if (viewName === 'history') renderHistory(); 
         }
 
         function goBack() {
-            if (navigationHistory.length > 0) {
-                const prev = navigationHistory.pop();
-                switchView(prev, false);
-            } else {
-                switchView('catalog');
-            }
+            if (navigationHistory.length > 0) switchView(navigationHistory.pop(), false);
+            else switchView('catalog');
         }
 
-        // --- TOUCH SWIPE DETECTION ---
-        let touchstartX = 0;
-        let touchendX = 0;
-        const mainNavOrder = ['catalog', 'cart', 'history'];
-
-        document.addEventListener('touchstart', e => touchstartX = e.changedTouches[0].screenX);
-        document.addEventListener('touchend', e => {
-            touchendX = e.changedTouches[0].screenX;
-            handleSwipe();
+        // SWIPE
+        let tsX = 0; document.addEventListener('touchstart', e => tsX = e.changedTouches[0].screenX);
+        document.addEventListener('touchend', e => { 
+            const teX = e.changedTouches[0].screenX;
+            const idx = ['catalog', 'cart', 'history'].indexOf(currentActiveView);
+            if (idx === -1) return;
+            if (teX < tsX - 100 && idx < 2) switchView(['catalog', 'cart', 'history'][idx + 1]);
+            if (teX > tsX + 100 && idx > 0) switchView(['catalog', 'cart', 'history'][idx - 1]);
         });
 
-        function handleSwipe() {
-            const currentIdx = mainNavOrder.indexOf(currentActiveView);
-            if (currentIdx === -1) return; // Not on a main tab
-
-            if (touchendX < touchstartX - 80) { // Swipe Left -> Go Right
-                if (currentIdx < mainNavOrder.length - 1) switchView(mainNavOrder[currentIdx + 1]);
-            }
-            if (touchendX > touchstartX + 80) { // Swipe Right -> Go Left
-                if (currentIdx > 0) switchView(mainNavOrder[currentIdx - 1]);
-            }
-        }
-
-        // --- LOGICĂ LOGIN ---
         function handleLogin() {
-            const user = document.getElementById('login-user').value.toLowerCase().trim();
-            const pass = document.getElementById('login-pass').value.trim();
-            if (AGENTS[user] && AGENTS[user].pass === pass) {
-                currentAgent = { id: user, name: AGENTS[user].name, filter: AGENTS[user].filter };
+            const u = document.getElementById('login-user').value.toLowerCase().trim();
+            const p = document.getElementById('login-pass').value.trim();
+            if (AGENTS[u] && AGENTS[u].pass === p) {
+                currentAgent = { id: u, name: AGENTS[u].name, filter: AGENTS[u].filter };
                 localStorage.setItem('dmauto_session', JSON.stringify(currentAgent));
                 initApp();
-            } else { document.getElementById('login-error').classList.remove('hidden'); }
+            } else document.getElementById('login-error').classList.remove('hidden');
         }
 
         function handleLogout() { localStorage.removeItem('dmauto_session'); location.reload(); }
@@ -521,7 +452,6 @@
             localStorage.setItem(`dma_man_cli_${id}`, JSON.stringify(manuallyCreatedClients));
         }
 
-        // --- GESTIUNE CLIENTI ---
         async function syncClients() {
             const localKey = `dma_cache_cli`;
             const cached = localStorage.getItem(localKey);
@@ -531,29 +461,25 @@
                 const response = await fetch(window.location.pathname.includes('DM-Auto-App') ? `./${CLIENTS_FILE}` : CLIENTS_FILE);
                 if (response.ok) {
                     const data = await response.arrayBuffer();
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const rawJson = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-                    let idx = rawJson.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().trim() === "denumire"));
-                    const json = XLSX.utils.sheet_to_json(sheet, { range: idx === -1 ? 0 : idx, defval: "" });
-                    allClients = json.filter(c => c[Object.keys(c).find(k => k.trim().toLowerCase() === "denumire")]?.toString().trim());
+                    const wb = XLSX.read(data, {type: 'array'});
+                    const sh = wb.Sheets[wb.SheetNames[0]];
+                    const raw = XLSX.utils.sheet_to_json(sh, { header: 1 });
+                    let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().trim().includes("denumire")));
+                    allClients = XLSX.utils.sheet_to_json(sh, { range: idx === -1 ? 0 : idx, defval: "" }).filter(c => c[Object.keys(c).find(k => k.trim().toLowerCase().includes("denumire"))]);
                     localStorage.setItem(localKey, JSON.stringify(allClients));
                     filterClients();
                 }
-            } catch (e) { console.error("Eroare clienti:", e); }
+            } catch (e) { console.error(e); }
         }
 
         function handleCreateClient() {
-            const name = document.getElementById('new-client-name').value.trim().toUpperCase();
-            const loc = document.getElementById('new-client-loc').value.trim().toUpperCase();
-            if (!name || !loc) { showToast("INTRODU NUME ȘI LOCALITATE!"); return; }
-            const newCli = { denumire: name, localitate: loc, cod_fiscal: document.getElementById('new-client-cif').value.trim(), reg_com: document.getElementById('new-client-rc').value.trim(), tel: document.getElementById('new-client-tel').value.trim(), den_agent: currentAgent.filter, isManual: true };
-            manuallyCreatedClients.push(newCli);
-            saveAgentData();
+            const n = document.getElementById('new-client-name').value.trim().toUpperCase();
+            const l = document.getElementById('new-client-loc').value.trim().toUpperCase();
+            if (!n || !l) { showToast("INTRODU NUME ȘI LOCALITATE!"); return; }
+            const newCli = { denumire: n, localitate: l, cod_fiscal: document.getElementById('new-client-cif').value.trim(), reg_com: document.getElementById('new-client-rc').value.trim(), tel: document.getElementById('new-client-tel').value.trim(), den_agent: currentAgent.filter, isManual: true };
+            manuallyCreatedClients.push(newCli); saveAgentData();
             ['new-client-name','new-client-loc','new-client-cif','new-client-rc','new-client-tel'].forEach(id => document.getElementById(id).value = '');
-            showToast("CLIENT CREAT!");
-            filterClients();
-            switchView('clients');
+            showToast("CLIENT CREAT!"); filterClients(); switchView('clients');
         }
 
         function toggleClientFilter(mine) {
@@ -564,25 +490,20 @@
         }
 
         function toggleSaveClient(name, e) {
-            e.stopPropagation();
-            const idx = savedClientNames.indexOf(name);
-            if (idx > -1) savedClientNames.splice(idx, 1);
-            else savedClientNames.push(name);
+            e.stopPropagation(); const idx = savedClientNames.indexOf(name);
+            if (idx > -1) savedClientNames.splice(idx, 1); else savedClientNames.push(name);
             saveAgentData(); filterClients();
         }
 
         function filterClients() {
             const q = document.getElementById('clientSearch').value.toLowerCase().trim();
-            const merged = [...manuallyCreatedClients, ...allClients];
-            const filtered = merged.filter(c => {
-                const kName = Object.keys(c).find(k => k.toLowerCase() === "denumire");
-                const kLoc = Object.keys(c).find(k => k.toLowerCase() === "localitate");
-                const kCIF = Object.keys(c).find(k => k.toLowerCase() === "cod_fiscal");
+            const filtered = [...manuallyCreatedClients, ...allClients].filter(c => {
+                const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire")), kLoc = Object.keys(c).find(k => k.toLowerCase().includes("localitate")), kCIF = Object.keys(c).find(k => k.toLowerCase().includes("cod_fiscal"));
                 const name = c[kName]?.toString() || "";
                 const match = name.toLowerCase().includes(q) || c[kLoc]?.toString().toLowerCase().includes(q) || c[kCIF]?.toString().toLowerCase().includes(q);
                 let agentMatch = true;
                 if (showOnlyMyClients && currentAgent) {
-                    const kAgent = Object.keys(c).find(k => k.toLowerCase() === "den_agent");
+                    const kAgent = Object.keys(c).find(k => k.toLowerCase().includes("den_agent"));
                     agentMatch = (c[kAgent]?.toString().toUpperCase() || "").includes(currentAgent.filter) || savedClientNames.includes(name);
                 }
                 return match && agentMatch;
@@ -591,43 +512,26 @@
         }
 
         function renderClients(clients) {
-            const container = document.getElementById('clients-list');
-            if (clients.length === 0) { container.innerHTML = '<p class="p-10 text-center text-gray-400 italic font-bold">Niciun client.</p>'; return; }
+            const container = document.getElementById('clients-list'); if (clients.length === 0) { container.innerHTML = '<p class="p-10 text-center text-gray-400 italic font-bold">Niciun client.</p>'; return; }
             container.innerHTML = clients.map(c => {
-                const keys = Object.keys(c);
-                const name = c[keys.find(k => k.toLowerCase() === "denumire")];
-                const loc = c[keys.find(k => k.toLowerCase() === "localitate")] || "-";
-                const isSaved = savedClientNames.includes(name);
-                return `
-                <div onclick="selectClient('${name.replace(/'/g, "\\'")}', '${loc.replace(/'/g, "\\'")}', '${c[keys.find(k => k.toLowerCase() === "cod_fiscal")]||''}', '${c[keys.find(k => k.toLowerCase() === "reg_com")]||''}', '${c[keys.find(k => k.toLowerCase() === "tel")]||''}')" 
-                     class="client-card bg-white p-6 rounded-[2rem] shadow-xl active:scale-[0.98] transition-all cursor-pointer flex justify-between items-center ${selectedClient && selectedClient.name === name ? 'active-client' : ''}">
-                    <div class="flex-1 min-w-0 pr-4">
-                        <p class="text-2xl font-black text-dm-blue uppercase leading-tight truncate">${name}</p>
-                        <p class="text-base font-bold text-gray-400 mt-2">📍 ${loc}</p>
-                        <div class="mt-2 text-xs font-black text-blue-600/70 uppercase">CIF: ${c[keys.find(k => k.toLowerCase() === "cod_fiscal")]||'-'}</div>
-                    </div>
-                    <button onclick="toggleSaveClient('${name.replace(/'/g, "\\'")}', event)" class="btn-save-client flex-shrink-0 ${isSaved ? 'bg-dm-yellow text-dm-blue shadow-lg' : 'bg-gray-100 text-gray-400'}"><span class="text-3xl">${isSaved ? '⭐' : '☆'}</span></button>
-                </div>`;
+                const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire")), kLoc = Object.keys(c).find(k => k.toLowerCase().includes("localitate")), kCIF = Object.keys(c).find(k => k.toLowerCase().includes("cod_fiscal"));
+                const name = c[kName]; const isSaved = savedClientNames.includes(name);
+                return `<div onclick="selectClient('${name.replace(/'/g, "\\'")}', '${(c[kLoc]||'').replace(/'/g, "\\'")}', '${c[kCIF]||''}', '${c[Object.keys(c).find(k=>k.toLowerCase().includes("reg_com"))]||''}', '${c[Object.keys(c).find(k=>k.toLowerCase().includes("tel"))]||''}')" 
+                     class="client-card bg-white p-7 rounded-[2.5rem] shadow-xl active:scale-[0.98] transition-all cursor-pointer flex justify-between items-center ${selectedClient && selectedClient.name === name ? 'active-client' : ''}">
+                    <div class="flex-1 min-w-0 pr-4"><p class="text-2xl font-black text-dm-blue uppercase truncate">${name}</p><p class="text-lg font-bold text-gray-400">📍 ${c[kLoc]||'-'}</p><div class="mt-2 text-[10px] font-black text-blue-600/60 uppercase">CIF: ${c[kCIF]||'-'}</div></div>
+                    <button onclick="toggleSaveClient('${name.replace(/'/g, "\\'")}', event)" class="btn-save-client flex-shrink-0 ${isSaved ? 'bg-dm-yellow text-dm-blue' : 'bg-gray-100 text-gray-400'}"><span class="text-3xl">${isSaved ? '⭐' : '☆'}</span></button></div>`;
             }).join('');
         }
 
-        function selectClient(name, loc, cif, rc, tel) { 
-            selectedClient = { name, loc, cif, rc, tel }; 
-            saveAgentData(); updateClientUI(); switchView('client-mode'); 
-        }
-
-        function selectMode(mode) {
-            if (mode === 'vanzare') switchView('catalog');
-            else { document.getElementById('display-sold').innerText = "0.00 RON"; switchView('incasare'); }
-        }
-
+        function selectClient(name, loc, cif, rc, tel) { selectedClient = { name, loc, cif, rc, tel }; saveAgentData(); updateClientUI(); switchView('client-mode'); }
+        function selectMode(m) { if (m === 'vanzare') switchView('catalog'); else switchView('incasare'); }
         function updateClientUI() {
             const h = document.getElementById('header-client-name'), c = document.getElementById('cart-client-name');
             if (selectedClient) {
-                h.innerText = selectedClient.name; h.className = "text-2xl font-black truncate leading-none text-dm-yellow text-left";
+                h.innerText = selectedClient.name; h.className = "text-2xl font-black truncate text-dm-yellow text-left";
                 c.innerText = `${selectedClient.name} (${selectedClient.loc})`; c.classList.remove('text-red-500');
             } else {
-                h.innerText = "Neselectat 👤"; h.className = "text-2xl font-black truncate leading-none text-white text-left opacity-30";
+                h.innerText = "Neselectat 👤"; h.className = "text-2xl font-black truncate text-white text-left opacity-30";
                 c.innerText = "ATENȚIE: NICIUN CLIENT SELECTAT!"; c.classList.add('text-red-500');
             }
         }
@@ -642,10 +546,10 @@
                 if (response.ok) {
                     const data = await response.arrayBuffer();
                     const wb = XLSX.read(data, {type: 'array'});
-                    const sheet = wb.Sheets[wb.SheetNames[0]];
-                    const raw = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-                    let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().includes("denumire")));
-                    allProductsRaw = XLSX.utils.sheet_to_json(sheet, { range: idx === -1 ? 0 : idx, defval: "" }).filter(p => p[Object.keys(p).find(k => k.toLowerCase().includes("denumire"))]);
+                    const sh = wb.Sheets[wb.SheetNames[0]];
+                    const raw = XLSX.utils.sheet_to_json(sh, { header: 1 });
+                    let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().trim().includes("denumire")));
+                    allProductsRaw = XLSX.utils.sheet_to_json(sh, { range: idx === -1 ? 0 : idx, defval: "" }).filter(p => p[Object.keys(p).find(k => k.toLowerCase().includes("denumire"))]);
                     localStorage.setItem(`dma_mast_cache`, JSON.stringify(allProductsRaw));
                 }
             } catch (e) { console.error(e); }
@@ -655,7 +559,7 @@
             document.getElementById('searchInput').value = ''; selectedCategory = category;
             document.getElementById('product-section').classList.remove('view-hidden');
             document.getElementById('category-placeholder').classList.add('view-hidden');
-            document.getElementById('selected-category-title').innerText = category === 'Inventar' ? "TOATE" : category;
+            document.getElementById('selected-category-title').innerText = category === 'Inventar' ? "INVENTAR COMPLET" : category;
             ['Ravenol', 'Banner', 'Cyclon', 'Cemsa', 'Inventar'].forEach(cat => {
                 const card = document.getElementById(`card-${cat}`); if (card) card.classList.toggle('selected-category', cat === category);
             });
@@ -673,20 +577,19 @@
         }
 
         function renderProducts(products) {
-            const tbody = document.getElementById('productTableBody');
-            if (!tbody) return;
-            if (products.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-20 text-center text-gray-400 font-black">Niciun produs.</td></tr>'; return; }
+            const tbody = document.getElementById('productTableBody'); if (!tbody) return;
+            if (products.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-20 text-center text-gray-400 font-black">Niciun produs găsit.</td></tr>'; return; }
             tbody.innerHTML = products.map(p => {
-                const kDen = Object.keys(p).find(k => k.toLowerCase().includes("denumire")), kPret = Object.keys(p).find(k => k.toLowerCase().includes("pret")), kStoc = Object.keys(p).find(k => k.toLowerCase() === "stoc");
-                const name = p[kDen], pret = formatPriceNum(p[kPret]), stocVal = p[kStoc] !== undefined ? parseFloat(p[kStoc].toString().replace(/\./g, '').replace(',', '.')) : null;
+                const kD = Object.keys(p).find(k => k.toLowerCase().includes("denumire")), kP = Object.keys(p).find(k => k.toLowerCase().includes("pret")), kS = Object.keys(p).find(k => k.toLowerCase().includes("stoc"));
+                const name = p[kD], pret = formatPriceNum(p[kP]), stocVal = p[kS] !== undefined ? parseFloat(p[kS].toString().replace(/\./g, '').replace(',', '.')) : null;
                 const qty = cart[name] ? cart[name].quantity : 0;
                 return `<tr class="${qty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100">
-                    <td class="px-8 py-8 font-black text-dm-blue uppercase tracking-tighter"><span class="text-2xl block mb-3 leading-tight">${name}</span>
-                        <div class="flex items-center gap-4"><span class="text-lg font-black text-blue-600/80">${pret.toFixed(2)} <span class="text-[9px] opacity-50">Net</span></span>
-                        ${stocVal !== null ? `<span class="text-xs font-black ${stocVal>0?'text-green-600 bg-green-50':'text-red-500 bg-red-50'} px-3 py-1 rounded-xl border">STOC: ${stocVal.toFixed(0)}</span>` : ''}</div></td>
-                    <td class="py-8"><div class="flex items-center justify-center gap-4 bg-gray-50 rounded-[1.5rem] p-1.5 border border-gray-100 shadow-inner">
+                    <td class="px-8 py-8 font-black text-dm-blue uppercase tracking-tighter leading-tight"><span class="text-2xl block mb-3">${name}</span>
+                        <div class="flex items-center gap-4"><span class="text-lg font-black text-blue-600/80">${pret.toFixed(2)} RON</span>
+                        ${stocVal !== null ? `<span class="text-[10px] font-black ${stocVal>0?'text-green-600 bg-green-50':'text-red-500 bg-red-50'} px-3 py-1 rounded-xl border">STOC: ${stocVal.toFixed(0)}</span>` : ''}</div></td>
+                    <td class="py-8"><div class="flex items-center justify-center gap-4 bg-gray-50 rounded-[1.8rem] p-1.5 border border-gray-100 shadow-inner">
                         <button onclick="updateCart('${name.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100 text-3xl">-</button>
-                        <span class="font-black text-3xl w-14 text-center text-dm-blue">${qty}</span>
+                        <span class="font-black text-4xl w-14 text-center text-dm-blue">${qty}</span>
                         <button onclick="updateCart('${name.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-xl text-3xl">+</button></div></td>
                     <td class="text-right pr-8 py-8 font-black text-dm-blue text-xl">${(qty*pret).toFixed(2)}</td></tr>`;
             }).join('');
@@ -709,16 +612,16 @@
             if (items.length === 0) { tbody.innerHTML = ''; em.classList.remove('view-hidden'); document.getElementById('totalNoVat').innerText = '0.00 RON'; return; }
             em.classList.add('view-hidden');
             tbody.innerHTML = items.map(i => {
-                const kDen = Object.keys(i.data).find(k => k.toLowerCase().includes("denumire")), kPret = Object.keys(i.data).find(k => k.toLowerCase().includes("pret"));
-                const pFara = formatPriceNum(i.data[kPret]); total += i.quantity * pFara;
-                return `<tr class="border-b border-gray-100"><td class="px-8 py-6 font-black text-dm-blue uppercase text-xl">${i.data[kDen]}<br><span class="text-sm font-bold text-blue-600/60">${pFara.toFixed(2)} RON</span></td>
-                    <td class="py-6"><div class="flex items-center justify-center gap-4 bg-gray-50 rounded-2xl p-2 border border-gray-100"><button onclick="updateCart('${i.data[kDen].replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button><span class="font-black text-3xl w-14 text-center text-dm-blue">${i.quantity}</span><button onclick="updateCart('${i.data[kDen].replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-md">+</button></div></td>
-                    <td class="text-right pr-8 py-6 font-black text-dm-blue text-lg">${(i.quantity*pFara).toFixed(2)}</td></tr>`;
+                const kD = Object.keys(i.data).find(k => k.toLowerCase().includes("denumire")), kP = Object.keys(i.data).find(k => k.toLowerCase().includes("pret"));
+                const pF = formatPriceNum(i.data[kP]); total += i.quantity * pF;
+                return `<tr class="border-b border-gray-100"><td class="px-8 py-6 font-black text-dm-blue uppercase text-xl">${i.data[kD]}<br><span class="text-sm font-bold text-blue-600/60">${pF.toFixed(2)} RON</span></td>
+                    <td class="py-6"><div class="flex items-center justify-center gap-4 bg-gray-50 rounded-2xl p-2 border border-gray-100"><button onclick="updateCart('${i.data[kD].replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button><span class="font-black text-3xl w-14 text-center text-dm-blue">${i.quantity}</span><button onclick="updateCart('${i.data[kD].replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-md">+</button></div></td>
+                    <td class="text-right pr-8 py-6 font-black text-dm-blue text-lg">${(i.quantity*pF).toFixed(2)}</td></tr>`;
             }).join('');
             document.getElementById('totalNoVat').innerText = total.toFixed(2) + ' RON';
         }
 
-        function golesteCos() { if(confirm("Ștergi tot coșul?")) { cart = {}; saveAgentData(); updateBadge(); renderCart(); filterProducts(); } }
+        function golesteCos() { if(confirm("Golești tot coșul?")) { cart = {}; saveAgentData(); updateBadge(); renderCart(); filterProducts(); } }
         function salveazaComanda(isDraft) {
             if (!selectedClient && !isDraft) { showToast("SELECTEAZĂ CLIENTUL!"); switchView('clients'); return; }
             if (Object.keys(cart).length === 0) return;
@@ -748,12 +651,12 @@
             currentViewingOrderIndex = idx; const o = window.orderHistory[idx]; switchView('order-details');
             document.getElementById('order-details-header').innerHTML = `<div class="flex justify-between items-center mb-5"><h3 class="text-sm font-black text-gray-400 uppercase italic">DETALII</h3><span class="text-[11px] font-black bg-gray-100 px-5 py-2 rounded-2xl uppercase">${o.status}</span></div><p class="text-3xl font-black text-dm-blue uppercase mb-5">${o.client ? o.client.name : '-'}</p><p class="text-5xl font-black text-dm-blue italic tracking-tighter">${o.total} RON</p>`;
             document.getElementById('order-details-items').innerHTML = Object.values(o.cartData).map(i => {
-                const kDen = Object.keys(i.data).find(k => k.toLowerCase().includes("denumire")), kPret = Object.keys(i.data).find(k => k.toLowerCase().includes("pret"));
-                return `<div class="flex justify-between items-center text-sm py-6 border-b border-gray-50"><div class="flex flex-col"><span class="font-black text-dm-blue text-xl uppercase">${i.data[kDen]}</span><span class="text-lg font-black text-blue-600/60">${formatPriceNum(i.data[kPret]).toFixed(2)}</span></div><span class="font-black bg-gray-100 px-6 py-4 rounded-3xl text-3xl">x ${i.quantity}</span></div>`;
+                const kD = Object.keys(i.data).find(k => k.toLowerCase().includes("denumire")), kP = Object.keys(i.data).find(k => k.toLowerCase().includes("pret"));
+                return `<div class="flex justify-between items-center text-sm py-6 border-b border-gray-50"><div class="flex flex-col"><span class="font-black text-dm-blue text-xl uppercase">${i.data[kD]}</span><span class="text-lg font-black text-blue-600/60">${formatPriceNum(i.data[kP]).toFixed(2)}</span></div><span class="font-black bg-gray-100 px-6 py-4 rounded-3xl text-3xl">x ${i.quantity}</span></div>`;
             }).join('');
         }
 
-        function incarcaComandaInCos() { if (currentViewingOrderIndex === null) return; const o = window.orderHistory[currentViewingOrderIndex]; cart = JSON.parse(JSON.stringify(o.cartData)); selectedClient = o.client; saveAgentData(); updateClientUI(); switchView('cart'); }
+        function incarcaComandaInCos() { if (currentViewingOrderIndex === null) return; const o = window.orderHistory[currentViewingOrderIndex]; cart = JSON.parse(JSON.stringify(o.cartData)); selectedClient = o.client; saveAgentData(); updateClientUI(); renderCart(); switchView('cart'); }
         function retrimiteComandaDirect() { if (currentViewingOrderIndex === null) return; const o = window.orderHistory[currentViewingOrderIndex]; selectedClient = o.client; trimiteWhatsApp(o.timestamp, o.cartData); if (o.status === 'Ciornă') { window.orderHistory[currentViewingOrderIndex].status = 'Trimisă'; saveAgentData(); renderHistory(); } }
         function stergeComandaCurenta() { if (currentViewingOrderIndex === null) return; if (confirm("Ștergi definitiv?")) { window.orderHistory.splice(currentViewingOrderIndex, 1); saveAgentData(); switchView('history'); } }
         
