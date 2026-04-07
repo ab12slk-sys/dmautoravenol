@@ -159,7 +159,7 @@
                     <input type="password" id="login-pass" placeholder="••••••••" class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white text-lg focus:outline-none focus:border-dm-yellow transition-all">
                 </div>
                 <button onclick="handleLogin()" class="w-full bg-dm-yellow text-dm-blue py-6 rounded-2xl font-black uppercase shadow-xl active:scale-95 transition-all text-xl tracking-tighter">Autentificare 🚀</button>
-                <div id="login-error" class="mt-5 text-red-400 text-xs font-black hidden uppercase tracking-tighter">Date incorecte!</div>
+                <div id="login-error" class="mt-5 text-red-400 text-xs font-black hidden uppercase tracking-tighter text-center">Date incorecte!</div>
             </div>
         </div>
     </div>
@@ -247,7 +247,7 @@
             </div>
         </div>
 
-        <!-- CLIENTI -->
+        <!-- LISTA CLIENTI -->
         <div id="view-clients" class="view-hidden p-5">
             <div class="flex justify-between items-center mb-8">
                 <h2 class="text-3xl font-black text-dm-blue uppercase italic leading-none">👤 Baza Clienți</h2>
@@ -263,7 +263,7 @@
             <div id="clients-list" class="space-y-5 overflow-y-auto max-h-[55vh] pr-2"></div>
         </div>
 
-        <!-- ADAUGARE CLIENT -->
+        <!-- FORMULAR CLIENT NOU -->
         <div id="view-add-client" class="view-hidden p-5">
             <h2 class="text-3xl font-black text-dm-blue uppercase italic mb-8 italic">➕ Client Nou</h2>
             <div class="bg-white p-8 rounded-[3rem] shadow-2xl border border-gray-100 space-y-6">
@@ -280,7 +280,7 @@
 
         <!-- SELECTOR MOD -->
         <div id="view-client-mode" class="view-hidden p-6 flex flex-col justify-center min-h-[70vh]">
-            <h3 class="text-center text-gray-400 font-black uppercase tracking-[0.3em] mb-10">Ce dorești să faci?</h3>
+            <h3 class="text-center text-gray-400 font-black uppercase tracking-[0.3em] mb-10">Operațiune</h3>
             <div class="grid grid-cols-2 gap-8">
                 <button onclick="selectMode('vanzare')" class="mode-btn bg-dm-blue text-white shadow-2xl"><span class="text-7xl mb-4">🛒</span><span class="font-black uppercase tracking-widest text-lg">Vânzare</span></button>
                 <button onclick="selectMode('incasare')" class="mode-btn bg-green-600 text-white shadow-2xl"><span class="text-7xl mb-4">💰</span><span class="font-black uppercase tracking-widest text-lg">Încasare</span></button>
@@ -291,7 +291,7 @@
         <div id="view-incasare" class="view-hidden p-6">
             <h2 class="text-3xl font-black text-green-700 uppercase italic mb-6 leading-none italic">💰 Situație Neîncasate</h2>
             <div class="bg-white p-8 rounded-[3rem] shadow-xl mb-6 text-center">
-                <p class="text-gray-400 font-black uppercase text-xs mb-2">Sold Total de Încasat:</p>
+                <p class="text-gray-400 font-black uppercase text-xs mb-2">Rest Total de Încasat:</p>
                 <p id="display-sold" class="text-5xl font-black text-red-600 tracking-tighter">0.00 RON</p>
             </div>
             <div class="bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-gray-100">
@@ -347,9 +347,9 @@
             </div>
         </div>
 
-        <!-- NAVIGARE -->
+        <!-- FOOTER NAV -->
         <nav class="fixed bottom-0 w-full bg-white border-t border-gray-100 p-5 flex justify-around shadow-[0_-20px_40px_-15px_rgba(0,0,0,0.15)] z-50 rounded-t-[3.5rem]">
-            <button onclick="switchView('catalog')" class="nav-btn flex flex-col items-center text-dm-blue" id="nav-catalog"><span class="text-5xl font-bold">🏠</span><span class="text-[10px] font-black uppercase mt-1">Catalog</span></button>
+            <button onclick="switchView('catalog')" class="nav-btn flex flex-col items-center text-dm-blue" id="nav-catalog"><span class="text-5xl font-bold">🏠</span><span class="text-[11px] font-black uppercase mt-1">Catalog</span></button>
             <button onclick="switchView('cart')" class="nav-btn flex flex-col items-center text-gray-400 relative" id="nav-cart"><span class="text-5xl font-bold">🛒</span><div id="cartBadge" class="cart-badge hidden">0</div><span class="text-[10px] font-black uppercase mt-1">Coș</span></button>
             <button onclick="switchView('history')" class="nav-btn flex flex-col items-center text-gray-400" id="nav-history"><span class="text-5xl font-bold">📋</span><span class="text-[10px] font-black uppercase mt-1">Istoric</span></button>
             <button onclick="handleLogout()" class="flex flex-col items-center text-gray-300"><span class="text-5xl font-bold">🚪</span><span class="text-[10px] font-black uppercase mt-1">Ieșire</span></button>
@@ -444,24 +444,24 @@
 
         function loadAgentData() {
             const id = currentAgent.id;
-            window.orderHistory = JSON.parse(localStorage.getItem(`dma_h_${id}`) || '[]');
-            cart = JSON.parse(localStorage.getItem(`dma_c_${id}`) || '{}');
-            selectedClient = JSON.parse(localStorage.getItem(`dma_cl_${id}`) || 'null');
-            savedClientNames = JSON.parse(localStorage.getItem(`dma_sv_${id}`) || '[]');
-            manuallyCreatedClients = JSON.parse(localStorage.getItem(`dma_mn_${id}`) || '[]');
+            window.orderHistory = JSON.parse(localStorage.getItem(`dma_hist_${id}`) || '[]');
+            cart = JSON.parse(localStorage.getItem(`dma_cart_${id}`) || '{}');
+            selectedClient = JSON.parse(localStorage.getItem(`dma_cli_${id}`) || 'null');
+            savedClientNames = JSON.parse(localStorage.getItem(`dma_sv_cli_${id}`) || '[]');
+            manuallyCreatedClients = JSON.parse(localStorage.getItem(`dma_man_cli_${id}`) || '[]');
             updateBadge(); updateClientUI();
         }
 
         function saveAgentData() {
             const id = currentAgent.id;
-            localStorage.setItem(`dma_h_${id}`, JSON.stringify(window.orderHistory));
-            localStorage.setItem(`dma_c_${id}`, JSON.stringify(cart));
-            localStorage.setItem(`dma_cl_${id}`, JSON.stringify(selectedClient));
-            localStorage.setItem(`dma_sv_${id}`, JSON.stringify(savedClientNames));
-            localStorage.setItem(`dma_mn_${id}`, JSON.stringify(manuallyCreatedClients));
+            localStorage.setItem(`dma_hist_${id}`, JSON.stringify(window.orderHistory));
+            localStorage.setItem(`dma_cart_${id}`, JSON.stringify(cart));
+            localStorage.setItem(`dma_cli_${id}`, JSON.stringify(selectedClient));
+            localStorage.setItem(`dma_sv_cli_${id}`, JSON.stringify(savedClientNames));
+            localStorage.setItem(`dma_man_cli_${id}`, JSON.stringify(manuallyCreatedClients));
         }
 
-        // --- CORE PROCESARE SOLDURI (FIX ZECIMALE + MATCHING) ---
+        // --- GESTIUNE SOLDURI (ROBUSTĂ) ---
         async function syncSoldData() {
             allSoldData = [];
             for (const file of SOLD_FILES) {
@@ -475,53 +475,51 @@
                         
                         let currentClient = "";
                         raw.forEach((row, index) => {
-                            if (index === 0) return; // Skip headers
+                            if (index === 0) return; // Salt peste cap de tabel
                             
-                            // A (0): Denumire Client (Carry-over logic)
+                            // Coloana A (Index 0): Denumire Client
                             if (row[0] && row[0].toString().trim()) {
                                 const val = row[0].toString().trim().toUpperCase();
-                                if (!val.startsWith("TOTAL") && !val.startsWith("SUBTOTAL")) {
-                                    currentClient = val;
+                                // Dacă găsim TOTAL, resetăm memoria clientului pentru a preveni amestecarea facturilor
+                                if (val.startsWith("TOTAL") || val.startsWith("SUBTOTAL") || val.includes("UNITATEA")) {
+                                    currentClient = "";
                                 } else {
-                                    currentClient = ""; // Stop at totals to prevent mixing bills
+                                    currentClient = val;
                                 }
                             }
                             
-                            // B (1): Numar factura
+                            // Coloana B (Index 1): Numar factura
                             const factNr = row[1] ? row[1].toString().trim() : "";
-                            
-                            // F (5): Rest plata (The "Sold")
-                            const rawRest = row[5];
-                            const restVal = formatPriceNum(rawRest);
+                            // Coloana F (Index 5): Rest de plată
+                            const restVal = formatPriceNum(row[5]);
 
-                            if (factNr && currentClient && restVal > 0) {
+                            if (currentClient && factNr && restVal > 0) {
                                 allSoldData.push({
                                     client: currentClient,
                                     factura: factNr,
                                     data: row[2] || "-",
-                                    scadenta: row[3] || "-",
                                     rest: restVal
                                 });
                             }
                         });
                         console.log(`Solduri unificate din ${file}`);
                     }
-                } catch (e) { console.warn(`Fișierul ${file} a eșuat.`); }
+                } catch (e) { console.warn(`Eroare fișier sold ${file}`); }
             }
         }
 
         function renderSoldItems() {
             const table = document.getElementById('sold-items-table'), disp = document.getElementById('display-sold');
             if (!selectedClient || !allSoldData.length) { 
-                table.innerHTML = '<tr><td colspan="2" class="p-10 text-center font-bold text-gray-400 italic">Lipsă date sold. Sincronizează datele.</td></tr>'; 
+                table.innerHTML = '<tr><td colspan="2" class="p-10 text-center font-bold text-gray-400 italic">Lipsă date. Sincronizează (🔄).</td></tr>'; 
                 disp.innerText = "0.00 RON"; return; 
             }
 
-            const target = selectedClient.name.toUpperCase().split(' ')[0]; // Match first word strictly
+            const clientSearchName = selectedClient.name.toUpperCase();
+            // Căutare potrivire nume între lista clienți și fișierul de solduri
             const mySold = allSoldData.filter(row => {
-                const partnerName = row.client;
-                const clientNameFull = selectedClient.name.toUpperCase();
-                return partnerName.includes(clientNameFull) || clientNameFull.includes(partnerName);
+                const rowName = row.client;
+                return rowName.includes(clientSearchName) || clientSearchName.includes(rowName);
             });
 
             if (mySold.length === 0) { 
@@ -591,7 +589,7 @@
         }
 
         function renderClients(clients) {
-            const container = document.getElementById('clients-list'); if (clients.length === 0) { container.innerHTML = '<p class="p-10 text-center text-gray-400 italic font-bold">Niciun client.</p>'; return; }
+            const container = document.getElementById('clients-list'); if (clients.length === 0) { container.innerHTML = '<p class="p-10 text-center text-gray-400 italic font-bold">Niciun client găsit.</p>'; return; }
             container.innerHTML = clients.map(c => {
                 const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire")), kLoc = Object.keys(c).find(k => k.toLowerCase().includes("localitate"));
                 const name = c[kName]; const isSaved = savedClientNames.includes(name);
@@ -726,21 +724,23 @@
         function retrimiteComandaDirect() { if (currentViewingOrderIndex === null) return; const o = window.orderHistory[currentViewingOrderIndex]; selectedClient = o.client; trimiteWhatsApp(o.timestamp, o.cartData); if (o.status === 'Ciornă') { window.orderHistory[currentViewingOrderIndex].status = 'Trimisă'; saveAgentData(); renderHistory(); } }
         function stergeComandaCurenta() { if (currentViewingOrderIndex === null) return; if (confirm("Ștergi definitiv?")) { window.orderHistory.splice(currentViewingOrderIndex, 1); saveAgentData(); switchView('history'); } }
         
-        // --- FIXED PRICE PARSER ---
+        // --- PARSER NUMERE ROBUST ---
         function formatPriceNum(val) {
             if (val === undefined || val === null || val === "") return 0;
             if (typeof val === 'number') return val;
             let s = val.toString().trim();
-            // Detect if format is european (1.234,56) or standard (1234.56)
+            // Verificare: daca are si punct si virgula (ex: 1.234,56 sau 1,234.56)
             if (s.includes(',') && s.includes('.')) {
-                // European format: 1.234,56 -> remove dots, replace comma with dot
-                s = s.replace(/\./g, '').replace(',', '.');
+                if (s.lastIndexOf('.') > s.lastIndexOf(',')) {
+                    s = s.replace(/,/g, ''); // Format US: 1,234.56
+                } else {
+                    s = s.replace(/\./g, '').replace(',', '.'); // Format EU: 1.234,56
+                }
             } else if (s.includes(',')) {
-                // Simple comma: 512,23 -> 512.23
-                s = s.replace(',', '.');
+                s = s.replace(',', '.'); // Format RO simplu: 512,23
             }
-            // Standard point (512.23) is handled natively by parseFloat
-            return parseFloat(s) || 0;
+            const parsed = parseFloat(s);
+            return isNaN(parsed) ? 0 : parsed;
         }
 
         function triggerManualSync() { syncMasterData(); syncClients(); syncSoldData(); if(selectedCategory) selectCategory(selectedCategory); showToast("ACTUALIZARE REUȘITĂ!"); }
