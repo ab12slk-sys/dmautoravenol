@@ -57,8 +57,8 @@
         }
 
         .qty-btn {
-            width: 56px;
-            height: 56px;
+            width: 58px;
+            height: 58px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -74,8 +74,8 @@
             color: #003366;
             font-size: 13px;
             font-weight: 900;
-            width: 28px;
-            height: 28px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -138,14 +138,14 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="pb-40">
+<body class="pb-44">
 
     <div id="custom-toast">Mesaj Notificare</div>
 
     <!-- ECRAN LOGIN -->
     <div id="view-login" class="fixed inset-0 z-[100] login-gradient flex flex-col items-center justify-center p-6 text-center">
         <div class="w-full max-w-sm">
-            <div class="flex flex-col items-center mb-12 text-center">
+            <div class="flex flex-col items-center mb-12">
                 <img src="logo_dmauto.png" alt="DM Auto Logo" class="h-32 mb-6 object-contain" onerror="this.src='https://via.placeholder.com/150?text=DM+AUTO'">
                 <h2 class="text-dm-yellow font-black text-2xl tracking-widest italic uppercase">Portal Agenți</h2>
             </div>
@@ -242,7 +242,7 @@
             <div id="category-placeholder" class="p-12 text-center">
                 <div class="bg-gray-50 border-2 border-dashed border-gray-200 rounded-[3rem] p-12 shadow-inner">
                     <span class="text-7xl block mb-6 animate-bounce">👇</span>
-                    <p class="text-gray-400 font-black uppercase text-base tracking-widest">Alege o categorie</p>
+                    <p class="text-gray-400 font-black uppercase text-base tracking-widest">Selectează categoria</p>
                 </div>
             </div>
         </div>
@@ -265,7 +265,7 @@
 
         <!-- FORMULAR CLIENT NOU -->
         <div id="view-add-client" class="view-hidden p-5">
-            <h2 class="text-3xl font-black text-dm-blue uppercase italic mb-8">➕ Client Nou</h2>
+            <h2 class="text-3xl font-black text-dm-blue uppercase italic mb-8 italic">➕ Client Nou</h2>
             <div class="bg-white p-8 rounded-[3rem] shadow-2xl border border-gray-100 space-y-6">
                 <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Denumire Firmă</label><input type="text" id="new-client-name" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
                 <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Localitate</label><input type="text" id="new-client-loc" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
@@ -285,6 +285,7 @@
                 <button onclick="selectMode('vanzare')" class="mode-btn bg-dm-blue text-white shadow-2xl"><span class="text-7xl mb-4">🛒</span><span class="font-black uppercase tracking-widest text-lg">Vânzare</span></button>
                 <button onclick="selectMode('incasare')" class="mode-btn bg-green-600 text-white shadow-2xl"><span class="text-7xl mb-4">💰</span><span class="font-black uppercase tracking-widest text-lg">Încasare</span></button>
             </div>
+            <button onclick="switchView('clients')" class="mt-16 text-center text-dm-blue font-black uppercase tracking-widest text-sm opacity-50 underline">Alege alt client</button>
         </div>
 
         <!-- VEDERE ÎNCASARE -->
@@ -311,7 +312,7 @@
             <h2 class="text-3xl font-black text-dm-blue uppercase italic mb-8">🛒 Finalizare Coș</h2>
             <div id="cart-client-banner" class="bg-dm-yellow/20 border border-dm-yellow/30 p-6 rounded-[2rem] mb-8 flex justify-between items-center shadow-sm">
                 <div class="flex-1 min-w-0 pr-8">
-                    <p class="text-[10px] font-black uppercase text-dm-blue/60 tracking-widest leading-none">Către:</p>
+                    <p class="text-[10px] font-black uppercase text-dm-blue/60 tracking-widest leading-none">Destinatar:</p>
                     <p id="cart-client-name" class="text-xl font-black text-dm-blue uppercase tracking-tighter mt-1 truncate">Neselectat!</p>
                 </div>
                 <button onclick="switchView('clients')" class="text-xs font-black bg-dm-blue text-white px-6 py-4 rounded-2xl uppercase shadow-xl flex-shrink-0">Schimbă</button>
@@ -365,7 +366,7 @@
 
         const MASTER_FILE = 'INVENTAR_STOC.xlsx';
         const CLIENTS_FILE = 'LISTA_CLIENTI.xlsx';
-        const SOLD_FILES = ['SOLD_ALBA.xls', 'SOLD_HUNEDOARA.xls'];
+        const SOLD_FILES = ['SOLD_ALBA.xlsx', 'SOLD_HUNEDOARA.xlsx'];
 
         let currentAgent = null;
         let allProductsRaw = []; 
@@ -477,15 +478,15 @@
                         const raw = XLSX.utils.sheet_to_json(sh, { header: 1 });
                         
                         let currentFoundPartner = "";
-                        // Algoritm special pentru formatul raportului tău (Partener pe B, Factura pe D, Rest pe I/J)
                         raw.forEach(row => {
-                            // Coloana 1 (B) conține denumirea clientului
-                            if (row[1] && row[1].toString().trim() && !row[1].toString().includes("UNITATEA") && !row[1].toString().includes("Clienti - Sold")) {
-                                let potentialName = row[1].toString().trim();
-                                if (!potentialName.startsWith("Total")) currentFoundPartner = potentialName;
+                            // Structura optimizata sau raport contabil scanat rând cu rând
+                            // Coloana 1 (Index 1) are partenerul
+                            if (row[1] && row[1].toString().trim() && !row[1].toString().includes("UNITATEA") && !row[1].toString().includes("Sold analitic")) {
+                                let val = row[1].toString().trim();
+                                if (!val.startsWith("Total")) currentFoundPartner = val;
                             }
-                            // Coloana 3 (D) conține nr factura
-                            if (row[3] && currentFoundPartner && row[3].toString().startsWith("DMEG")) {
+                            // Coloana 3 (Index 3) are factura, Coloana 8 sau 9 are Restul
+                            if (row[3] && currentFoundPartner && (row[3].toString().startsWith("DMEG") || row[3].toString().length > 3)) {
                                 allSoldData.push({
                                     client: currentFoundPartner.toUpperCase(),
                                     factura: row[3],
@@ -504,13 +505,12 @@
             const table = document.getElementById('sold-items-table');
             const totalDisplay = document.getElementById('display-sold');
             if (!selectedClient || !allSoldData.length) { 
-                table.innerHTML = '<tr><td colspan="2" class="p-10 text-center font-bold text-gray-400 italic text-xl">Nu am găsit date în SOLD_ALBA/HD.xls</td></tr>'; 
+                table.innerHTML = '<tr><td colspan="2" class="p-10 text-center font-bold text-gray-400 italic text-xl">Nu am găsit date de sold.</td></tr>'; 
                 totalDisplay.innerText = "0.00 RON"; return; 
             }
 
             const mySold = allSoldData.filter(row => {
                 const partnerName = row.client;
-                // Căutare inteligentă: vedem dacă numele scurt al clientului se regăsește în denumirea completă din sold
                 const target = selectedClient.name.toUpperCase();
                 return partnerName.includes(target) || target.includes(partnerName.split(' ')[0]);
             });
@@ -555,26 +555,28 @@
             const newCli = { denumire: n, localitate: l, cod_fiscal: document.getElementById('new-client-cif').value.trim(), reg_com: document.getElementById('new-client-rc').value.trim(), tel: document.getElementById('new-client-tel').value.trim(), den_agent: currentAgent.filter, isManual: true };
             manuallyCreatedClients.push(newCli); saveAgentData();
             ['new-client-name','new-client-loc','new-client-cif','new-client-rc','new-client-tel'].forEach(id => document.getElementById(id).value = '');
-            showToast("CLIENT CREAT!"); filterClients(); switchView('clients');
+            showToast("CLIENT SALVAT!"); filterClients(); switchView('clients');
         }
 
         function toggleClientFilter(mine) {
             showOnlyMyClients = mine;
             document.getElementById('btnFilterMyClients').className = `sheet-tab ${mine ? 'sheet-tab-active' : 'sheet-tab-inactive'}`;
-            document.getElementById('btnFilterAllClients').className = `sheet-tab ${!onlyMine ? 'sheet-tab-active' : 'sheet-tab-inactive'}`;
+            document.getElementById('btnFilterAllClients').className = `sheet-tab ${!mine ? 'sheet-tab-active' : 'sheet-tab-inactive'}`;
             filterClients();
         }
 
         function filterClients() {
             const q = document.getElementById('clientSearch').value.toLowerCase().trim();
             const filtered = [...manuallyCreatedClients, ...allClients].filter(c => {
-                const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire")), kLoc = Object.keys(c).find(k => k.toLowerCase().includes("localitate")), kCIF = Object.keys(c).find(k => k.toLowerCase().includes("cod_fiscal"));
-                const name = c[kName]?.toString() || "";
-                const match = name.toLowerCase().includes(q) || (c[kLoc]||"").toString().toLowerCase().includes(q) || (c[kCIF]||"").toString().toLowerCase().includes(q);
+                const nameKey = Object.keys(c).find(k => k.toLowerCase().includes("denumire"));
+                const locKey = Object.keys(c).find(k => k.toLowerCase().includes("localitate"));
+                const cifKey = Object.keys(c).find(k => k.toLowerCase().includes("cod_fiscal"));
+                const name = c[nameKey]?.toString() || "";
+                const match = name.toLowerCase().includes(q) || (c[locKey]||"").toString().toLowerCase().includes(q) || (c[cifKey]||"").toString().toLowerCase().includes(q);
                 let agentMatch = true;
                 if (showOnlyMyClients && currentAgent) {
-                    const kAgent = Object.keys(c).find(k => k.toLowerCase().includes("den_agent"));
-                    agentMatch = (c[kAgent]?.toString().toUpperCase() || "").includes(currentAgent.filter) || savedClientNames.includes(name);
+                    const agentKey = Object.keys(c).find(k => k.toLowerCase().includes("den_agent"));
+                    agentMatch = (c[agentKey]?.toString().toUpperCase() || "").includes(currentAgent.filter) || savedClientNames.includes(name);
                 }
                 return match && agentMatch;
             });
@@ -654,7 +656,7 @@
                 const kD = Object.keys(p).find(k => k.toLowerCase().includes("denumire")), kP = Object.keys(p).find(k => k.toLowerCase().includes("pret")), kS = Object.keys(p).find(k => k.toLowerCase().includes("stoc"));
                 const name = p[kD], pret = formatPriceNum(p[kP]), stocVal = p[kS] !== undefined ? parseFloat(p[kS].toString().replace(/\./g, '').replace(',', '.')) : null;
                 const qty = cart[name] ? cart[name].quantity : 0;
-                return `<tr class="${qty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100"><td class="px-8 py-8 font-black text-dm-blue uppercase leading-tight tracking-tighter leading-tight"><span class="text-3xl block mb-3 leading-none">${name}</span><div class="flex items-center gap-4"><span class="text-lg font-black text-blue-600/80">${pret.toFixed(2)} RON</span>${stocVal !== null ? `<span class="text-[10px] font-black ${stocVal>0?'text-green-600 bg-green-50':'text-red-500 bg-red-50'} px-3 py-1 rounded-xl border">STOC: ${stocVal.toFixed(0)}</span>` : ''}</div></td><td class="py-8"><div class="flex items-center justify-center gap-4 bg-gray-50 rounded-[1.8rem] p-1.5 border border-gray-100 shadow-inner"><button onclick="updateCart('${name.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100 text-3xl">-</button><span class="font-black text-4xl w-14 text-center text-dm-blue">${qty}</span><button onclick="updateCart('${name.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-xl text-3xl">+</button></div></td><td class="text-right pr-8 py-8 font-black text-dm-blue text-xl">${(qty*pret).toFixed(2)}</td></tr>`;
+                return `<tr class="${qty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100"><td class="px-8 py-8 font-black text-dm-blue uppercase leading-tight tracking-tighter leading-tight"><span class="text-3xl block mb-3 leading-none">${name}</span><div class="flex items-center gap-4"><span class="text-xl font-black text-blue-600/80">${pret.toFixed(2)} RON</span>${stocVal !== null ? `<span class="text-[10px] font-black ${stocVal>0?'text-green-600 bg-green-50':'text-red-500 bg-red-50'} px-3 py-1 rounded-xl border">STOC: ${stocVal.toFixed(0)}</span>` : ''}</div></td><td class="py-8"><div class="flex items-center justify-center gap-4 bg-gray-50 rounded-[1.8rem] p-1.5 border border-gray-100 shadow-inner"><button onclick="updateCart('${name.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100 text-3xl">-</button><span class="font-black text-4xl w-14 text-center text-dm-blue">${qty}</span><button onclick="updateCart('${name.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-xl text-3xl">+</button></div></td><td class="text-right pr-8 py-8 font-black text-dm-blue text-2xl">${(qty*pret).toFixed(2)}</td></tr>`;
             }).join('');
         }
 
