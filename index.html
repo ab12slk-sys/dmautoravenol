@@ -159,7 +159,7 @@
                     <input type="password" id="login-pass" placeholder="••••••••" class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white text-lg focus:outline-none focus:border-dm-yellow transition-all">
                 </div>
                 <button onclick="handleLogin()" class="w-full bg-dm-yellow text-dm-blue py-6 rounded-2xl font-black uppercase shadow-xl active:scale-95 transition-all text-xl tracking-tighter">Autentificare 🚀</button>
-                <div id="login-error" class="mt-5 text-red-400 text-xs font-black hidden uppercase tracking-tighter">Date incorecte!</div>
+                <div id="login-error" class="mt-5 text-red-400 text-xs font-black hidden uppercase tracking-tighter text-center">Date incorecte!</div>
             </div>
         </div>
     </div>
@@ -242,7 +242,7 @@
             <div id="category-placeholder" class="p-12 text-center">
                 <div class="bg-gray-50 border-2 border-dashed border-gray-200 rounded-[3rem] p-12 shadow-inner">
                     <span class="text-7xl block mb-6 animate-bounce">👇</span>
-                    <p class="text-gray-400 font-black uppercase text-base tracking-widest">Selectează categoria</p>
+                    <p class="text-gray-400 font-black uppercase text-base tracking-widest">Alege o categorie</p>
                 </div>
             </div>
         </div>
@@ -280,26 +280,25 @@
 
         <!-- SELECTOR MOD -->
         <div id="view-client-mode" class="view-hidden p-6 flex flex-col justify-center min-h-[70vh]">
-            <h3 class="text-center text-gray-400 font-black uppercase tracking-[0.3em] mb-10">Selectează Operațiunea</h3>
+            <h3 class="text-center text-gray-400 font-black uppercase tracking-[0.3em] mb-10">Operațiune</h3>
             <div class="grid grid-cols-2 gap-8">
                 <button onclick="selectMode('vanzare')" class="mode-btn bg-dm-blue text-white shadow-2xl"><span class="text-7xl mb-4">🛒</span><span class="font-black uppercase tracking-widest text-lg">Vânzare</span></button>
                 <button onclick="selectMode('incasare')" class="mode-btn bg-green-600 text-white shadow-2xl"><span class="text-7xl mb-4">💰</span><span class="font-black uppercase tracking-widest text-lg">Încasare</span></button>
             </div>
-            <button onclick="switchView('clients')" class="mt-16 text-center text-dm-blue font-black uppercase tracking-widest text-sm opacity-50 underline">Alege alt client</button>
         </div>
 
         <!-- VEDERE ÎNCASARE -->
         <div id="view-incasare" class="view-hidden p-6">
             <h2 class="text-3xl font-black text-green-700 uppercase italic mb-6 leading-none italic">💰 Situație Neîncasate</h2>
-            <div class="bg-white p-8 rounded-[3rem] shadow-xl mb-6">
-                <p class="text-gray-400 font-black uppercase text-xs mb-2">Sold Total de Încasat:</p>
+            <div class="bg-white p-8 rounded-[3rem] shadow-xl mb-6 text-center">
+                <p class="text-gray-400 font-black uppercase text-xs mb-2">Rest Total de Încasat:</p>
                 <p id="display-sold" class="text-5xl font-black text-red-600 tracking-tighter">0.00 RON</p>
             </div>
             <div class="bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-gray-100">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">
                         <thead class="bg-gray-50 border-b border-gray-100 font-black uppercase text-[10px] text-gray-400">
-                            <tr><th class="pl-6 py-4">Factură / Data</th><th class="pr-6 text-right">Rest Plată</th></tr>
+                            <tr><th class="pl-6 py-5">Factură / Data</th><th class="pr-6 text-right">Sumă</th></tr>
                         </thead>
                         <tbody id="sold-items-table" class="divide-y divide-gray-100"></tbody>
                     </table>
@@ -312,8 +311,8 @@
             <h2 class="text-3xl font-black text-dm-blue uppercase italic mb-8">🛒 Finalizare Coș</h2>
             <div id="cart-client-banner" class="bg-dm-yellow/20 border border-dm-yellow/30 p-6 rounded-[2rem] mb-8 flex justify-between items-center shadow-sm">
                 <div class="flex-1 min-w-0 pr-8">
-                    <p class="text-[10px] font-black uppercase text-dm-blue/60 tracking-widest leading-none">Destinatar:</p>
-                    <p id="cart-client-name" class="text-xl font-black text-dm-blue uppercase tracking-tighter mt-1 truncate">Neselectat!</p>
+                    <p class="text-[10px] font-black uppercase text-dm-blue/60 tracking-widest leading-none">Către:</p>
+                    <p id="cart-client-name" class="text-xl font-black text-dm-blue uppercase mt-2 truncate">Neselectat!</p>
                 </div>
                 <button onclick="switchView('clients')" class="text-xs font-black bg-dm-blue text-white px-6 py-4 rounded-2xl uppercase shadow-xl flex-shrink-0">Schimbă</button>
             </div>
@@ -400,13 +399,10 @@
 
             const navs = ['catalog', 'cart', 'history'];
             navs.forEach(n => { const el = document.getElementById(`nav-${n}`); if (el) { el.classList.remove('text-dm-blue'); el.classList.add('text-gray-400'); } });
-            
             let activeNav = viewName;
             if (['add-client', 'client-mode', 'incasare', 'clients'].includes(viewName)) activeNav = 'catalog';
             if (viewName === 'order-details') activeNav = 'history';
-            
-            const currentNav = document.getElementById(`nav-${activeNav}`);
-            if (currentNav) { currentNav.classList.remove('text-gray-400'); currentNav.classList.add('text-dm-blue'); } 
+            const currentNav = document.getElementById(`nav-${activeNav}`); if (currentNav) { currentNav.classList.remove('text-gray-400'); currentNav.classList.add('text-dm-blue'); } 
             
             if (viewName === 'catalog') document.getElementById('search-container').classList.remove('view-hidden'); else document.getElementById('search-container').classList.add('view-hidden'); 
             if (viewName === 'cart') renderCart(); if (viewName === 'history') renderHistory(); 
@@ -465,7 +461,6 @@
             localStorage.setItem(`dma_man_cli_${id}`, JSON.stringify(manuallyCreatedClients));
         }
 
-        // --- GESTIUNE SOLDURI (ALBA & HD) ---
         async function syncSoldData() {
             allSoldData = [];
             for (const file of SOLD_FILES) {
@@ -477,58 +472,48 @@
                         const sh = wb.Sheets[wb.SheetNames[0]];
                         const raw = XLSX.utils.sheet_to_json(sh, { header: 1 });
                         
-                        let currentFoundPartner = "";
+                        let currentPartner = "";
                         raw.forEach(row => {
-                            // Structura optimizata sau raport contabil scanat rând cu rând
-                            // Coloana 1 (Index 1) are partenerul
+                            // Algoritm de detectie client in raport contabil (Coloana B)
                             if (row[1] && row[1].toString().trim() && !row[1].toString().includes("UNITATEA") && !row[1].toString().includes("Sold analitic")) {
-                                let val = row[1].toString().trim();
-                                if (!val.startsWith("Total")) currentFoundPartner = val;
+                                let potential = row[1].toString().trim();
+                                if (!potential.startsWith("Total")) currentPartner = potential;
                             }
-                            // Coloana 3 (Index 3) are factura, Coloana 8 sau 9 are Restul
-                            if (row[3] && currentFoundPartner && (row[3].toString().startsWith("DMEG") || row[3].toString().length > 3)) {
+                            // Factura DMEG pe coloana D (Index 3), Suma rest plata pe I (Index 8) sau J (Index 9)
+                            if (row[3] && currentPartner && (row[3].toString().startsWith("DMEG") || row[3].toString().length > 4)) {
                                 allSoldData.push({
-                                    client: currentFoundPartner.toUpperCase(),
+                                    client: currentPartner.toUpperCase(),
                                     factura: row[3],
                                     data: row[4] || "-",
                                     rest: parseFloat(row[8]) || parseFloat(row[9]) || 0
                                 });
                             }
                         });
-                        console.log(`Solduri unificate din ${file}`);
+                        console.log(`Date sold procesate din ${file}`);
                     }
-                } catch (e) { console.warn(`Fișierul ${file} nu a fost găsit.`); }
+                } catch (e) { console.warn(`Sold file ${file} failed.`); }
             }
         }
 
         function renderSoldItems() {
-            const table = document.getElementById('sold-items-table');
-            const totalDisplay = document.getElementById('display-sold');
-            if (!selectedClient || !allSoldData.length) { 
-                table.innerHTML = '<tr><td colspan="2" class="p-10 text-center font-bold text-gray-400 italic text-xl">Nu am găsit date de sold.</td></tr>'; 
-                totalDisplay.innerText = "0.00 RON"; return; 
-            }
+            const table = document.getElementById('sold-items-table'), disp = document.getElementById('display-sold');
+            if (!selectedClient || !allSoldData.length) { table.innerHTML = '<tr><td colspan="2" class="p-10 text-center font-bold text-gray-400 italic">Lipsă date sold.</td></tr>'; disp.innerText = "0.00 RON"; return; }
 
             const mySold = allSoldData.filter(row => {
-                const partnerName = row.client;
                 const target = selectedClient.name.toUpperCase();
-                return partnerName.includes(target) || target.includes(partnerName.split(' ')[0]);
+                return row.client.includes(target) || target.includes(row.client.split(' ')[0]);
             });
 
-            if (mySold.length === 0) {
-                table.innerHTML = '<tr><td colspan="2" class="p-10 text-center font-bold text-gray-400 italic text-xl">CLIENT LA ZI. ZERO RESTANȚE.</td></tr>';
-                totalDisplay.innerText = "0.00 RON"; return;
-            }
+            if (mySold.length === 0) { table.innerHTML = '<tr><td colspan="2" class="p-10 text-center font-bold text-gray-400 italic">CLIENT LA ZI.</td></tr>'; disp.innerText = "0.00 RON"; return; }
 
             let total = 0;
             table.innerHTML = mySold.map(row => {
                 total += row.rest;
                 return `<tr class="border-b border-gray-100"><td class="pl-6 py-6 font-black text-dm-blue text-xl leading-tight">FACT: ${row.factura}<br><span class="text-base text-gray-400 font-bold">${row.data}</span></td><td class="pr-6 text-right font-black text-red-600 text-3xl">${row.rest.toFixed(2)}</td></tr>`;
             }).join('');
-            totalDisplay.innerText = total.toFixed(2) + " RON";
+            disp.innerText = total.toFixed(2) + " RON";
         }
 
-        // --- GESTIUNE CLIENTI ---
         async function syncClients() {
             const cached = localStorage.getItem(`dma_cache_cli`);
             if (cached) { allClients = JSON.parse(cached); filterClients(); }
@@ -551,32 +536,30 @@
         function handleCreateClient() {
             const n = document.getElementById('new-client-name').value.trim().toUpperCase();
             const l = document.getElementById('new-client-loc').value.trim().toUpperCase();
-            if (!n || !l) { showToast("NUME ȘI LOCALITATE OBLIGATORII!"); return; }
+            if (!n || !l) { showToast("INTRODU NUME ȘI LOCALITATE!"); return; }
             const newCli = { denumire: n, localitate: l, cod_fiscal: document.getElementById('new-client-cif').value.trim(), reg_com: document.getElementById('new-client-rc').value.trim(), tel: document.getElementById('new-client-tel').value.trim(), den_agent: currentAgent.filter, isManual: true };
             manuallyCreatedClients.push(newCli); saveAgentData();
             ['new-client-name','new-client-loc','new-client-cif','new-client-rc','new-client-tel'].forEach(id => document.getElementById(id).value = '');
-            showToast("CLIENT SALVAT!"); filterClients(); switchView('clients');
+            showToast("CLIENT CREAT!"); filterClients(); switchView('clients');
         }
 
         function toggleClientFilter(mine) {
             showOnlyMyClients = mine;
             document.getElementById('btnFilterMyClients').className = `sheet-tab ${mine ? 'sheet-tab-active' : 'sheet-tab-inactive'}`;
-            document.getElementById('btnFilterAllClients').className = `sheet-tab ${!mine ? 'sheet-tab-active' : 'sheet-tab-inactive'}`;
+            document.getElementById('btnFilterAllClients').className = `sheet-tab ${!onlyMine ? 'sheet-tab-active' : 'sheet-tab-inactive'}`;
             filterClients();
         }
 
         function filterClients() {
             const q = document.getElementById('clientSearch').value.toLowerCase().trim();
             const filtered = [...manuallyCreatedClients, ...allClients].filter(c => {
-                const nameKey = Object.keys(c).find(k => k.toLowerCase().includes("denumire"));
-                const locKey = Object.keys(c).find(k => k.toLowerCase().includes("localitate"));
-                const cifKey = Object.keys(c).find(k => k.toLowerCase().includes("cod_fiscal"));
-                const name = c[nameKey]?.toString() || "";
-                const match = name.toLowerCase().includes(q) || (c[locKey]||"").toString().toLowerCase().includes(q) || (c[cifKey]||"").toString().toLowerCase().includes(q);
+                const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire")), kLoc = Object.keys(c).find(k => k.toLowerCase().includes("localitate")), kCIF = Object.keys(c).find(k => k.toLowerCase().includes("cod_fiscal"));
+                const name = c[kName]?.toString() || "";
+                const match = name.toLowerCase().includes(q) || (c[kLoc]||"").toString().toLowerCase().includes(q) || (c[kCIF]||"").toString().toLowerCase().includes(q);
                 let agentMatch = true;
                 if (showOnlyMyClients && currentAgent) {
-                    const agentKey = Object.keys(c).find(k => k.toLowerCase().includes("den_agent"));
-                    agentMatch = (c[agentKey]?.toString().toUpperCase() || "").includes(currentAgent.filter) || savedClientNames.includes(name);
+                    const kAgent = Object.keys(c).find(k => k.toLowerCase().includes("den_agent"));
+                    agentMatch = (c[kAgent]?.toString().toUpperCase() || "").includes(currentAgent.filter) || savedClientNames.includes(name);
                 }
                 return match && agentMatch;
             });
@@ -597,7 +580,6 @@
 
         function selectClient(name, loc, cif, rc, tel) { selectedClient = { name, loc, cif, rc, tel }; saveAgentData(); updateClientUI(); switchView('client-mode'); }
         function selectMode(m) { if (m === 'vanzare') switchView('catalog'); else { renderSoldItems(); switchView('incasare'); } }
-        
         function updateClientUI() {
             const h = document.getElementById('header-client-name'), c = document.getElementById('cart-client-name');
             if (selectedClient) {
@@ -609,7 +591,6 @@
             }
         }
 
-        // --- PRODUSE ---
         async function syncMasterData() {
             const cached = localStorage.getItem(`dma_mast_cache`);
             if (cached) allProductsRaw = JSON.parse(cached);
@@ -721,7 +702,7 @@
         function stergeComandaCurenta() { if (currentViewingOrderIndex === null) return; if (confirm("Ștergi definitiv?")) { window.orderHistory.splice(currentViewingOrderIndex, 1); saveAgentData(); switchView('history'); } }
         
         function formatPriceNum(val) { if (!val && val !== 0) return 0; if (typeof val === 'number') return val; let s = val.toString().replace(/\./g, '').replace(',', '.'); return parseFloat(s) || 0; }
-        function triggerManualSync() { syncMasterData(); syncClients(); syncSoldData(); if(selectedCategory) selectCategory(selectedCategory); showToast("ACTUALIZARE REUȘITĂ!"); }
+        function triggerManualSync() { syncMasterData(); syncClients(); syncSoldData(); if(selectedCategory) selectCategory(selectedCategory); showToast("SINCRONIZARE COMPLETĂ!"); }
         function filterProducts() { const q = document.getElementById('searchInput').value.toLowerCase().trim(); renderProducts(currentCategoryData.filter(p => p[Object.keys(p).find(k => k.toLowerCase().includes("denumire"))]?.toString().toLowerCase().includes(q))); }
         function resetSelection() { document.getElementById('searchInput').value = ''; selectedCategory = null; document.getElementById('product-section').classList.add('view-hidden'); document.getElementById('category-placeholder').classList.remove('view-hidden'); ['Ravenol', 'Banner', 'Cyclon', 'Cemsa', 'Inventar'].forEach(cat => { const card = document.getElementById(`card-${cat}`); if (card) card.classList.remove('selected-category'); }); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
