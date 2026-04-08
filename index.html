@@ -41,7 +41,7 @@
             border: 4px solid transparent;
         }
 
-        .category-card:active, .mode-btn:active, .qty-btn:active, .nav-btn:active { 
+        .category-card:active, .mode-btn:active, .qty-btn:active, .nav-btn:active, .action-btn:active { 
             transform: scale(0.92); 
             filter: brightness(0.9);
         }
@@ -242,7 +242,7 @@
             <div id="category-placeholder" class="p-12 text-center">
                 <div class="bg-gray-50 border-2 border-dashed border-gray-200 rounded-[3rem] p-12 shadow-inner">
                     <span class="text-7xl block mb-6 animate-bounce">👇</span>
-                    <p class="text-gray-400 font-black uppercase text-base tracking-widest">Alege o categorie</p>
+                    <p class="text-gray-400 font-black uppercase text-base tracking-widest">Selectează categoria</p>
                 </div>
             </div>
         </div>
@@ -263,7 +263,7 @@
             <div id="clients-list" class="space-y-5 overflow-y-auto max-h-[55vh] pr-2"></div>
         </div>
 
-        <!-- FORMULAR CLIENT NOU -->
+        <!-- ADAUGARE CLIENT -->
         <div id="view-add-client" class="view-hidden p-5">
             <h2 class="text-3xl font-black text-dm-blue uppercase italic mb-8 italic">➕ Client Nou</h2>
             <div class="bg-white p-8 rounded-[3rem] shadow-2xl border border-gray-100 space-y-6">
@@ -280,19 +280,18 @@
 
         <!-- SELECTOR MOD -->
         <div id="view-client-mode" class="view-hidden p-6 flex flex-col justify-center min-h-[70vh]">
-            <h3 class="text-center text-gray-400 font-black uppercase tracking-[0.3em] mb-10">Ce dorești să faci?</h3>
+            <h3 class="text-center text-gray-400 font-black uppercase tracking-[0.3em] mb-10">Operațiune</h3>
             <div class="grid grid-cols-2 gap-8">
                 <button onclick="selectMode('vanzare')" class="mode-btn bg-dm-blue text-white shadow-2xl"><span class="text-7xl mb-4">🛒</span><span class="font-black uppercase tracking-widest text-lg">Vânzare</span></button>
                 <button onclick="selectMode('incasare')" class="mode-btn bg-green-600 text-white shadow-2xl"><span class="text-7xl mb-4">💰</span><span class="font-black uppercase tracking-widest text-lg">Încasare</span></button>
             </div>
-            <button onclick="switchView('clients')" class="mt-16 text-center text-dm-blue font-black uppercase tracking-widest text-sm opacity-50 underline">Schimbă Clientul</button>
         </div>
 
         <!-- VEDERE ÎNCASARE -->
         <div id="view-incasare" class="view-hidden p-6">
             <h2 class="text-3xl font-black text-green-700 uppercase italic mb-6 leading-none italic">💰 Situație Neîncasate</h2>
-            <div class="bg-white p-8 rounded-[3rem] shadow-xl mb-6 text-center">
-                <p class="text-gray-400 font-black uppercase text-xs mb-2">Sold Total de Încasat:</p>
+            <div class="bg-white p-8 rounded-[3rem] shadow-xl mb-8 text-center">
+                <p class="text-gray-400 font-black uppercase text-xs mb-2">Rest Total de Încasat:</p>
                 <p id="display-sold" class="text-5xl font-black text-red-600 tracking-tighter">0.00 RON</p>
             </div>
             <div class="bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-gray-100">
@@ -348,7 +347,7 @@
             </div>
         </div>
 
-        <!-- NAVIGARE -->
+        <!-- FOOTER NAV -->
         <nav class="fixed bottom-0 w-full bg-white border-t border-gray-100 p-5 flex justify-around shadow-[0_-20px_40px_-15px_rgba(0,0,0,0.15)] z-50 rounded-t-[3.5rem]">
             <button onclick="switchView('catalog')" class="nav-btn flex flex-col items-center text-dm-blue" id="nav-catalog"><span class="text-5xl font-bold">🏠</span><span class="text-[10px] font-black uppercase mt-1">Catalog</span></button>
             <button onclick="switchView('cart')" class="nav-btn flex flex-col items-center text-gray-400 relative" id="nav-cart"><span class="text-5xl font-bold">🛒</span><div id="cartBadge" class="cart-badge hidden">0</div><span class="text-[10px] font-black uppercase mt-1">Coș</span></button>
@@ -424,7 +423,6 @@
             else switchView('catalog');
         }
 
-        // SWIPE
         let tsX = 0; document.addEventListener('touchstart', e => tsX = e.changedTouches[0].screenX);
         document.addEventListener('touchend', e => { 
             const teX = e.changedTouches[0].screenX;
@@ -486,9 +484,7 @@
                         
                         let currentClient = "";
                         raw.forEach((row, index) => {
-                            if (index === 0) return; // Skip header
-                            
-                            // A (0): Denumire Client
+                            if (index === 0) return;
                             if (row[0] && row[0].toString().trim()) {
                                 const val = row[0].toString().trim().toUpperCase();
                                 if (!val.includes("TOTAL") && !val.includes("UNITATEA")) {
@@ -497,10 +493,8 @@
                                     currentClient = ""; 
                                 }
                             }
-                            
                             const factNr = row[1] ? row[1].toString().trim() : "";
                             const restVal = formatPriceNum(row[5]);
-
                             if (currentClient && factNr && restVal > 0) {
                                 allSoldData.push({
                                     client: currentClient,
@@ -512,14 +506,14 @@
                             }
                         });
                     }
-                } catch (e) { console.warn(`Sold file ${file} error.`); }
+                } catch (e) { console.warn(`Sold file error.`); }
             }
         }
 
         function renderSoldItems() {
             const table = document.getElementById('sold-items-table'), disp = document.getElementById('display-sold');
             if (!selectedClient || !allSoldData.length) { 
-                table.innerHTML = '<tr><td colspan="2" class="p-10 text-center font-bold text-gray-400 italic">Nu am găsit date. Sincronizează (🔄).</td></tr>'; 
+                table.innerHTML = '<tr><td colspan="2" class="p-10 text-center font-bold text-gray-400 italic">Lipsă date sold.</td></tr>'; 
                 disp.innerText = "0.00 RON"; return; 
             }
 
@@ -536,9 +530,29 @@
             let total = 0;
             table.innerHTML = mySold.map(row => {
                 total += row.rest;
-                return `<tr class="border-b border-gray-100"><td class="pl-6 py-6 font-black text-dm-blue text-xl leading-tight">FACT: ${row.factura}<br><span class="text-base text-gray-400 font-bold">${row.data}</span></td><td class="pr-6 text-right font-black text-red-600 text-3xl">${row.rest.toLocaleString('ro-RO', {minimumFractionDigits: 2})}</td></tr>`;
+                const formattedSum = row.rest.toLocaleString('ro-RO', {minimumFractionDigits: 2});
+                return `<tr class="border-b border-gray-100">
+                    <td class="pl-6 py-6 font-black text-dm-blue text-xl leading-tight">
+                        FACT: ${row.factura}<br><span class="text-base text-gray-400 font-bold">${row.data}</span>
+                    </td>
+                    <td class="pr-6 text-right">
+                        <div class="flex flex-col items-end gap-3">
+                            <span class="font-black text-red-600 text-3xl">${formattedSum}</span>
+                            <button onclick="handleIncasareFactura('${row.factura}', ${row.rest})" class="bg-green-600 text-white px-5 py-3 rounded-xl font-black text-xs uppercase shadow-lg active:scale-90 transition-all">Încasează ✅</button>
+                        </div>
+                    </td>
+                </tr>`;
             }).join('');
             disp.innerText = total.toLocaleString('ro-RO', {minimumFractionDigits: 2}) + " RON";
+        }
+
+        function handleIncasareFactura(facturaNr, suma) {
+            const confirmed = confirm(`Confirmi încasarea facturii ${facturaNr} în valoare de ${suma.toFixed(2)} RON?`);
+            if (confirmed) {
+                const msg = `💰 ÎNCASARE DM AUTO\nAgent: ${currentAgent.name}\nClient: ${selectedClient.name}\nFactură: ${facturaNr}\nSumă: ${suma.toFixed(2)} RON\nData: ${new Date().toLocaleDateString('ro-RO')}`;
+                window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
+                showToast("Încasare raportată!");
+            }
         }
 
         async function syncClients() {
@@ -552,7 +566,7 @@
                     const wb = XLSX.read(data, {type: 'array'});
                     const sh = wb.Sheets[wb.SheetNames[0]];
                     const raw = XLSX.utils.sheet_to_json(sh, { header: 1 });
-                    let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().trim() === "denumire"));
+                    let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().trim().includes("denumire")));
                     allClients = XLSX.utils.sheet_to_json(sh, { range: idx === -1 ? 0 : idx, defval: "" }).filter(c => c[Object.keys(c).find(k => k.trim().toLowerCase() === "denumire")]);
                     localStorage.setItem(`dma_cache_cli`, JSON.stringify(allClients));
                     filterClients();
@@ -660,9 +674,9 @@
 
         function renderProducts(products) {
             const tbody = document.getElementById('productTableBody'); if (!tbody) return;
-            if (products.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-20 text-center text-gray-400 font-black">Niciun produs găsit.</td></tr>'; return; }
+            if (products.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-20 text-center text-gray-400 font-black text-xl">Niciun produs găsit.</td></tr>'; return; }
             tbody.innerHTML = products.map(p => {
-                const kD = Object.keys(p).find(k => k.toLowerCase().includes("denumire")), kP = Object.keys(p).find(k => k.toLowerCase().includes("pret")), kS = Object.keys(p).find(k => k.toLowerCase() === "stoc");
+                const kD = Object.keys(p).find(k => k.toLowerCase().includes("denumire")), kP = Object.keys(p).find(k => k.toLowerCase().includes("pret")), kS = Object.keys(p).find(k => k.toLowerCase().includes("stoc"));
                 const name = p[kD], pret = formatPriceNum(p[kP]), stocVal = p[kS] !== undefined ? parseFloat(p[kS].toString().replace(/\./g, '').replace(',', '.')) : null;
                 const qty = cart[name] ? cart[name].quantity : 0;
                 return `<tr class="${qty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100"><td class="px-8 py-8 font-black text-dm-blue uppercase leading-tight tracking-tighter leading-tight"><span class="text-3xl block mb-3 leading-none">${name}</span><div class="flex items-center gap-4"><span class="text-xl font-black text-blue-600/80">${pret.toFixed(2)} RON</span>${stocVal !== null ? `<span class="text-[10px] font-black ${stocVal>0?'text-green-600 bg-green-50':'text-red-500 bg-red-50'} px-3 py-1 rounded-xl border">STOC: ${stocVal.toFixed(0)}</span>` : ''}</div></td><td class="py-8"><div class="flex items-center justify-center gap-4 bg-gray-50 rounded-[1.8rem] p-1.5 border border-gray-100 shadow-inner"><button onclick="updateCart('${name.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100 text-3xl">-</button><span class="font-black text-4xl w-14 text-center text-dm-blue">${qty}</span><button onclick="updateCart('${name.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-xl text-3xl">+</button></div></td><td class="text-right pr-8 py-8 font-black text-dm-blue text-2xl">${(qty*pret).toFixed(2)}</td></tr>`;
@@ -712,16 +726,16 @@
 
         function renderHistory() {
             const c = document.getElementById('history-content'); if (!c) return;
-            if (window.orderHistory.length === 0) { c.innerHTML = '<div class="p-20 text-center text-gray-400 font-bold uppercase tracking-widest italic">Istoric Gol.</div>'; return; }
+            if (window.orderHistory.length === 0) { c.innerHTML = '<div class="p-20 text-center text-gray-400 font-bold uppercase tracking-widest italic text-xl">Istoric Gol.</div>'; return; }
             c.innerHTML = window.orderHistory.map((o, idx) => `<div onclick="veziDetaliiComanda(${idx})" class="bg-white p-10 rounded-[3rem] shadow-xl border-l-[16px] border-dm-yellow active:scale-[0.98] transition-all cursor-pointer"><div class="flex justify-between items-start mb-5"><span class="text-xs font-black text-gray-400 italic">${o.timestamp}</span><span class="${o.status==='Ciornă'?'bg-blue-100 text-blue-700':'bg-green-100 text-green-700'} text-[11px] font-black px-5 py-2 rounded-2xl uppercase">${o.status}</span></div><p class="text-3xl font-black text-dm-blue uppercase leading-none truncate mb-4">${o.client ? o.client.name : 'N/A'}</p><div class="flex justify-between items-end border-t border-gray-50 pt-5"><p class="text-xs font-bold text-gray-400 uppercase tracking-widest">${o.items} REPERE</p><p class="text-3xl font-black text-dm-blue">${o.total} RON</p></div></div>`).join('');
         }
 
         function veziDetaliiComanda(idx) {
             currentViewingOrderIndex = idx; const o = window.orderHistory[idx]; switchView('order-details');
-            document.getElementById('order-details-header').innerHTML = `<div class="flex justify-between items-center mb-5"><h3 class="text-sm font-black text-gray-400 uppercase italic">DETALII</h3><span class="text-[11px] font-black bg-gray-100 px-5 py-2 rounded-2xl uppercase">${o.status}</span></div><p class="text-3xl font-black text-dm-blue uppercase mb-5 leading-none">${o.client ? o.client.name : '-'}</p><p class="text-5xl font-black text-dm-blue italic tracking-tighter">${o.total} RON</p>`;
+            document.getElementById('order-details-header').innerHTML = `<div class="flex justify-between items-center mb-5"><h3 class="text-sm font-black text-gray-400 uppercase italic text-lg">DETALII</h3><span class="text-[11px] font-black bg-gray-100 px-5 py-2 rounded-2xl uppercase">${o.status}</span></div><p class="text-3xl font-black text-dm-blue uppercase mb-5 leading-none">${o.client ? o.client.name : '-'}</p><p class="text-5xl font-black text-dm-blue italic tracking-tighter">${o.total} RON</p>`;
             document.getElementById('order-details-items').innerHTML = Object.values(o.cartData).map(i => {
                 const kD = Object.keys(i.data).find(k => k.toLowerCase().includes("denumire")), kP = Object.keys(i.data).find(k => k.toLowerCase().includes("pret"));
-                return `<div class="flex justify-between items-center text-sm py-6 border-b border-gray-50"><div class="flex flex-col"><span class="font-black text-dm-blue text-2xl uppercase">${i.data[kD]}</span><span class="text-xl font-black text-blue-600/60">${formatPriceNum(i.data[kP]).toFixed(2)}</span></div><span class="font-black bg-gray-100 px-8 py-5 rounded-[2rem] text-4xl">x ${i.quantity}</span></div>`;
+                return `<div class="flex justify-between items-center text-sm py-6 border-b border-gray-50"><div class="flex flex-col"><span class="font-black text-dm-blue text-2xl uppercase">${i.data[kD]}</span><span class="text-xl font-black text-blue-600/60">${formatPriceNum(i.data[kP]).toFixed(2)}</span></div><span class="font-black bg-gray-100 px-8 py-5 rounded-[2rem] text-4xl text-dm-blue">x ${i.quantity}</span></div>`;
             }).join('');
         }
 
@@ -740,7 +754,7 @@
             const p = parseFloat(s); return isNaN(p) ? 0 : p;
         }
 
-        function triggerManualSync() { syncMasterData(); syncClients(); syncSoldData(); if(selectedCategory) selectCategory(selectedCategory); showToast("ACTUALIZARE REUȘITĂ!"); }
+        function triggerManualSync() { syncMasterData(); syncClients(); syncSoldData(); if(selectedCategory) selectCategory(selectedCategory); showToast("ACTUALIZARE FINALIZATĂ!"); }
         function filterProducts() { const q = document.getElementById('searchInput').value.toLowerCase().trim(); renderProducts(currentCategoryData.filter(p => p[Object.keys(p).find(k => k.toLowerCase().includes("denumire"))]?.toString().toLowerCase().includes(q))); }
         function resetSelection() { document.getElementById('searchInput').value = ''; selectedCategory = null; document.getElementById('product-section').classList.add('view-hidden'); document.getElementById('category-placeholder').classList.remove('view-hidden'); ['Ravenol', 'Banner', 'Cyclon', 'Cemsa', 'Inventar'].forEach(cat => { const card = document.getElementById(`card-${cat}`); if (card) card.classList.remove('selected-category'); }); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
