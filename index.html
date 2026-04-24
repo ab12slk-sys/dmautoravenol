@@ -203,7 +203,7 @@
                 <div id="card-Inventar" onclick="selectCategory('Inventar')" class="category-card col-span-2 !aspect-[30/9]" style="background-color: #1e293b;">
                     <div class="category-overlay">
                         <h3 class="text-dm-yellow font-black text-2xl uppercase italic tracking-widest leading-none">📦 TOATE PRODUSELE</h3>
-                        <p class="text-white/50 text-xs uppercase font-bold tracking-tighter mt-1">Sursă: INVENTAR_STOC.xlsx</p>
+                        <p class="text-white/50 text-xs uppercase font-bold tracking-tighter mt-1">Inventar & Oferte</p>
                     </div>
                 </div>
                 <div id="card-Ravenol" onclick="selectCategory('Ravenol')" class="category-card" style="background-image: url('ravenol.jpg');">
@@ -263,7 +263,7 @@
             <div id="clients-list" class="space-y-5 overflow-y-auto max-h-[55vh] pr-2"></div>
         </div>
 
-        <!-- ADAUGARE CLIENT -->
+        <!-- FORMULAR CLIENT NOU -->
         <div id="view-add-client" class="view-hidden p-5">
             <h2 class="text-3xl font-black text-dm-blue uppercase italic mb-8 italic">➕ Client Nou</h2>
             <div class="bg-white p-8 rounded-[3rem] shadow-2xl border border-gray-100 space-y-6">
@@ -363,7 +363,8 @@
             'ovidiu': { pass: 'rahovean', name: 'Ovidiu Rahovean', filter: 'RAHOVEAN' }
         };
 
-        const MASTER_FILE = 'INVENTAR_STOC.xlsx';
+        // AM ADAUGAT NOUL FISIER IN LISTA CATALOAGELOR
+        const CATALOG_FILES = ['INVENTAR_STOC.xlsx', 'OFERTA_RAVENOL.xlsx'];
         const CLIENTS_FILE = 'LISTA_CLIENTI.xlsx';
         const SOLD_FILES = ['SOLD_ALBA.xlsx', 'SOLD_HUNEDOARA.xlsx'];
 
@@ -387,13 +388,12 @@
             setTimeout(() => t.classList.remove('show'), 3000);
         }
 
-        // Functie normalizare nume pentru potrivire "fuzzy"
         function normalizeName(name) {
             if (!name) return "";
             return name.toString().toUpperCase()
                 .replace(/S\.R\.L\./g, "").replace(/SRL/g, "")
                 .replace(/S\.A\./g, "").replace(/SA/g, "")
-                .replace(/[^A-Z0-9]/g, "") // Pastram doar litere si cifre
+                .replace(/[^A-Z0-9]/g, "")
                 .trim();
         }
 
@@ -489,9 +489,7 @@
                                 const val = row[0].toString().trim().toUpperCase();
                                 if (!val.includes("TOTAL") && !val.includes("UNITATEA")) {
                                     currentClient = val;
-                                } else {
-                                    currentClient = ""; 
-                                }
+                                } else { currentClient = ""; }
                             }
                             const factNr = row[1] ? row[1].toString().trim() : "";
                             const restVal = formatPriceNum(row[5]);
@@ -506,14 +504,14 @@
                             }
                         });
                     }
-                } catch (e) { console.warn(`Sold file error.`); }
+                } catch (e) { console.warn(`Eroare la citirea soldurilor din ${file}`); }
             }
         }
 
         function renderSoldItems() {
             const table = document.getElementById('sold-items-table'), disp = document.getElementById('display-sold');
             if (!selectedClient || !allSoldData.length) { 
-                table.innerHTML = '<tr><td colspan="2" class="p-10 text-center font-bold text-gray-400 italic">Lipsă date sold.</td></tr>'; 
+                table.innerHTML = '<tr><td colspan="2" class="p-10 text-center font-bold text-gray-400 italic">Nu am găsit date. Sincronizează (🔄).</td></tr>'; 
                 disp.innerText = "0.00 RON"; return; 
             }
 
@@ -567,7 +565,7 @@
                     const sh = wb.Sheets[wb.SheetNames[0]];
                     const raw = XLSX.utils.sheet_to_json(sh, { header: 1 });
                     let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().trim().includes("denumire")));
-                    allClients = XLSX.utils.sheet_to_json(sh, { range: idx === -1 ? 0 : idx, defval: "" }).filter(c => c[Object.keys(c).find(k => k.trim().toLowerCase() === "denumire")]);
+                    allClients = XLSX.utils.sheet_to_json(sh, { range: idx === -1 ? 0 : idx, defval: "" }).filter(c => c[Object.keys(c).find(k => k.trim().toLowerCase().includes("denumire"))]);
                     localStorage.setItem(`dma_cache_cli`, JSON.stringify(allClients));
                     filterClients();
                 }
@@ -595,12 +593,12 @@
             const q = document.getElementById('clientSearch').value.toLowerCase().trim();
             const merged = [...manuallyCreatedClients, ...allClients];
             const filtered = merged.filter(c => {
-                const kName = Object.keys(c).find(k => k.toLowerCase() === "denumire"), kLoc = Object.keys(c).find(k => k.toLowerCase() === "localitate"), kCIF = Object.keys(c).find(k => k.toLowerCase() === "cod_fiscal");
+                const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire")), kLoc = Object.keys(c).find(k => k.toLowerCase().includes("localitate")), kCIF = Object.keys(c).find(k => k.toLowerCase().includes("cod_fiscal"));
                 const name = c[kName]?.toString() || "";
                 const match = name.toLowerCase().includes(q) || (c[kLoc]||"").toString().toLowerCase().includes(q) || (c[kCIF]||"").toString().toLowerCase().includes(q);
                 let agentMatch = true;
                 if (showOnlyMyClients && currentAgent) {
-                    const kAgent = Object.keys(c).find(k => k.toLowerCase() === "den_agent");
+                    const kAgent = Object.keys(c).find(k => k.toLowerCase().includes("den_agent"));
                     agentMatch = (c[kAgent]?.toString().toUpperCase() || "").includes(currentAgent.filter) || savedClientNames.includes(name);
                 }
                 return match && agentMatch;
@@ -609,9 +607,9 @@
         }
 
         function renderClients(clients) {
-            const container = document.getElementById('clients-list'); if (clients.length === 0) { container.innerHTML = '<p class="p-10 text-center text-gray-400 italic font-bold">Niciun client.</p>'; return; }
+            const container = document.getElementById('clients-list'); if (clients.length === 0) { container.innerHTML = '<p class="p-10 text-center text-gray-400 italic font-bold">Niciun client găsit.</p>'; return; }
             container.innerHTML = clients.map(c => {
-                const kName = Object.keys(c).find(k => k.toLowerCase() === "denumire"), kLoc = Object.keys(c).find(k => k.toLowerCase() === "localitate");
+                const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire")), kLoc = Object.keys(c).find(k => k.toLowerCase().includes("localitate"));
                 const name = c[kName]; const isSaved = savedClientNames.includes(name);
                 return `<div onclick="selectClient('${name.replace(/'/g, "\\'")}', '${(c[kLoc]||'').replace(/'/g, "\\'")}', '${c[Object.keys(c).find(k=>k.toLowerCase() === "cod_fiscal")]||''}', '${c[Object.keys(c).find(k=>k.toLowerCase().includes("reg_com"))]||''}', '${c[Object.keys(c).find(k=>k.toLowerCase().includes("tel"))]||''}')" 
                      class="client-card bg-white p-7 rounded-[2.5rem] shadow-xl active:scale-[0.98] transition-all cursor-pointer flex justify-between items-center ${selectedClient && selectedClient.name === name ? 'active-client' : ''}">
@@ -633,22 +631,55 @@
             }
         }
 
+        // --- ACTUALIZAT: CITIRE CATALOG MULTIPLU CU IMBINARE AUTOMATA ---
         async function syncMasterData() {
             const cached = localStorage.getItem(`dma_mast_cache`);
             if (cached) allProductsRaw = JSON.parse(cached);
+            
             if (window.location.protocol === 'blob:') return;
-            try {
-                const response = await fetch(window.location.pathname.includes('DM-Auto-App') ? `./${MASTER_FILE}` : MASTER_FILE);
-                if (response.ok) {
-                    const data = await response.arrayBuffer();
-                    const wb = XLSX.read(data, {type: 'array'});
-                    const sh = wb.Sheets[wb.SheetNames[0]];
-                    const raw = XLSX.utils.sheet_to_json(sh, { header: 1 });
-                    let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().trim().includes("denumire")));
-                    allProductsRaw = XLSX.utils.sheet_to_json(sh, { range: idx === -1 ? 0 : idx, defval: "" }).filter(p => p[Object.keys(p).find(k => k.toLowerCase().includes("denumire"))]);
-                    localStorage.setItem(`dma_mast_cache`, JSON.stringify(allProductsRaw));
-                }
-            } catch (e) { console.error(e); }
+            
+            let mergedProductsMap = new Map();
+            let successCount = 0;
+
+            for (const file of CATALOG_FILES) {
+                try {
+                    const response = await fetch(window.location.pathname.includes('DM-Auto-App') ? `./${file}` : file);
+                    if (response.ok) {
+                        const data = await response.arrayBuffer();
+                        const wb = XLSX.read(data, {type: 'array'});
+                        const sh = wb.Sheets[wb.SheetNames[0]];
+                        const raw = XLSX.utils.sheet_to_json(sh, { header: 1 });
+                        let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().trim().includes("denumire")));
+                        
+                        if(idx !== -1) {
+                            const fileProducts = XLSX.utils.sheet_to_json(sh, { range: idx, defval: "" });
+                            
+                            fileProducts.forEach(p => {
+                                const kD = Object.keys(p).find(k => k.toLowerCase().includes("denumire"));
+                                if(!kD || !p[kD]) return;
+
+                                const name = p[kD].toString().trim().toUpperCase();
+                                
+                                // Daca produsul exista deja, pastram proprietatile vechi (ex: stocul din inventar) 
+                                // si suprascriem cu cele noi (ex: pretul nou din oferta)
+                                if(!mergedProductsMap.has(name)) {
+                                    mergedProductsMap.set(name, p);
+                                } else {
+                                    const existing = mergedProductsMap.get(name);
+                                    mergedProductsMap.set(name, { ...existing, ...p });
+                                }
+                            });
+                            successCount++;
+                            console.log(`Preluat cu succes: ${file}`);
+                        }
+                    }
+                } catch (e) { console.warn(`Eroare la citirea catalogului ${file}`); }
+            }
+
+            if(successCount > 0) {
+                allProductsRaw = Array.from(mergedProductsMap.values());
+                localStorage.setItem(`dma_mast_cache`, JSON.stringify(allProductsRaw));
+            }
         }
 
         function selectCategory(category) {
@@ -676,9 +707,15 @@
             const tbody = document.getElementById('productTableBody'); if (!tbody) return;
             if (products.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-20 text-center text-gray-400 font-black text-xl">Niciun produs găsit.</td></tr>'; return; }
             tbody.innerHTML = products.map(p => {
-                const kD = Object.keys(p).find(k => k.toLowerCase().includes("denumire")), kP = Object.keys(p).find(k => k.toLowerCase().includes("pret")), kS = Object.keys(p).find(k => k.toLowerCase().includes("stoc"));
-                const name = p[kD], pret = formatPriceNum(p[kP]), stocVal = p[kS] !== undefined ? parseFloat(p[kS].toString().replace(/\./g, '').replace(',', '.')) : null;
+                const kD = Object.keys(p).find(k => k.toLowerCase().includes("denumire"));
+                const kP = Object.keys(p).find(k => k.toLowerCase().includes("pret"));
+                const kS = Object.keys(p).find(k => k.toLowerCase().includes("stoc"));
+                
+                const name = p[kD];
+                const pret = formatPriceNum(p[kP]);
+                const stocVal = (kS && p[kS] !== undefined && p[kS] !== "") ? parseFloat(p[kS].toString().replace(/\./g, '').replace(',', '.')) : null;
                 const qty = cart[name] ? cart[name].quantity : 0;
+                
                 return `<tr class="${qty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100"><td class="px-8 py-8 font-black text-dm-blue uppercase leading-tight tracking-tighter leading-tight"><span class="text-3xl block mb-3 leading-none">${name}</span><div class="flex items-center gap-4"><span class="text-xl font-black text-blue-600/80">${pret.toFixed(2)} RON</span>${stocVal !== null ? `<span class="text-[10px] font-black ${stocVal>0?'text-green-600 bg-green-50':'text-red-500 bg-red-50'} px-3 py-1 rounded-xl border">STOC: ${stocVal.toFixed(0)}</span>` : ''}</div></td><td class="py-8"><div class="flex items-center justify-center gap-4 bg-gray-50 rounded-[1.8rem] p-1.5 border border-gray-100 shadow-inner"><button onclick="updateCart('${name.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100 text-3xl">-</button><span class="font-black text-4xl w-14 text-center text-dm-blue">${qty}</span><button onclick="updateCart('${name.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-xl text-3xl">+</button></div></td><td class="text-right pr-8 py-8 font-black text-dm-blue text-2xl">${(qty*pret).toFixed(2)}</td></tr>`;
             }).join('');
         }
@@ -762,3 +799,4 @@
     </script>
 </body>
 </html>
+
