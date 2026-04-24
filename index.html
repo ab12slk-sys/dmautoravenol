@@ -363,13 +363,15 @@
             'ovidiu': { pass: 'rahovean', name: 'Ovidiu Rahovean', filter: 'RAHOVEAN' }
         };
 
-        // AM ADAUGAT NOUL FISIER IN LISTA CATALOAGELOR
-        const CATALOG_FILES = ['INVENTAR_STOC.xlsx', 'OFERTA_RAVENOL.xlsx'];
         const CLIENTS_FILE = 'LISTA_CLIENTI.xlsx';
         const SOLD_FILES = ['SOLD_ALBA.xlsx', 'SOLD_HUNEDOARA.xlsx'];
 
         let currentAgent = null;
+        
+        // Noua structură de produse standardizată
+        // { denumire: string, pret: number, stoc: number|string }
         let allProductsRaw = []; 
+        
         let allClients = [];
         let allSoldData = [];
         let manuallyCreatedClients = []; 
@@ -471,6 +473,7 @@
             localStorage.setItem(`dma_man_cli_${id}`, JSON.stringify(manuallyCreatedClients));
         }
 
+        // --- ACTUALIZAT: Citire Solduri ---
         async function syncSoldData() {
             allSoldData = [];
             for (const file of SOLD_FILES) {
@@ -553,6 +556,7 @@
             }
         }
 
+        // --- ACTUALIZAT: Gestiune Clienti ---
         async function syncClients() {
             const cached = localStorage.getItem(`dma_cache_cli`);
             if (cached) { allClients = JSON.parse(cached); filterClients(); }
@@ -593,13 +597,21 @@
             const q = document.getElementById('clientSearch').value.toLowerCase().trim();
             const merged = [...manuallyCreatedClients, ...allClients];
             const filtered = merged.filter(c => {
-                const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire")), kLoc = Object.keys(c).find(k => k.toLowerCase().includes("localitate")), kCIF = Object.keys(c).find(k => k.toLowerCase().includes("cod_fiscal"));
+                const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire"));
+                const kLoc = Object.keys(c).find(k => k.toLowerCase().includes("localitate"));
+                const kCIF = Object.keys(c).find(k => k.toLowerCase().includes("cod_fiscal"));
+                
                 const name = c[kName]?.toString() || "";
-                const match = name.toLowerCase().includes(q) || (c[kLoc]||"").toString().toLowerCase().includes(q) || (c[kCIF]||"").toString().toLowerCase().includes(q);
+                const loc = c[kLoc]?.toString() || "";
+                const cif = c[kCIF]?.toString() || "";
+
+                const match = name.toLowerCase().includes(q) || loc.toLowerCase().includes(q) || cif.toLowerCase().includes(q);
+                
                 let agentMatch = true;
                 if (showOnlyMyClients && currentAgent) {
                     const kAgent = Object.keys(c).find(k => k.toLowerCase().includes("den_agent"));
-                    agentMatch = (c[kAgent]?.toString().toUpperCase() || "").includes(currentAgent.filter) || savedClientNames.includes(name);
+                    const agentVal = (c[kAgent]?.toString().toUpperCase() || "");
+                    agentMatch = agentVal.includes(currentAgent.filter) || savedClientNames.includes(name);
                 }
                 return match && agentMatch;
             });
@@ -609,9 +621,15 @@
         function renderClients(clients) {
             const container = document.getElementById('clients-list'); if (clients.length === 0) { container.innerHTML = '<p class="p-10 text-center text-gray-400 italic font-bold">Niciun client găsit.</p>'; return; }
             container.innerHTML = clients.map(c => {
-                const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire")), kLoc = Object.keys(c).find(k => k.toLowerCase().includes("localitate"));
-                const name = c[kName]; const isSaved = savedClientNames.includes(name);
-                return `<div onclick="selectClient('${name.replace(/'/g, "\\'")}', '${(c[kLoc]||'').replace(/'/g, "\\'")}', '${c[Object.keys(c).find(k=>k.toLowerCase() === "cod_fiscal")]||''}', '${c[Object.keys(c).find(k=>k.toLowerCase().includes("reg_com"))]||''}', '${c[Object.keys(c).find(k=>k.toLowerCase().includes("tel"))]||''}')" 
+                const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire"));
+                const kLoc = Object.keys(c).find(k => k.toLowerCase().includes("localitate"));
+                const kCIF = Object.keys(c).find(k => k.toLowerCase() === "cod_fiscal");
+                const kRC = Object.keys(c).find(k => k.toLowerCase().includes("reg_com"));
+                const kTel = Object.keys(c).find(k => k.toLowerCase().includes("tel"));
+
+                const name = c[kName]; 
+                const isSaved = savedClientNames.includes(name);
+                return `<div onclick="selectClient('${name.replace(/'/g, "\\'")}', '${(c[kLoc]||'').replace(/'/g, "\\'")}', '${c[kCIF]||''}', '${c[kRC]||''}', '${c[kTel]||''}')" 
                      class="client-card bg-white p-7 rounded-[2.5rem] shadow-xl active:scale-[0.98] transition-all cursor-pointer flex justify-between items-center ${selectedClient && selectedClient.name === name ? 'active-client' : ''}">
                     <div class="flex-1 min-w-0 pr-4"><p class="text-2xl font-black text-dm-blue uppercase truncate">${name}</p><p class="text-lg font-bold text-gray-400">📍 ${c[kLoc]||'-'}</p></div>
                     <button onclick="event.stopPropagation(); const idx = savedClientNames.indexOf('${name.replace(/'/g, "\\'")}'); if (idx > -1) savedClientNames.splice(idx, 1); else savedClientNames.push('${name.replace(/'/g, "\\'")}'); saveAgentData(); filterClients();" class="btn-save-client flex-shrink-0 ${isSaved ? 'bg-dm-yellow text-dm-blue' : 'bg-gray-100 text-gray-400'}"><span class="text-4xl">${isSaved ? '⭐' : '☆'}</span></button></div>`;
@@ -631,7 +649,7 @@
             }
         }
 
-        // --- ACTUALIZAT: CITIRE CATALOG MULTIPLU CU IMBINARE AUTOMATA ---
+        // --- ACTUALIZAT: LOGICA IMBINARE INVENTAR + OFERTA RAVENOL ---
         async function syncMasterData() {
             const cached = localStorage.getItem(`dma_mast_cache`);
             if (cached) allProductsRaw = JSON.parse(cached);
@@ -641,44 +659,78 @@
             let mergedProductsMap = new Map();
             let successCount = 0;
 
-            for (const file of CATALOG_FILES) {
-                try {
-                    const response = await fetch(window.location.pathname.includes('DM-Auto-App') ? `./${file}` : file);
-                    if (response.ok) {
-                        const data = await response.arrayBuffer();
-                        const wb = XLSX.read(data, {type: 'array'});
-                        const sh = wb.Sheets[wb.SheetNames[0]];
-                        const raw = XLSX.utils.sheet_to_json(sh, { header: 1 });
-                        let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().trim().includes("denumire")));
-                        
-                        if(idx !== -1) {
-                            const fileProducts = XLSX.utils.sheet_to_json(sh, { range: idx, defval: "" });
+            // 1. Incarcam Inventarul (Sursa primara de Stoc si Pret)
+            try {
+                const resInv = await fetch(window.location.pathname.includes('DM-Auto-App') ? `./INVENTAR_STOC.xlsx` : 'INVENTAR_STOC.xlsx');
+                if (resInv.ok) {
+                    const data = await resInv.arrayBuffer();
+                    const wb = XLSX.read(data, {type: 'array'});
+                    const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
+                    let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().includes("denumire")));
+                    if(idx !== -1) {
+                        const items = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { range: idx, defval: "" });
+                        items.forEach(p => {
+                            const kD = Object.keys(p).find(k => k.toLowerCase().includes("denumire"));
+                            const kP = Object.keys(p).find(k => k.toLowerCase().includes("pret"));
+                            const kS = Object.keys(p).find(k => k.toLowerCase().includes("stoc"));
+                            if(!kD || !p[kD]) return;
+                            const name = p[kD].toString().trim();
                             
-                            fileProducts.forEach(p => {
-                                const kD = Object.keys(p).find(k => k.toLowerCase().includes("denumire"));
-                                if(!kD || !p[kD]) return;
-
-                                const name = p[kD].toString().trim().toUpperCase();
-                                
-                                // Daca produsul exista deja, pastram proprietatile vechi (ex: stocul din inventar) 
-                                // si suprascriem cu cele noi (ex: pretul nou din oferta)
-                                if(!mergedProductsMap.has(name)) {
-                                    mergedProductsMap.set(name, p);
-                                } else {
-                                    const existing = mergedProductsMap.get(name);
-                                    mergedProductsMap.set(name, { ...existing, ...p });
-                                }
+                            // Normalizam structura
+                            mergedProductsMap.set(name.toUpperCase(), { 
+                                denumire: name, 
+                                pret: formatPriceNum(p[kP]), 
+                                stoc: p[kS] 
                             });
-                            successCount++;
-                            console.log(`Preluat cu succes: ${file}`);
-                        }
+                        });
+                        successCount++;
                     }
-                } catch (e) { console.warn(`Eroare la citirea catalogului ${file}`); }
-            }
+                }
+            } catch (e) { console.warn("Eroare la INVENTAR_STOC.xlsx"); }
+
+            // 2. Incarcam Oferta Ravenol (Sursa pentru noul Pret)
+            try {
+                const resOf = await fetch(window.location.pathname.includes('DM-Auto-App') ? `./OFERTA_RAVENOL.xlsx` : 'OFERTA_RAVENOL.xlsx');
+                if (resOf.ok) {
+                    const data = await resOf.arrayBuffer();
+                    const wb = XLSX.read(data, {type: 'array'});
+                    const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
+                    let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().includes("denumire")));
+                    if(idx !== -1) {
+                        const items = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { range: idx, defval: "" });
+                        items.forEach(p => {
+                            const kD = Object.keys(p).find(k => k.toLowerCase().includes("denumire"));
+                            const kP = Object.keys(p).find(k => k.toLowerCase().includes("pret fara tva") || k.toLowerCase().includes("pret"));
+                            if(!kD || !p[kD]) return;
+                            
+                            const nameRaw = p[kD].toString().trim();
+                            const nameKey = nameRaw.toUpperCase();
+                            const newPrice = formatPriceNum(p[kP]);
+                            
+                            if(mergedProductsMap.has(nameKey)) {
+                                // Exista deja: actualizam doar pretul
+                                let existing = mergedProductsMap.get(nameKey);
+                                existing.pret = newPrice;
+                                mergedProductsMap.set(nameKey, existing);
+                            } else {
+                                // Nu exista in inventar, il adaugam ca produs nou fara stoc
+                                mergedProductsMap.set(nameKey, { 
+                                    denumire: nameRaw, 
+                                    pret: newPrice, 
+                                    stoc: "" 
+                                });
+                            }
+                        });
+                        successCount++;
+                    }
+                }
+            } catch (e) { console.warn("Eroare la OFERTA_RAVENOL.xlsx"); }
 
             if(successCount > 0) {
+                // Convertim Map-ul inapoi in array pentru aplicatie
                 allProductsRaw = Array.from(mergedProductsMap.values());
                 localStorage.setItem(`dma_mast_cache`, JSON.stringify(allProductsRaw));
+                console.log("Cataloage combinate cu succes!");
             }
         }
 
@@ -692,7 +744,7 @@
             });
             currentCategoryData = allProductsRaw.filter(p => {
                 if (category === 'Inventar') return true;
-                const n = p[Object.keys(p).find(k => k.toLowerCase().includes("denumire"))]?.toString().toUpperCase() || "";
+                const n = p.denumire.toUpperCase();
                 if (category === 'Ravenol') return n.startsWith('RAV');
                 if (category === 'Cyclon') return n.startsWith('CYC');
                 if (category === 'Banner') return n.startsWith('BANNER');
@@ -707,13 +759,9 @@
             const tbody = document.getElementById('productTableBody'); if (!tbody) return;
             if (products.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-20 text-center text-gray-400 font-black text-xl">Niciun produs găsit.</td></tr>'; return; }
             tbody.innerHTML = products.map(p => {
-                const kD = Object.keys(p).find(k => k.toLowerCase().includes("denumire"));
-                const kP = Object.keys(p).find(k => k.toLowerCase().includes("pret"));
-                const kS = Object.keys(p).find(k => k.toLowerCase().includes("stoc"));
-                
-                const name = p[kD];
-                const pret = formatPriceNum(p[kP]);
-                const stocVal = (kS && p[kS] !== undefined && p[kS] !== "") ? parseFloat(p[kS].toString().replace(/\./g, '').replace(',', '.')) : null;
+                const name = p.denumire;
+                const pret = p.pret;
+                const stocVal = (p.stoc !== undefined && p.stoc !== "") ? parseFloat(p.stoc.toString().replace(/\./g, '').replace(',', '.')) : null;
                 const qty = cart[name] ? cart[name].quantity : 0;
                 
                 return `<tr class="${qty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100"><td class="px-8 py-8 font-black text-dm-blue uppercase leading-tight tracking-tighter leading-tight"><span class="text-3xl block mb-3 leading-none">${name}</span><div class="flex items-center gap-4"><span class="text-xl font-black text-blue-600/80">${pret.toFixed(2)} RON</span>${stocVal !== null ? `<span class="text-[10px] font-black ${stocVal>0?'text-green-600 bg-green-50':'text-red-500 bg-red-50'} px-3 py-1 rounded-xl border">STOC: ${stocVal.toFixed(0)}</span>` : ''}</div></td><td class="py-8"><div class="flex items-center justify-center gap-4 bg-gray-50 rounded-[1.8rem] p-1.5 border border-gray-100 shadow-inner"><button onclick="updateCart('${name.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100 text-3xl">-</button><span class="font-black text-4xl w-14 text-center text-dm-blue">${qty}</span><button onclick="updateCart('${name.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-xl text-3xl">+</button></div></td><td class="text-right pr-8 py-8 font-black text-dm-blue text-2xl">${(qty*pret).toFixed(2)}</td></tr>`;
@@ -721,7 +769,7 @@
         }
 
         function updateCart(name, d) {
-            const p = allProductsRaw.find(x => x[Object.keys(x).find(k => k.toLowerCase().includes("denumire"))] === name);
+            const p = allProductsRaw.find(x => x.denumire === name);
             if (!p && !cart[name]) return;
             if (!cart[name]) cart[name] = { quantity: 0, data: p, category: selectedCategory };
             cart[name].quantity += d;
@@ -737,9 +785,10 @@
             if (items.length === 0) { tbody.innerHTML = ''; em.classList.remove('view-hidden'); document.getElementById('totalNoVat').innerText = '0.00 RON'; return; }
             em.classList.add('view-hidden');
             tbody.innerHTML = items.map(i => {
-                const kD = Object.keys(i.data).find(k => k.toLowerCase().includes("denumire")), kP = Object.keys(i.data).find(k => k.toLowerCase().includes("pret"));
-                const pF = formatPriceNum(i.data[kP]); total += i.quantity * pF;
-                return `<tr class="border-b border-gray-100"><td class="px-8 py-6 font-black text-dm-blue uppercase text-xl">${i.data[kD]}<br><span class="text-sm font-bold text-blue-600/60">${pF.toFixed(2)} RON</span></td><td class="py-6"><div class="flex items-center justify-center gap-4 bg-gray-50 rounded-2xl p-2 border border-gray-100"><button onclick="updateCart('${i.data[kD].replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button><span class="font-black text-3xl w-14 text-center text-dm-blue">${i.quantity}</span><button onclick="updateCart('${i.data[kD].replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-md">+</button></div></td><td class="text-right pr-8 py-6 font-black text-dm-blue text-2xl">${(i.quantity*pF).toFixed(2)}</td></tr>`;
+                const name = i.data.denumire;
+                const pF = i.data.pret;
+                total += i.quantity * pF;
+                return `<tr class="border-b border-gray-100"><td class="px-8 py-6 font-black text-dm-blue uppercase text-xl">${name}<br><span class="text-sm font-bold text-blue-600/60">${pF.toFixed(2)} RON</span></td><td class="py-6"><div class="flex items-center justify-center gap-4 bg-gray-50 rounded-2xl p-2 border border-gray-100"><button onclick="updateCart('${name.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button><span class="font-black text-3xl w-14 text-center text-dm-blue">${i.quantity}</span><button onclick="updateCart('${name.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-md">+</button></div></td><td class="text-right pr-8 py-6 font-black text-dm-blue text-2xl">${(i.quantity*pF).toFixed(2)}</td></tr>`;
             }).join('');
             document.getElementById('totalNoVat').innerText = total.toFixed(2) + ' RON';
         }
@@ -749,7 +798,7 @@
             if (!selectedClient && !isDraft) { showToast("SELECTEAZĂ CLIENTUL!"); switchView('clients'); return; }
             if (Object.keys(cart).length === 0) return;
             const ts = new Date().toLocaleString('ro-RO'); let total = 0;
-            Object.values(cart).forEach(i => total += i.quantity * formatPriceNum(i.data[Object.keys(i.data).find(k => k.toLowerCase().includes("pret"))]));
+            Object.values(cart).forEach(i => total += i.quantity * i.data.pret);
             window.orderHistory.unshift({ timestamp: ts, total: total.toFixed(2), items: Object.keys(cart).length, cartData: JSON.parse(JSON.stringify(cart)), status: isDraft ? 'Ciornă' : 'Trimisă', client: selectedClient });
             saveAgentData(); if (!isDraft) { trimiteWhatsApp(ts, cart); cart = {}; selectedClient = null; saveAgentData(); updateBadge(); updateClientUI(); switchView('history'); } else { showToast("SALVAT!"); switchView('history'); }
         }
@@ -757,7 +806,7 @@
         function trimiteWhatsApp(ts, data) {
             const cli = selectedClient ? `CLIENT: ${selectedClient.name} (${selectedClient.loc})` : "CLIENT: N/A";
             let msg = `Salut! Comandă DM Auto Sebeș\nAGENT: ${currentAgent.name}\n${cli}\nData: ${ts}\n\n`;
-            Object.values(data).forEach(i => msg += `• ${i.quantity} x ${i.data[Object.keys(i.data).find(k => k.toLowerCase().includes("denumire"))]}\n`);
+            Object.values(data).forEach(i => msg += `• ${i.quantity} x ${i.data.denumire}\n`);
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
         }
 
@@ -771,8 +820,7 @@
             currentViewingOrderIndex = idx; const o = window.orderHistory[idx]; switchView('order-details');
             document.getElementById('order-details-header').innerHTML = `<div class="flex justify-between items-center mb-5"><h3 class="text-sm font-black text-gray-400 uppercase italic text-lg">DETALII</h3><span class="text-[11px] font-black bg-gray-100 px-5 py-2 rounded-2xl uppercase">${o.status}</span></div><p class="text-3xl font-black text-dm-blue uppercase mb-5 leading-none">${o.client ? o.client.name : '-'}</p><p class="text-5xl font-black text-dm-blue italic tracking-tighter">${o.total} RON</p>`;
             document.getElementById('order-details-items').innerHTML = Object.values(o.cartData).map(i => {
-                const kD = Object.keys(i.data).find(k => k.toLowerCase().includes("denumire")), kP = Object.keys(i.data).find(k => k.toLowerCase().includes("pret"));
-                return `<div class="flex justify-between items-center text-sm py-6 border-b border-gray-50"><div class="flex flex-col"><span class="font-black text-dm-blue text-2xl uppercase">${i.data[kD]}</span><span class="text-xl font-black text-blue-600/60">${formatPriceNum(i.data[kP]).toFixed(2)}</span></div><span class="font-black bg-gray-100 px-8 py-5 rounded-[2rem] text-4xl text-dm-blue">x ${i.quantity}</span></div>`;
+                return `<div class="flex justify-between items-center text-sm py-6 border-b border-gray-50"><div class="flex flex-col"><span class="font-black text-dm-blue text-2xl uppercase">${i.data.denumire}</span><span class="text-xl font-black text-blue-600/60">${i.data.pret.toFixed(2)} RON</span></div><span class="font-black bg-gray-100 px-8 py-5 rounded-[2rem] text-4xl text-dm-blue">x ${i.quantity}</span></div>`;
             }).join('');
         }
 
@@ -792,7 +840,7 @@
         }
 
         function triggerManualSync() { syncMasterData(); syncClients(); syncSoldData(); if(selectedCategory) selectCategory(selectedCategory); showToast("ACTUALIZARE FINALIZATĂ!"); }
-        function filterProducts() { const q = document.getElementById('searchInput').value.toLowerCase().trim(); renderProducts(currentCategoryData.filter(p => p[Object.keys(p).find(k => k.toLowerCase().includes("denumire"))]?.toString().toLowerCase().includes(q))); }
+        function filterProducts() { const q = document.getElementById('searchInput').value.toLowerCase().trim(); renderProducts(currentCategoryData.filter(p => p.denumire.toLowerCase().includes(q))); }
         function resetSelection() { document.getElementById('searchInput').value = ''; selectedCategory = null; document.getElementById('product-section').classList.add('view-hidden'); document.getElementById('category-placeholder').classList.remove('view-hidden'); ['Ravenol', 'Banner', 'Cyclon', 'Cemsa', 'Inventar'].forEach(cat => { const card = document.getElementById(`card-${cat}`); if (card) card.classList.remove('selected-category'); }); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
         window.addEventListener('load', () => { const s = localStorage.getItem('dmauto_session'); if (s) { currentAgent = JSON.parse(s); initApp(); } });
