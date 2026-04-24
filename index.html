@@ -482,8 +482,7 @@
             return await fetch(path);
         }
 
-        // --- ACTUALIZAT: LOGICA IMBINARE INVENTAR + OFERTA RAVENOL ---
-        // Regula: Denumire + Preț din Ofertă. Stoc din Inventar. Doar pt Ravenol.
+        // --- ACTUALIZAT: LOGICA RAVENOL NOUA (Nume si Pret din Ofertă. Stoc din Inventar) ---
         async function syncMasterData() {
             const cached = localStorage.getItem(`dma_mast_cache`);
             if (cached) allProductsRaw = JSON.parse(cached);
@@ -494,7 +493,7 @@
             let ofertaMap = new Map();
             let successCount = 0;
 
-            // 1. Încărcăm Inventarul și memorăm Stocul (și restul detaliilor)
+            // 1. Încărcăm Inventarul și memorăm tot (Nume, Preț, Stoc)
             try {
                 const resInv = await fetchExcel('INVENTAR_STOC.xlsx');
                 if (resInv.ok) {
@@ -526,75 +525,74 @@
                 }
             } catch (e) { console.warn("Eroare la INVENTAR_STOC.xlsx"); }
 
-            // 2. Încărcăm Oferta Ravenol și memorăm Denumirea Exactă + Prețul Nou
+            // 2. Încărcăm Oferta Ravenol (Aici folosim NOUA denumire și Noul Preț)
             try {
-                const ravenolFiles = ['OFERTA_RAVENOL.xlsx', 'OFERTA PRET RAVENOL 23.04.26.xlsx'];
-                let resOf = null;
-                for(let file of ravenolFiles) {
-                    const res = await fetchExcel(file);
-                    if (res.ok) { resOf = res; break; }
-                }
-
-                if (resOf) {
+                // Căutăm direct noul tău fișier optimizat
+                const resOf = await fetchExcel('Oferta_Ravenol_Aranjata.xlsx');
+                if (resOf.ok) {
                     const data = await resOf.arrayBuffer();
                     const wb = XLSX.read(data, {type: 'array'});
                     const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
-                    let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().includes("denumire")));
                     
-                    if(idx !== -1) {
-                        const items = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { range: idx, defval: "" });
-                        items.forEach(p => {
-                            const kD = Object.keys(p).find(k => k.toLowerCase().includes("denumire"));
-                            const kP = Object.keys(p).find(k => k.toLowerCase().includes("pret fara tva") || k.toLowerCase().includes("pret"));
-                            
-                            if(!kD || !p[kD] || !kP || !p[kP]) return;
-                            
-                            const nameRaw = p[kD].toString().trim();
-                            const matchKey = getProductMatchKey(nameRaw);
-                            const newPrice = formatPriceNum(p[kP]);
-                            
-                            ofertaMap.set(matchKey, { 
-                                denumire: nameRaw, // Denumirea exactă din Ofertă
-                                pret: newPrice 
-                            });
+                    // În noul tău fișier, headerele sunt chiar pe primul rând (idx = 0)
+                    let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().includes("denumire")));
+                    if(idx === -1) idx = 0; // Fallback garantat
+                    
+                    const items = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { range: idx, defval: "" });
+                    items.forEach(p => {
+                        const kD = Object.keys(p).find(k => k.toLowerCase().includes("denumire"));
+                        // În noul fișier coloana se numește "Pret fara TVA"
+                        const kP = Object.keys(p).find(k => k.toLowerCase().includes("pret fara tva") || k.toLowerCase().includes("pret"));
+                        
+                        if(!kD || !p[kD] || !kP || !p[kP]) return;
+                        
+                        const nameRaw = p[kD].toString().trim();
+                        const matchKey = getProductMatchKey(nameRaw);
+                        const newPrice = formatPriceNum(p[kP]);
+                        
+                        ofertaMap.set(matchKey, { 
+                            denumire: nameRaw, // Denumirea perfectă din Ofertă
+                            pret: newPrice 
                         });
-                        successCount++;
-                    }
+                    });
+                    successCount++;
                 }
-            } catch (e) { console.warn("Eroare la fișierul ofertă Ravenol."); }
+            } catch (e) { console.warn("Eroare la Oferta_Ravenol_Aranjata.xlsx"); }
 
-            // 3. Combinăm cele două surse folosind logica specificată
+            // 3. Combinăm cele două surse după regula stabilită
             if(successCount > 0) {
                 let finalProducts = [];
                 
-                // Parcurgem întâi Inventarul (pentru Cyclon, Banner, Cemsa etc.)
+                // Pasul A: Punem toate produsele din Inventar care NU sunt Ravenol
                 inventarMap.forEach((data, key) => {
                     const isRavenol = data.denumire.toUpperCase().startsWith("RAV");
                     const existsInOferta = ofertaMap.has(key);
                     
-                    // Dacă e Ravenol și e în ofertă, îl ignorăm acum. Îl adăugăm când parcurgem oferta.
+                    // Dacă e Ravenol și e în ofertă, ÎL IGNORĂM (îl luăm direct din ofertă la Pasul B)
+                    // (Dacă cumva e un Ravenol în Inventar, dar lipsește din Ofertă, îl păstrăm ca back-up)
                     if (isRavenol && existsInOferta) return; 
                     
                     finalProducts.push(data);
                 });
                 
-                // Parcurgem Oferta Ravenol. Numele + Prețul sunt de aici. Căutăm doar Stocul în Inventar.
+                // Pasul B: Adăugăm TOATE produsele din Oferta Ravenol. Numele + Prețul de aici. Doar Stocul din Inventar.
                 ofertaMap.forEach((data, key) => {
                     let stocGasit = "";
+                    // Căutăm stocul în inventar folosind cheia de potrivire (fără spații)
                     if (inventarMap.has(key)) {
                         stocGasit = inventarMap.get(key).stoc;
                     }
                     
                     finalProducts.push({
-                        denumire: data.denumire, // Preia numele exact din Ofertă (ex. cu spații duble)
+                        denumire: data.denumire, // Preia numele exact (curat) din Ofertă
                         pret: data.pret,         // Preia prețul nou din Ofertă
-                        stoc: stocGasit          // Lipește stocul găsit în Inventar
+                        stoc: stocGasit          // Lipește stocul pe care îl avem fizic în Inventar
                     });
                 });
 
                 allProductsRaw = finalProducts;
                 localStorage.setItem(`dma_mast_cache`, JSON.stringify(allProductsRaw));
-                console.log("Integrare perfectă: Nume + Preț (Ofertă) + Stoc (Inventar)");
+                console.log("Integrare Ravenol completă: Nume + Preț (Ofertă) și Stoc (Inventar)");
             }
         }
 
@@ -873,4 +871,3 @@
     </script>
 </body>
 </html>
-
