@@ -41,7 +41,7 @@
             border: 4px solid transparent;
         }
 
-        .category-card:active, .mode-btn:active, .qty-btn:active, .nav-btn:active, .action-btn:active { 
+        .category-card:active, .mode-btn:active, .nav-btn:active, .action-btn:active { 
             transform: scale(0.92); 
             filter: brightness(0.9);
         }
@@ -53,35 +53,36 @@
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
-            padding: 1.5rem;
-        }
-
-        .qty-btn {
-            width: 58px;
-            height: 58px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 20px;
-            font-weight: 900;
+            padding: 1rem;
         }
 
         .cart-badge {
             position: absolute;
-            top: -10px;
-            right: -10px;
+            top: -8px;
+            right: -8px;
             background: #ffcc00;
             color: #003366;
-            font-size: 13px;
+            font-size: 11px;
             font-weight: 900;
-            width: 30px;
-            height: 30px;
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 3px solid white;
+            border: 2px solid white;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        
+        @media (min-width: 640px) {
+            .cart-badge {
+                top: -10px;
+                right: -10px;
+                font-size: 13px;
+                width: 30px;
+                height: 30px;
+            }
+            .category-overlay { padding: 1.5rem; }
         }
 
         .view-hidden { display: none !important; }
@@ -96,9 +97,11 @@
         }
 
         .client-card {
-            border-left: 12px solid #e2e8f0;
+            border-left: 8px solid #e2e8f0;
             transition: all 0.2s;
         }
+        @media (min-width: 640px) { .client-card { border-left-width: 12px; } }
+        
         .client-card.active-client {
             border-left-color: #ffcc00;
             background-color: #fffbeb;
@@ -110,9 +113,10 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            border-radius: 2.5rem;
-            box-shadow: 0 15px 30px -5px rgba(0,0,0,0.15);
+            border-radius: 2rem;
+            box-shadow: 0 10px 20px -5px rgba(0,0,0,0.15);
         }
+        @media (min-width: 640px) { .mode-btn { border-radius: 2.5rem; box-shadow: 0 15px 30px -5px rgba(0,0,0,0.15); } }
 
         #custom-toast {
             position: fixed;
@@ -121,76 +125,81 @@
             transform: translateX(-50%) translateY(-150px);
             background: #1e293b;
             color: white;
-            padding: 18px 36px;
-            border-radius: 24px;
+            padding: 14px 28px;
+            border-radius: 20px;
             font-weight: 800;
             z-index: 200;
             box-shadow: 0 20px 50px rgba(0,0,0,0.4);
             transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             text-transform: uppercase;
-            font-size: 14px;
+            font-size: 12px;
             border: 2px solid #ffcc00;
             text-align: center;
+            width: 90%;
+            max-width: 400px;
         }
+        @media (min-width: 640px) { #custom-toast { padding: 18px 36px; font-size: 14px; border-radius: 24px; width: auto; } }
+        
         #custom-toast.show { transform: translateX(-50%) translateY(0); }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="pb-44">
+<body class="pb-32 sm:pb-44">
 
     <div id="custom-toast">Mesaj Notificare</div>
 
     <!-- ECRAN LOGIN -->
     <div id="view-login" class="fixed inset-0 z-[100] login-gradient flex flex-col items-center justify-center p-6 text-center">
         <div class="w-full max-w-sm">
-            <div class="flex flex-col items-center mb-12">
-                <img src="logo_dmauto.png" alt="DM Auto Logo" class="h-32 mb-6 object-contain" onerror="this.src='https://via.placeholder.com/150?text=DM+AUTO'">
-                <h2 class="text-dm-yellow font-black text-2xl tracking-widest italic uppercase">Portal Agenți</h2>
+            <div class="flex flex-col items-center mb-8 sm:mb-12">
+                <img src="logo_dmauto.png" alt="DM Auto Logo" class="h-24 sm:h-32 mb-4 sm:mb-6 object-contain" onerror="this.src='https://via.placeholder.com/150?text=DM+AUTO'">
+                <h2 class="text-dm-yellow font-black text-xl sm:text-2xl tracking-widest italic uppercase">Portal Agenți</h2>
             </div>
-            <div class="bg-white/10 backdrop-blur-xl p-8 rounded-[3rem] border border-white/20 shadow-2xl">
-                <div class="mb-6 text-left">
-                    <label class="block text-white/50 text-[10px] font-black uppercase mb-2 ml-1">Utilizator</label>
-                    <input type="text" id="login-user" placeholder="nume agent" class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white text-lg focus:outline-none focus:border-dm-yellow transition-all uppercase">
+            <div class="bg-white/10 backdrop-blur-xl p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] border border-white/20 shadow-2xl">
+                <div class="mb-5 sm:mb-6 text-left">
+                    <label class="block text-white/50 text-[10px] font-black uppercase mb-1 sm:mb-2 ml-1">Utilizator</label>
+                    <input type="text" id="login-user" placeholder="nume agent" class="w-full bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-5 text-white text-base sm:text-lg focus:outline-none focus:border-dm-yellow transition-all uppercase">
                 </div>
-                <div class="mb-10 text-left">
-                    <label class="block text-white/50 text-[10px] font-black uppercase mb-2 ml-1">Parolă</label>
-                    <input type="password" id="login-pass" placeholder="••••••••" class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white text-lg focus:outline-none focus:border-dm-yellow transition-all">
+                <div class="mb-8 sm:mb-10 text-left">
+                    <label class="block text-white/50 text-[10px] font-black uppercase mb-1 sm:mb-2 ml-1">Parolă</label>
+                    <input type="password" id="login-pass" placeholder="••••••••" class="w-full bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-5 text-white text-base sm:text-lg focus:outline-none focus:border-dm-yellow transition-all">
                 </div>
-                <button onclick="handleLogin()" class="w-full bg-dm-yellow text-dm-blue py-6 rounded-2xl font-black uppercase shadow-xl active:scale-95 transition-all text-xl tracking-tighter">Autentificare 🚀</button>
-                <div id="login-error" class="mt-5 text-red-400 text-xs font-black hidden uppercase tracking-tighter text-center">Date incorecte!</div>
+                <button onclick="handleLogin()" class="w-full bg-dm-yellow text-dm-blue py-4 sm:py-6 rounded-xl sm:rounded-2xl font-black uppercase shadow-xl active:scale-95 transition-all text-lg sm:text-xl tracking-tighter">Autentificare 🚀</button>
+                <div id="login-error" class="mt-4 sm:mt-5 text-red-400 text-xs font-black hidden uppercase tracking-tighter text-center">Date incorecte!</div>
             </div>
         </div>
     </div>
 
     <!-- APP CONTENT -->
     <div id="app-content" class="view-hidden">
-        <header class="bg-dm-blue text-white p-5 pb-10 shadow-2xl rounded-b-[3.5rem] sticky top-0 z-40">
-            <div class="flex items-center gap-5 mb-8">
-                <button id="header-back-btn" onclick="goBack()" class="bg-white/10 p-4 rounded-2xl border border-white/20 active:scale-90 transition-all shadow-lg view-hidden">
-                    <span class="text-2xl font-black">⬅️</span>
+        <!-- HEADER (ADAPTAT PENTRU MOBIL) -->
+        <header class="bg-dm-blue text-white p-4 pb-8 sm:p-5 sm:pb-10 shadow-2xl rounded-b-[2.5rem] sm:rounded-b-[3.5rem] sticky top-0 z-40">
+            <div class="flex items-center gap-3 sm:gap-5 mb-6 sm:mb-8">
+                <button id="header-back-btn" onclick="goBack()" class="bg-white/10 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-white/20 active:scale-90 transition-all shadow-lg view-hidden">
+                    <span class="text-xl sm:text-2xl font-black">⬅️</span>
                 </button>
                 <div class="flex-1">
-                    <h1 class="text-sm font-medium opacity-70 leading-none mb-1">Salut, <span id="agent-display-name" class="font-black text-white">Agent!</span></h1>
-                    <button onclick="switchView('clients')" class="mt-2 w-full bg-black/40 border border-white/20 p-4 rounded-2xl flex flex-col items-start gap-1 active:scale-95 transition-all shadow-inner">
-                        <span class="text-[9px] font-black text-dm-yellow uppercase tracking-[0.2em] opacity-80">Client Actual:</span>
+                    <h1 class="text-xs sm:text-sm font-medium opacity-70 leading-none mb-1">Salut, <span id="agent-display-name" class="font-black text-white">Agent!</span></h1>
+                    <button onclick="switchView('clients')" class="mt-1 sm:mt-2 w-full bg-black/40 border border-white/20 p-3 sm:p-4 rounded-xl sm:rounded-2xl flex flex-col items-start gap-1 active:scale-95 transition-all shadow-inner">
+                        <span class="text-[8px] sm:text-[9px] font-black text-dm-yellow uppercase tracking-[0.2em] opacity-80">Client Actual:</span>
                         <div class="flex items-center justify-between w-full">
-                            <span id="header-client-name" class="text-2xl font-black truncate leading-none text-left">Neselectat 👤</span>
-                            <span class="text-dm-yellow text-xl">➔</span>
+                            <span id="header-client-name" class="text-lg sm:text-2xl font-black truncate leading-none text-left">Neselectat 👤</span>
+                            <span class="text-dm-yellow text-lg sm:text-xl">➔</span>
                         </div>
                     </button>
                 </div>
-                <button onclick="triggerManualSync()" class="bg-white/10 p-5 rounded-2xl border border-white/20 active:scale-90 transition-all shadow-lg flex-shrink-0">
-                    <span class="text-3xl">🔄</span>
+                <button onclick="triggerManualSync()" class="bg-white/10 p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-white/20 active:scale-90 transition-all shadow-lg flex-shrink-0">
+                    <span class="text-2xl sm:text-3xl">🔄</span>
                 </button>
             </div>
 
             <div id="search-container" class="relative">
-                <input type="text" id="searchInput" onkeyup="if(event.key === 'Enter') filterProducts()" placeholder="Caută în listă..." 
-                       class="w-full p-6 pr-20 rounded-3xl text-gray-800 text-xl focus:outline-none shadow-2xl border-none font-semibold uppercase">
-                <div onclick="filterProducts()" class="absolute right-6 top-5 text-gray-300 cursor-pointer active:scale-90 active:text-dm-blue transition-all">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <input type="text" id="searchInput" onkeyup="if(event.key === 'Enter') filterProducts()" placeholder="Caută..." 
+                       class="w-full p-4 sm:p-6 pr-16 sm:pr-20 rounded-2xl sm:rounded-3xl text-gray-800 text-base sm:text-xl focus:outline-none shadow-2xl border-none font-semibold uppercase">
+                <div onclick="filterProducts()" class="absolute right-4 sm:right-6 top-3 sm:top-5 text-gray-300 cursor-pointer active:scale-90 active:text-dm-blue transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 sm:h-10 sm:w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                 </div>
@@ -199,39 +208,40 @@
 
         <!-- CATALOG -->
         <div id="view-catalog" class="active-view">
-            <div class="p-4 grid grid-cols-2 gap-5">
-                <div id="card-Inventar" onclick="selectCategory('Inventar')" class="category-card col-span-2 !aspect-[30/9]" style="background-color: #1e293b;">
+            <div class="p-3 sm:p-4 grid grid-cols-2 gap-3 sm:gap-5">
+                <div id="card-Inventar" onclick="selectCategory('Inventar')" class="category-card col-span-2 !aspect-[25/9] sm:!aspect-[30/9]" style="background-color: #1e293b;">
                     <div class="category-overlay">
-                        <h3 class="text-dm-yellow font-black text-2xl uppercase italic tracking-widest leading-none">📦 TOATE PRODUSELE</h3>
-                        <p class="text-white/50 text-xs uppercase font-bold tracking-tighter mt-1">Sursă Unică: STOCEG.xls</p>
+                        <h3 class="text-dm-yellow font-black text-xl sm:text-2xl uppercase italic tracking-widest leading-none">📦 TOATE PRODUSELE</h3>
+                        <p class="text-white/50 text-[10px] sm:text-xs uppercase font-bold tracking-tighter mt-1">Stoc + Oferte Actualizate</p>
                     </div>
                 </div>
                 <div id="card-Ravenol" onclick="selectCategory('Ravenol')" class="category-card" style="background-image: url('ravenol.jpg');">
-                    <div class="category-overlay"><h3 class="text-white font-black text-base uppercase italic tracking-tighter">RAVENOL</h3></div>
+                    <div class="category-overlay"><h3 class="text-white font-black text-sm sm:text-base uppercase italic tracking-tighter">RAVENOL</h3></div>
                 </div>
                 <div id="card-Banner" onclick="selectCategory('Banner')" class="category-card" style="background-image: url('banner.jpg');">
-                    <div class="category-overlay"><h3 class="text-white font-black text-base uppercase italic tracking-tighter">BANNER</h3></div>
+                    <div class="category-overlay"><h3 class="text-white font-black text-sm sm:text-base uppercase italic tracking-tighter">BANNER</h3></div>
                 </div>
                 <div id="card-Cyclon" onclick="selectCategory('Cyclon')" class="category-card" style="background-image: url('cyclon.jpg');">
-                    <div class="category-overlay"><h3 class="text-white font-black text-base uppercase italic tracking-tighter">CYCLON</h3></div>
+                    <div class="category-overlay"><h3 class="text-white font-black text-sm sm:text-base uppercase italic tracking-tighter">CYCLON</h3></div>
                 </div>
                 <div id="card-Cemsa" onclick="selectCategory('Cemsa')" class="category-card" style="background-image: url('cemsa.jpg');">
-                    <div class="category-overlay"><h3 class="text-white font-black text-sm uppercase italic tracking-tighter">ALTELE</h3></div>
+                    <div class="category-overlay"><h3 class="text-white font-black text-xs sm:text-sm uppercase italic tracking-tighter">ALTELE</h3></div>
                 </div>
             </div>
 
-            <div id="product-section" class="px-4 view-hidden">
-                <div class="flex justify-between items-center mb-5 px-1 pt-4">
-                    <div class="flex items-center gap-4">
-                        <h3 id="selected-category-title" class="text-xl font-black uppercase tracking-widest text-dm-blue italic">Produse</h3>
-                        <button onclick="resetSelection()" class="text-xs bg-gray-200 px-5 py-2 rounded-2xl text-gray-600 font-black uppercase shadow-sm">Închide</button>
+            <!-- TABEL PRODUSE RESPONSIV -->
+            <div id="product-section" class="px-2 sm:px-4 view-hidden">
+                <div class="flex justify-between items-center mb-3 sm:mb-5 px-1 pt-2 sm:pt-4">
+                    <div class="flex items-center gap-3 sm:gap-4">
+                        <h3 id="selected-category-title" class="text-lg sm:text-xl font-black uppercase tracking-widest text-dm-blue italic">Produse</h3>
+                        <button onclick="resetSelection()" class="text-[10px] sm:text-xs bg-gray-200 px-4 sm:px-5 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl text-gray-600 font-black uppercase shadow-sm">Închide</button>
                     </div>
                 </div>
-                <div class="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100 mb-12">
-                    <div class="overflow-x-auto max-h-[60vh]">
+                <div class="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100 mb-8 sm:mb-12">
+                    <div class="overflow-x-auto max-h-[65vh]">
                         <table class="w-full text-left">
-                            <thead class="bg-gray-50 border-b border-gray-100 uppercase text-[10px] font-black text-gray-400">
-                                <tr><th class="pl-6 py-4">Reper / Stoc / Preț Net</th><th class="text-center">Cant.</th><th class="pr-6 text-right">Total Net</th></tr>
+                            <thead class="bg-gray-50 border-b border-gray-100 uppercase text-[9px] sm:text-[10px] font-black text-gray-400">
+                                <tr><th class="pl-4 sm:pl-6 py-3 sm:py-4">Reper / Stoc / Preț Net</th><th class="text-center">Cant.</th><th class="pr-4 sm:pr-6 text-right">Total</th></tr>
                             </thead>
                             <tbody id="productTableBody" class="divide-y divide-gray-100"></tbody>
                         </table>
@@ -239,87 +249,87 @@
                 </div>
             </div>
             
-            <div id="category-placeholder" class="p-12 text-center">
-                <div class="bg-gray-50 border-2 border-dashed border-gray-200 rounded-[3rem] p-12 shadow-inner">
-                    <span class="text-7xl block mb-6 animate-bounce">👇</span>
-                    <p class="text-gray-400 font-black uppercase text-base tracking-widest">Selectează categoria</p>
+            <div id="category-placeholder" class="p-8 sm:p-12 text-center">
+                <div class="bg-gray-50 border-2 border-dashed border-gray-200 rounded-[2rem] sm:rounded-[3rem] p-8 sm:p-12 shadow-inner">
+                    <span class="text-5xl sm:text-7xl block mb-4 sm:mb-6 animate-bounce">👇</span>
+                    <p class="text-gray-400 font-black uppercase text-sm sm:text-base tracking-widest">Selectează categoria</p>
                 </div>
             </div>
         </div>
 
         <!-- LISTA CLIENTI -->
-        <div id="view-clients" class="view-hidden p-5">
-            <div class="flex justify-between items-center mb-8">
-                <h2 class="text-3xl font-black text-dm-blue uppercase italic leading-none">👤 Baza Clienți</h2>
-                <button onclick="switchView('add-client')" class="bg-dm-yellow text-dm-blue px-6 py-4 rounded-2xl font-black text-xs uppercase shadow-xl">+ Client Nou</button>
+        <div id="view-clients" class="view-hidden p-4 sm:p-5">
+            <div class="flex justify-between items-center mb-6 sm:mb-8">
+                <h2 class="text-2xl sm:text-3xl font-black text-dm-blue uppercase italic leading-none">👤 Baza Clienți</h2>
+                <button onclick="switchView('add-client')" class="bg-dm-yellow text-dm-blue px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black text-[10px] sm:text-xs uppercase shadow-xl">+ Client Nou</button>
             </div>
-            <div class="relative mb-8">
-                <input type="text" id="clientSearch" onkeyup="filterClients()" placeholder="Nume, Oraș, CIF sau Tel..." class="w-full p-6 rounded-3xl text-gray-800 text-xl focus:outline-none shadow-xl border border-gray-100 font-semibold uppercase">
+            <div class="relative mb-6 sm:mb-8">
+                <input type="text" id="clientSearch" onkeyup="filterClients()" placeholder="Nume, Oraș, CIF..." class="w-full p-4 sm:p-6 rounded-2xl sm:rounded-3xl text-gray-800 text-base sm:text-xl focus:outline-none shadow-xl border border-gray-100 font-semibold uppercase">
             </div>
-            <div class="flex gap-3 mb-8 overflow-x-auto pb-2 no-scrollbar">
+            <div class="flex gap-2 sm:gap-3 mb-6 sm:mb-8 overflow-x-auto pb-2 no-scrollbar">
                 <button onclick="toggleClientFilter(true)" id="btnFilterMyClients" class="sheet-tab sheet-tab-inactive shadow-md">Zona Mea ⭐</button>
                 <button onclick="toggleClientFilter(false)" id="btnFilterAllClients" class="sheet-tab sheet-tab-active shadow-lg">Toți Clienții</button>
             </div>
-            <div id="clients-list" class="space-y-5 overflow-y-auto max-h-[55vh] pr-2"></div>
+            <div id="clients-list" class="space-y-3 sm:space-y-5 overflow-y-auto max-h-[60vh] pr-1 sm:pr-2"></div>
         </div>
 
-        <!-- FORMULAR CLIENT NOU -->
-        <div id="view-add-client" class="view-hidden p-5">
-            <h2 class="text-3xl font-black text-dm-blue uppercase italic mb-8 italic">➕ Client Nou</h2>
-            <div class="bg-white p-8 rounded-[3rem] shadow-2xl border border-gray-100 space-y-6">
-                <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Denumire Firmă</label><input type="text" id="new-client-name" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
-                <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Localitate / Oraș</label><input type="text" id="new-client-loc" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
-                <div class="col-span-2"><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Adresă Livrare Completă</label><input type="text" id="new-client-adresa" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase" placeholder="Strada, Numărul, Detalii..."></div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">CIF</label><input type="text" id="new-client-cif" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
-                    <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Reg. Com.</label><input type="text" id="new-client-rc" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
+        <!-- FORMULARE COMPACTATE PENTRU MOBIL -->
+        <div id="view-add-client" class="view-hidden p-4 sm:p-5">
+            <h2 class="text-2xl sm:text-3xl font-black text-dm-blue uppercase italic mb-6 sm:mb-8">➕ Client Nou</h2>
+            <div class="bg-white p-5 sm:p-8 rounded-[2rem] sm:rounded-[3rem] shadow-2xl border border-gray-100 space-y-4 sm:space-y-6">
+                <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Denumire</label><input type="text" id="new-client-name" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
+                <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Oraș</label><input type="text" id="new-client-loc" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
+                <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Adresă Livrare</label><input type="text" id="new-client-adresa" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
+                <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                    <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">CIF</label><input type="text" id="new-client-cif" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
+                    <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Reg. Com.</label><input type="text" id="new-client-rc" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
                 </div>
-                <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Nr. Telefon</label><input type="tel" id="new-client-tel" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all"></div>
-                <button onclick="handleCreateClient()" class="w-full bg-dm-blue text-dm-yellow py-6 rounded-[2rem] font-black uppercase text-xl shadow-2xl active:scale-95 transition-all mt-4">Salvează Clientul ✅</button>
+                <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Telefon</label><input type="tel" id="new-client-tel" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all"></div>
+                <button onclick="handleCreateClient()" class="w-full bg-dm-blue text-dm-yellow py-4 sm:py-6 rounded-xl sm:rounded-[2rem] font-black uppercase text-base sm:text-xl shadow-2xl active:scale-95 transition-all mt-2 sm:mt-4">Salvează ✅</button>
             </div>
         </div>
 
-        <!-- FORMULAR EDITARE CLIENT -->
-        <div id="view-edit-client" class="view-hidden p-5">
-            <h2 class="text-3xl font-black text-dm-blue uppercase italic mb-8 italic">✏️ Editează Client</h2>
-            <div class="bg-white p-8 rounded-[3rem] shadow-2xl border border-gray-100 space-y-6">
-                <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Denumire Firmă</label><input type="text" id="edit-client-name" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
-                <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Localitate / Oraș</label><input type="text" id="edit-client-loc" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
-                <div class="col-span-2"><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Adresă Livrare Completă</label><input type="text" id="edit-client-adresa" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">CIF</label><input type="text" id="edit-client-cif" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
-                    <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Reg. Com.</label><input type="text" id="edit-client-rc" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
+        <div id="view-edit-client" class="view-hidden p-4 sm:p-5">
+            <h2 class="text-2xl sm:text-3xl font-black text-dm-blue uppercase italic mb-6 sm:mb-8">✏️ Editează Client</h2>
+            <div class="bg-white p-5 sm:p-8 rounded-[2rem] sm:rounded-[3rem] shadow-2xl border border-gray-100 space-y-4 sm:space-y-6">
+                <!-- Same compact styling as add-client -->
+                <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Denumire</label><input type="text" id="edit-client-name" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
+                <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Oraș</label><input type="text" id="edit-client-loc" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
+                <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Adresă Livrare</label><input type="text" id="edit-client-adresa" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
+                <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                    <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">CIF</label><input type="text" id="edit-client-cif" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
+                    <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Reg. Com.</label><input type="text" id="edit-client-rc" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
                 </div>
-                <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Nr. Telefon</label><input type="tel" id="edit-client-tel" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all"></div>
-                <button onclick="handleEditClientSave()" class="w-full bg-green-600 text-white py-6 rounded-[2rem] font-black uppercase text-xl shadow-2xl active:scale-95 transition-all mt-4">Salvează Modificările 💾</button>
+                <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Telefon</label><input type="tel" id="edit-client-tel" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all"></div>
+                <button onclick="handleEditClientSave()" class="w-full bg-green-600 text-white py-4 sm:py-6 rounded-xl sm:rounded-[2rem] font-black uppercase text-base sm:text-xl shadow-2xl active:scale-95 transition-all mt-2 sm:mt-4">Salvează 💾</button>
             </div>
         </div>
 
         <!-- SELECTOR MOD -->
-        <div id="view-client-mode" class="view-hidden p-6 flex flex-col justify-center min-h-[70vh]">
-            <h3 class="text-center text-gray-400 font-black uppercase tracking-[0.3em] mb-8">Operațiune</h3>
-            <div class="grid grid-cols-2 gap-5 mb-5">
-                <button onclick="selectMode('vanzare')" class="mode-btn bg-dm-blue text-white shadow-2xl"><span class="text-6xl mb-3">🛒</span><span class="font-black uppercase tracking-widest text-sm">Vânzare</span></button>
-                <button onclick="selectMode('incasare')" class="mode-btn bg-green-600 text-white shadow-2xl"><span class="text-6xl mb-3">💰</span><span class="font-black uppercase tracking-widest text-sm">Încasare</span></button>
+        <div id="view-client-mode" class="view-hidden p-5 sm:p-6 flex flex-col justify-center min-h-[60vh] sm:min-h-[70vh]">
+            <h3 class="text-center text-gray-400 font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] mb-6 sm:mb-8 text-sm sm:text-base">Operațiune</h3>
+            <div class="grid grid-cols-2 gap-4 sm:gap-5 mb-4 sm:mb-5">
+                <button onclick="selectMode('vanzare')" class="mode-btn bg-dm-blue text-white shadow-2xl py-6 sm:py-0"><span class="text-5xl sm:text-6xl mb-2 sm:mb-3">🛒</span><span class="font-black uppercase tracking-widest text-xs sm:text-sm">Vânzare</span></button>
+                <button onclick="selectMode('incasare')" class="mode-btn bg-green-600 text-white shadow-2xl py-6 sm:py-0"><span class="text-5xl sm:text-6xl mb-2 sm:mb-3">💰</span><span class="font-black uppercase tracking-widest text-xs sm:text-sm">Încasare</span></button>
             </div>
-            <button onclick="openEditClient()" class="w-full bg-gray-100 text-gray-600 shadow-md rounded-3xl py-6 active:scale-95 transition-all mb-8">
-                <span class="font-black uppercase tracking-widest text-sm flex items-center justify-center gap-3"><span class="text-2xl">✏️</span> Editează Date Client</span>
+            <button onclick="openEditClient()" class="w-full bg-gray-100 text-gray-600 shadow-md rounded-2xl sm:rounded-3xl py-4 sm:py-6 active:scale-95 transition-all mb-6 sm:mb-8">
+                <span class="font-black uppercase tracking-widest text-xs sm:text-sm flex items-center justify-center gap-2 sm:gap-3"><span class="text-xl sm:text-2xl">✏️</span> Editează Date Client</span>
             </button>
-            <button onclick="switchView('clients')" class="text-center text-dm-blue font-black uppercase tracking-widest text-sm opacity-50 underline w-full">Schimbă Clientul</button>
+            <button onclick="switchView('clients')" class="text-center text-dm-blue font-black uppercase tracking-widest text-xs sm:text-sm opacity-50 underline w-full">Schimbă Clientul</button>
         </div>
 
         <!-- VEDERE ÎNCASARE -->
-        <div id="view-incasare" class="view-hidden p-6">
-            <h2 class="text-3xl font-black text-green-700 uppercase italic mb-6 leading-none italic">💰 Situație Neîncasate</h2>
-            <div class="bg-white p-8 rounded-[3rem] shadow-xl mb-8 text-center">
-                <p class="text-gray-400 font-black uppercase text-xs mb-2">Rest Total de Încasat:</p>
-                <p id="display-sold" class="text-5xl font-black text-red-600 tracking-tighter">0.00 RON</p>
+        <div id="view-incasare" class="view-hidden p-4 sm:p-6">
+            <h2 class="text-2xl sm:text-3xl font-black text-green-700 uppercase italic mb-4 sm:mb-6 leading-none italic">💰 Neîncasate</h2>
+            <div class="bg-white p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] shadow-xl mb-6 sm:mb-8 text-center">
+                <p class="text-gray-400 font-black uppercase text-[10px] sm:text-xs mb-1 sm:mb-2">Total de Încasat:</p>
+                <p id="display-sold" class="text-4xl sm:text-5xl font-black text-red-600 tracking-tighter">0.00 RON</p>
             </div>
-            <div class="bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-gray-100">
+            <div class="bg-white rounded-[1.5rem] sm:rounded-[2rem] shadow-2xl overflow-hidden border border-gray-100">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">
-                        <thead class="bg-gray-50 border-b border-gray-100 font-black uppercase text-[10px] text-gray-400">
-                            <tr><th class="pl-6 py-5">Factură / Data</th><th class="pr-6 text-right">Sumă Rest</th></tr>
+                        <thead class="bg-gray-50 border-b border-gray-100 font-black uppercase text-[9px] sm:text-[10px] text-gray-400">
+                            <tr><th class="pl-4 sm:pl-6 py-4 sm:py-5">Factură / Data</th><th class="pr-4 sm:pr-6 text-right">Sumă Rest</th></tr>
                         </thead>
                         <tbody id="sold-items-table" class="divide-y divide-gray-100"></tbody>
                     </table>
@@ -328,53 +338,53 @@
         </div>
 
         <!-- COȘ -->
-        <div id="view-cart" class="view-hidden p-5">
-            <h2 class="text-3xl font-black text-dm-blue uppercase italic mb-8">🛒 Finalizare Coș</h2>
-            <div id="cart-client-banner" class="bg-dm-yellow/20 border border-dm-yellow/30 p-6 rounded-[2rem] mb-8 flex justify-between items-center shadow-sm">
-                <div class="flex-1 min-w-0 pr-8">
-                    <p class="text-[10px] font-black uppercase text-dm-blue/60 tracking-widest leading-none">Către:</p>
-                    <p id="cart-client-name" class="text-xl font-black text-dm-blue uppercase mt-2 truncate">Neselectat!</p>
-                    <p id="cart-client-address" class="text-xs font-bold text-dm-blue/60 mt-1 truncate">Adresă: Nespecificat</p>
+        <div id="view-cart" class="view-hidden p-4 sm:p-5">
+            <h2 class="text-2xl sm:text-3xl font-black text-dm-blue uppercase italic mb-6 sm:mb-8">🛒 Finalizare Coș</h2>
+            <div id="cart-client-banner" class="bg-dm-yellow/20 border border-dm-yellow/30 p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] mb-6 sm:mb-8 flex justify-between items-center shadow-sm">
+                <div class="flex-1 min-w-0 pr-4 sm:pr-8">
+                    <p class="text-[9px] sm:text-[10px] font-black uppercase text-dm-blue/60 tracking-widest leading-none">Către:</p>
+                    <p id="cart-client-name" class="text-base sm:text-xl font-black text-dm-blue uppercase mt-1 sm:mt-2 truncate">Neselectat!</p>
+                    <p id="cart-client-address" class="text-[10px] sm:text-xs font-bold text-dm-blue/60 mt-1 truncate">Adresă: Nespecificat</p>
                 </div>
-                <button onclick="switchView('clients')" class="text-xs font-black bg-dm-blue text-white px-6 py-4 rounded-2xl uppercase shadow-xl flex-shrink-0">Schimbă</button>
+                <button onclick="switchView('clients')" class="text-[10px] sm:text-xs font-black bg-dm-blue text-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl uppercase shadow-xl flex-shrink-0">Schimbă</button>
             </div>
-            <div class="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden mb-10">
-                <div class="overflow-x-auto"><table class="w-full text-left"><thead class="bg-gray-50 border-b border-gray-100 font-black uppercase text-[10px]"><tr><th class="pl-6 py-4 text-sm">Produs</th><th class="text-center text-sm">Cant.</th><th class="pr-6 text-right text-sm">Net</th></tr></thead><tbody id="cart-content-table" class="divide-y divide-gray-100"></tbody></table></div>
-                <div id="cart-empty-msg" class="p-20 text-center text-gray-400 uppercase font-black text-lg italic view-hidden">Coș gol</div>
+            <div class="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden mb-8 sm:mb-10">
+                <div class="overflow-x-auto"><table class="w-full text-left"><thead class="bg-gray-50 border-b border-gray-100 font-black uppercase text-[9px] sm:text-[10px]"><tr><th class="pl-4 sm:pl-6 py-3 sm:py-4 text-xs sm:text-sm">Produs</th><th class="text-center text-xs sm:text-sm">Cant.</th><th class="pr-4 sm:pr-6 text-right text-xs sm:text-sm">Net</th></tr></thead><tbody id="cart-content-table" class="divide-y divide-gray-100"></tbody></table></div>
+                <div id="cart-empty-msg" class="p-12 sm:p-20 text-center text-gray-400 uppercase font-black text-base sm:text-lg italic view-hidden">Coș gol</div>
             </div>
-            <div id="cart-summary-box" class="bg-dm-blue text-white rounded-[3rem] p-10 shadow-2xl">
-                <div class="flex justify-between items-end border-b border-white/10 pb-6 mb-6"><span class="text-xs font-black text-dm-yellow uppercase tracking-widest">Total Net</span><span id="totalNoVat" class="text-5xl font-black italic tracking-tighter">0.00 RON</span></div>
-                <div class="grid grid-cols-2 gap-6">
-                    <button onclick="salveazaComanda(true)" class="bg-blue-600 text-white py-7 rounded-[2rem] font-black uppercase shadow-2xl flex flex-col items-center gap-2"><span>💾</span> SALVEAZĂ</button>
-                    <button id="btnFinalizeWhatsApp" onclick="salveazaComanda(false)" class="bg-dm-yellow text-dm-blue py-7 rounded-[2rem] font-black uppercase shadow-2xl flex flex-col items-center gap-2"><span>🚀</span> TRIMITE</button>
+            <div id="cart-summary-box" class="bg-dm-blue text-white rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 shadow-2xl">
+                <div class="flex justify-between items-end border-b border-white/10 pb-4 sm:pb-6 mb-4 sm:mb-6"><span class="text-[10px] sm:text-xs font-black text-dm-yellow uppercase tracking-widest">Total Net</span><span id="totalNoVat" class="text-3xl sm:text-5xl font-black italic tracking-tighter">0.00 RON</span></div>
+                <div class="grid grid-cols-2 gap-4 sm:gap-6">
+                    <button onclick="salveazaComanda(true)" class="bg-blue-600 text-white py-4 sm:py-7 rounded-[1.5rem] sm:rounded-[2rem] font-black uppercase shadow-2xl flex flex-col items-center gap-1 sm:gap-2 text-xs sm:text-base"><span class="text-xl sm:text-2xl">💾</span> SALVEAZĂ</button>
+                    <button id="btnFinalizeWhatsApp" onclick="salveazaComanda(false)" class="bg-dm-yellow text-dm-blue py-4 sm:py-7 rounded-[1.5rem] sm:rounded-[2rem] font-black uppercase shadow-2xl flex flex-col items-center gap-1 sm:gap-2 text-xs sm:text-base"><span class="text-xl sm:text-2xl">🚀</span> TRIMITE</button>
                 </div>
             </div>
         </div>
 
         <!-- ISTORIC -->
-        <div id="view-history" class="view-hidden p-5">
-            <h2 class="text-3xl font-black text-dm-blue uppercase italic mb-8">📋 Istoric Zilnic</h2>
-            <div id="history-content" class="space-y-6"></div>
+        <div id="view-history" class="view-hidden p-4 sm:p-5">
+            <h2 class="text-2xl sm:text-3xl font-black text-dm-blue uppercase italic mb-6 sm:mb-8">📋 Istoric Zilnic</h2>
+            <div id="history-content" class="space-y-4 sm:space-y-6"></div>
         </div>
 
         <!-- DETALII ISTORIC -->
-        <div id="view-order-details" class="view-hidden p-5">
-            <div class="bg-white rounded-[3rem] shadow-2xl border border-gray-100 p-10 mb-10">
-                <div id="order-details-header" class="border-b border-gray-100 pb-8 mb-8"></div>
-                <div id="order-details-items" class="space-y-6 mb-12"></div>
-                <div class="flex flex-col gap-4">
-                    <div class="grid grid-cols-2 gap-5"><button onclick="incarcaComandaInCos()" class="bg-dm-blue text-white py-6 rounded-3xl font-black uppercase shadow-xl text-sm">🔄 MODIFICĂ</button><button onclick="retrimiteComandaDirect()" class="bg-dm-yellow text-dm-blue py-6 rounded-3xl font-black uppercase shadow-xl text-sm">🚀 TRIMITE</button></div>
-                    <button onclick="stergeComandaCurenta()" class="w-full bg-red-500 text-white py-6 rounded-3xl font-black uppercase shadow-xl text-sm">🗑️ ȘTERGE</button>
+        <div id="view-order-details" class="view-hidden p-4 sm:p-5">
+            <div class="bg-white rounded-[2rem] sm:rounded-[3rem] shadow-2xl border border-gray-100 p-6 sm:p-10 mb-8 sm:mb-10">
+                <div id="order-details-header" class="border-b border-gray-100 pb-5 sm:pb-8 mb-5 sm:mb-8"></div>
+                <div id="order-details-items" class="space-y-4 sm:space-y-6 mb-8 sm:mb-12"></div>
+                <div class="flex flex-col gap-3 sm:gap-4">
+                    <div class="grid grid-cols-2 gap-3 sm:gap-5"><button onclick="incarcaComandaInCos()" class="bg-dm-blue text-white py-4 sm:py-6 rounded-2xl sm:rounded-3xl font-black uppercase shadow-xl text-xs sm:text-sm">🔄 MODIFICĂ</button><button onclick="retrimiteComandaDirect()" class="bg-dm-yellow text-dm-blue py-4 sm:py-6 rounded-2xl sm:rounded-3xl font-black uppercase shadow-xl text-xs sm:text-sm">🚀 TRIMITE</button></div>
+                    <button onclick="stergeComandaCurenta()" class="w-full bg-red-500 text-white py-4 sm:py-6 rounded-2xl sm:rounded-3xl font-black uppercase shadow-xl text-xs sm:text-sm">🗑️ ȘTERGE</button>
                 </div>
             </div>
         </div>
 
-        <!-- FOOTER NAV -->
-        <nav class="fixed bottom-0 w-full bg-white border-t border-gray-100 p-5 flex justify-around shadow-[0_-20px_40px_-15px_rgba(0,0,0,0.15)] z-50 rounded-t-[3.5rem]">
-            <button onclick="switchView('catalog')" class="nav-btn flex flex-col items-center text-dm-blue" id="nav-catalog"><span class="text-5xl font-bold">🏠</span><span class="text-[10px] font-black uppercase mt-1">Catalog</span></button>
-            <button onclick="switchView('cart')" class="nav-btn flex flex-col items-center text-gray-400 relative" id="nav-cart"><span class="text-5xl font-bold">🛒</span><div id="cartBadge" class="cart-badge hidden">0</div><span class="text-[10px] font-black uppercase mt-1">Coș</span></button>
-            <button onclick="switchView('history')" class="nav-btn flex flex-col items-center text-gray-400" id="nav-history"><span class="text-5xl font-bold">📋</span><span class="text-[10px] font-black uppercase mt-1">Istoric</span></button>
-            <button onclick="handleLogout()" class="flex flex-col items-center text-gray-300"><span class="text-5xl font-bold">🚪</span><span class="text-[10px] font-black uppercase mt-1">Ieșire</span></button>
+        <!-- NAVIGARE (MOBIL FRIENDLY) -->
+        <nav class="fixed bottom-0 w-full bg-white border-t border-gray-100 p-3 sm:p-5 flex justify-around shadow-[0_-20px_40px_-15px_rgba(0,0,0,0.15)] z-50 rounded-t-[2.5rem] sm:rounded-t-[3.5rem]">
+            <button onclick="switchView('catalog')" class="nav-btn flex flex-col items-center text-dm-blue" id="nav-catalog"><span class="text-3xl sm:text-5xl font-bold">🏠</span><span class="text-[9px] sm:text-[10px] font-black uppercase mt-1">Catalog</span></button>
+            <button onclick="switchView('cart')" class="nav-btn flex flex-col items-center text-gray-400 relative" id="nav-cart"><span class="text-3xl sm:text-5xl font-bold">🛒</span><div id="cartBadge" class="cart-badge hidden">0</div><span class="text-[9px] sm:text-[10px] font-black uppercase mt-1">Coș</span></button>
+            <button onclick="switchView('history')" class="nav-btn flex flex-col items-center text-gray-400" id="nav-history"><span class="text-3xl sm:text-5xl font-bold">📋</span><span class="text-[9px] sm:text-[10px] font-black uppercase mt-1">Istoric</span></button>
+            <button onclick="handleLogout()" class="flex flex-col items-center text-gray-300"><span class="text-3xl sm:text-5xl font-bold">🚪</span><span class="text-[9px] sm:text-[10px] font-black uppercase mt-1">Ieșire</span></button>
         </nav>
     </div>
 
@@ -385,7 +395,6 @@
             'ovidiu': { pass: 'rahovean', name: 'Ovidiu Rahovean', filter: 'RAHOVEAN' }
         };
 
-        // SCHIMBAT: Folosim exclusiv fișierul STOCEG (acceptă atât varianta .xls veche, cât și .xlsx nouă)
         const MASTER_FILES = ['STOCEG.xls', 'STOCEG.xlsx'];
         const CLIENTS_FILE = 'LISTA_CLIENTI.xlsx';
         const SOLD_FILES = ['SOLD_ALBA.xlsx', 'SOLD_HUNEDOARA.xlsx'];
@@ -422,6 +431,11 @@
                 .trim();
         }
 
+        function getProductMatchKey(name) {
+            if (!name) return "";
+            return name.toString().toUpperCase().replace(/[\s\-_]/g, '');
+        }
+
         function switchView(viewName, saveHistory = true) {
             if (saveHistory && currentActiveView !== viewName) navigationHistory.push(currentActiveView);
             currentActiveView = viewName;
@@ -441,6 +455,7 @@
             
             if (viewName === 'catalog') document.getElementById('search-container').classList.remove('view-hidden'); else document.getElementById('search-container').classList.add('view-hidden'); 
             if (viewName === 'cart') renderCart(); if (viewName === 'history') renderHistory(); 
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function goBack() {
@@ -448,13 +463,19 @@
             else switchView('catalog');
         }
 
-        let tsX = 0; document.addEventListener('touchstart', e => tsX = e.changedTouches[0].screenX);
+        // SWIPE ADAPTAT - Mai puțin sensibil pentru a nu face trigger accidental pe mobil
+        let tsX = 0; let tsY = 0; 
+        document.addEventListener('touchstart', e => { tsX = e.changedTouches[0].screenX; tsY = e.changedTouches[0].screenY; });
         document.addEventListener('touchend', e => { 
             const teX = e.changedTouches[0].screenX;
+            const teY = e.changedTouches[0].screenY;
+            // Daca se face scroll vertical, ignoram swipe-ul orizontal
+            if (Math.abs(teY - tsY) > 50) return; 
+            
             const idx = ['catalog', 'cart', 'history'].indexOf(currentActiveView);
             if (idx === -1) return;
-            if (teX < tsX - 100 && idx < 2) switchView(['catalog', 'cart', 'history'][idx + 1]);
-            if (teX > tsX + 100 && idx > 0) switchView(['catalog', 'cart', 'history'][idx - 1]);
+            if (teX < tsX - 70 && idx < 2) switchView(['catalog', 'cart', 'history'][idx + 1]);
+            if (teX > tsX + 70 && idx > 0) switchView(['catalog', 'cart', 'history'][idx - 1]);
         });
 
         function handleLogin() {
@@ -503,14 +524,12 @@
             return await fetch(path);
         }
 
-        // --- ACTUALIZAT: Citire fișier unic STOCEG și extragere TVA ---
         async function syncMasterData() {
             const cached = localStorage.getItem(`dma_mast_cache`);
             if (cached) allProductsRaw = JSON.parse(cached);
             if (window.location.protocol === 'blob:') return;
             
             let success = false;
-            // Încercăm să citim atât varianta .xls cât și .xlsx a fișierului STOCEG
             for (const file of MASTER_FILES) {
                 if (success) break;
                 try {
@@ -522,7 +541,7 @@
                         const raw = XLSX.utils.sheet_to_json(sh, { header: 1 });
                         
                         let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().includes("denumire") || c.toString().toLowerCase().includes("articol")));
-                        if(idx === -1) idx = 0; // Fallback
+                        if(idx === -1) idx = 0; 
                         
                         const items = XLSX.utils.sheet_to_json(sh, { range: idx, defval: "" });
                         let newProducts = [];
@@ -535,9 +554,7 @@
                             if(!kD || !p[kD]) return;
                             
                             const name = p[kD].toString().trim();
-                            // Extragem prețul brut din Excel
                             const pretBrutTVA = formatPriceNum(p[kP]);
-                            // Calculăm prețul net (fără TVA de 21%)
                             const pretNet = pretBrutTVA / TVA_RATE;
                             
                             newProducts.push({ 
@@ -555,7 +572,7 @@
                         }
                     }
                 } catch (e) { 
-                    console.warn(`Nu s-a putut citi ${file}. Se va încerca formatul alternativ.`); 
+                    console.warn(`Nu s-a putut citi ${file}.`); 
                 }
             }
         }
@@ -581,9 +598,10 @@
             document.getElementById('product-section').scrollIntoView({ behavior: 'smooth' });
         }
 
+        // TABEL PRODUSE RESPONSIV
         function renderProducts(products) {
             const tbody = document.getElementById('productTableBody'); if (!tbody) return;
-            if (products.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-20 text-center text-gray-400 font-black text-xl">Niciun produs găsit.</td></tr>'; return; }
+            if (products.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-10 sm:p-20 text-center text-gray-400 font-black text-sm sm:text-xl">Niciun produs găsit.</td></tr>'; return; }
             
             tbody.innerHTML = products.map(p => {
                 const name = p.denumire;
@@ -591,7 +609,23 @@
                 const stocVal = (p.stoc !== undefined && p.stoc !== "") ? parseFloat(p.stoc.toString().replace(/\./g, '').replace(',', '.')) : null;
                 const qty = cart[name] ? cart[name].quantity : 0;
                 
-                return `<tr class="${qty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100"><td class="px-6 py-5 font-black text-dm-blue uppercase leading-tight tracking-tighter"><span class="text-lg block mb-2 leading-tight">${name}</span><div class="flex items-center gap-3"><span class="text-base font-black text-blue-600/80">${pretNet.toFixed(2)} RON</span>${stocVal !== null ? `<span class="text-[10px] font-black ${stocVal>0?'text-green-600 bg-green-50':'text-red-500 bg-red-50'} px-3 py-1 rounded-xl border">STOC: ${stocVal.toFixed(0)}</span>` : ''}</div></td><td class="py-5"><div class="flex items-center justify-center gap-3 bg-gray-50 rounded-[1.8rem] p-1.5 border border-gray-100 shadow-inner"><button onclick="updateCart('${name.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100 text-2xl" style="width: 48px; height: 48px;">-</button><span class="font-black text-2xl w-10 text-center text-dm-blue">${qty}</span><button onclick="updateCart('${name.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-xl text-2xl" style="width: 48px; height: 48px;">+</button></div></td><td class="text-right pr-6 py-5 font-black text-dm-blue text-xl">${(qty*pretNet).toFixed(2)}</td></tr>`;
+                return `<tr class="${qty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100">
+                    <td class="px-3 sm:px-6 py-4 sm:py-5 font-black text-dm-blue uppercase leading-tight tracking-tighter">
+                        <span class="text-[11px] sm:text-lg block mb-1 sm:mb-2 leading-tight">${name}</span>
+                        <div class="flex items-center gap-2 sm:gap-3">
+                            <span class="text-xs sm:text-base font-black text-blue-600/80">${pretNet.toFixed(2)} RON</span>
+                            ${stocVal !== null ? `<span class="text-[9px] sm:text-[10px] font-black ${stocVal>0?'text-green-600 bg-green-50':'text-red-500 bg-red-50'} px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl border">STOC: ${stocVal.toFixed(0)}</span>` : ''}
+                        </div>
+                    </td>
+                    <td class="py-4 sm:py-5">
+                        <div class="flex items-center justify-center gap-1 sm:gap-3 bg-gray-50 rounded-xl sm:rounded-[1.8rem] p-1 sm:p-1.5 border border-gray-100 shadow-inner">
+                            <button onclick="updateCart('${name.replace(/'/g, "\\'")}', -1)" class="flex items-center justify-center bg-white text-gray-400 shadow-sm border border-gray-100 text-lg sm:text-2xl rounded-lg sm:rounded-xl w-7 h-7 sm:w-12 sm:h-12">-</button>
+                            <span class="font-black text-sm sm:text-2xl w-5 sm:w-10 text-center text-dm-blue">${qty}</span>
+                            <button onclick="updateCart('${name.replace(/'/g, "\\'")}', 1)" class="flex items-center justify-center bg-dm-blue text-white shadow-md sm:shadow-xl text-lg sm:text-2xl rounded-lg sm:rounded-xl w-7 h-7 sm:w-12 sm:h-12">+</button>
+                        </div>
+                    </td>
+                    <td class="text-right pr-3 sm:pr-6 py-4 sm:py-5 font-black text-dm-blue text-sm sm:text-xl">${(qty*pretNet).toFixed(2)}</td>
+                </tr>`;
             }).join('');
         }
 
@@ -615,7 +649,7 @@
                 const name = i.data.denumire;
                 const pF_net = i.data.pret;
                 totalNet += i.quantity * pF_net;
-                return `<tr class="border-b border-gray-100"><td class="px-6 py-5 font-black text-dm-blue uppercase text-sm leading-tight">${name}<br><span class="text-xs font-bold text-blue-600/60 mt-1 block">${pF_net.toFixed(2)} RON</span></td><td class="py-5"><div class="flex items-center justify-center gap-3 bg-gray-50 rounded-2xl p-2 border border-gray-100"><button onclick="updateCart('${name.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100" style="width: 42px; height: 42px; font-size: 1.5rem;">-</button><span class="font-black text-xl w-8 text-center text-dm-blue">${i.quantity}</span><button onclick="updateCart('${name.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-md" style="width: 42px; height: 42px; font-size: 1.5rem;">+</button></div></td><td class="text-right pr-6 py-5 font-black text-dm-blue text-lg">${(i.quantity*pF_net).toFixed(2)}</td></tr>`;
+                return `<tr class="border-b border-gray-100"><td class="px-4 sm:px-6 py-4 sm:py-5 font-black text-dm-blue uppercase text-[10px] sm:text-sm leading-tight">${name}<br><span class="text-[9px] sm:text-xs font-bold text-blue-600/60 mt-1 block">${pF_net.toFixed(2)} RON</span></td><td class="py-4 sm:py-5"><div class="flex items-center justify-center gap-1 sm:gap-3 bg-gray-50 rounded-xl sm:rounded-2xl p-1 sm:p-2 border border-gray-100"><button onclick="updateCart('${name.replace(/'/g, "\\'")}', -1)" class="flex items-center justify-center bg-white text-gray-400 shadow-sm border border-gray-100 text-lg sm:text-xl rounded-lg w-7 h-7 sm:w-10 sm:h-10">-</button><span class="font-black text-sm sm:text-xl w-5 sm:w-8 text-center text-dm-blue">${i.quantity}</span><button onclick="updateCart('${name.replace(/'/g, "\\'")}', 1)" class="flex items-center justify-center bg-dm-blue text-white shadow-md text-lg sm:text-xl rounded-lg w-7 h-7 sm:w-10 sm:h-10">+</button></div></td><td class="text-right pr-4 sm:pr-6 py-4 sm:py-5 font-black text-dm-blue text-sm sm:text-lg">${(i.quantity*pF_net).toFixed(2)}</td></tr>`;
             }).join('');
             document.getElementById('totalNoVat').innerText = totalNet.toFixed(2) + ' RON';
         }
@@ -641,15 +675,15 @@
 
         function renderHistory() {
             const c = document.getElementById('history-content'); if (!c) return;
-            if (window.orderHistory.length === 0) { c.innerHTML = '<div class="p-20 text-center text-gray-400 font-bold uppercase tracking-widest italic text-xl">Istoric Gol.</div>'; return; }
-            c.innerHTML = window.orderHistory.map((o, idx) => `<div onclick="veziDetaliiComanda(${idx})" class="bg-white p-10 rounded-[3rem] shadow-xl border-l-[16px] border-dm-yellow active:scale-[0.98] transition-all cursor-pointer"><div class="flex justify-between items-start mb-5"><span class="text-xs font-black text-gray-400 italic">${o.timestamp}</span><span class="${o.status==='Ciornă'?'bg-blue-100 text-blue-700':'bg-green-100 text-green-700'} text-[11px] font-black px-5 py-2 rounded-2xl uppercase">${o.status}</span></div><p class="text-3xl font-black text-dm-blue uppercase leading-none truncate mb-4">${o.client ? o.client.name : 'N/A'}</p><div class="flex justify-between items-end border-t border-gray-50 pt-5"><p class="text-xs font-bold text-gray-400 uppercase tracking-widest">${o.items} REPERE</p><p class="text-3xl font-black text-dm-blue">${o.total} RON</p></div></div>`).join('');
+            if (window.orderHistory.length === 0) { c.innerHTML = '<div class="p-12 sm:p-20 text-center text-gray-400 font-bold uppercase tracking-widest italic text-sm sm:text-xl">Istoric Gol.</div>'; return; }
+            c.innerHTML = window.orderHistory.map((o, idx) => `<div onclick="veziDetaliiComanda(${idx})" class="bg-white p-6 sm:p-10 rounded-[2rem] sm:rounded-[3rem] shadow-xl border-l-[12px] sm:border-l-[16px] border-dm-yellow active:scale-[0.98] transition-all cursor-pointer"><div class="flex justify-between items-start mb-4 sm:mb-5"><span class="text-[10px] sm:text-xs font-black text-gray-400 italic">${o.timestamp}</span><span class="${o.status==='Ciornă'?'bg-blue-100 text-blue-700':'bg-green-100 text-green-700'} text-[9px] sm:text-[11px] font-black px-3 sm:px-5 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl uppercase">${o.status}</span></div><p class="text-xl sm:text-3xl font-black text-dm-blue uppercase leading-none truncate mb-3 sm:mb-4">${o.client ? o.client.name : 'N/A'}</p><div class="flex justify-between items-end border-t border-gray-50 pt-4 sm:pt-5"><p class="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-widest">${o.items} REPERE</p><p class="text-xl sm:text-3xl font-black text-dm-blue">${o.total} RON</p></div></div>`).join('');
         }
 
         function veziDetaliiComanda(idx) {
             currentViewingOrderIndex = idx; const o = window.orderHistory[idx]; switchView('order-details');
-            document.getElementById('order-details-header').innerHTML = `<div class="flex justify-between items-center mb-5"><h3 class="text-sm font-black text-gray-400 uppercase italic text-lg">DETALII</h3><span class="text-[11px] font-black bg-gray-100 px-5 py-2 rounded-2xl uppercase">${o.status}</span></div><p class="text-3xl font-black text-dm-blue uppercase mb-5 leading-none">${o.client ? o.client.name : '-'}</p><p class="text-5xl font-black text-dm-blue italic tracking-tighter">${o.total} RON</p>`;
+            document.getElementById('order-details-header').innerHTML = `<div class="flex justify-between items-center mb-4 sm:mb-5"><h3 class="text-xs sm:text-sm font-black text-gray-400 uppercase italic">DETALII</h3><span class="text-[9px] sm:text-[11px] font-black bg-gray-100 px-3 sm:px-5 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl uppercase">${o.status}</span></div><p class="text-xl sm:text-3xl font-black text-dm-blue uppercase mb-3 sm:mb-5 leading-none">${o.client ? o.client.name : '-'}</p><p class="text-3xl sm:text-5xl font-black text-dm-blue italic tracking-tighter">${o.total} RON</p>`;
             document.getElementById('order-details-items').innerHTML = Object.values(o.cartData).map(i => {
-                return `<div class="flex justify-between items-center text-sm py-4 border-b border-gray-50"><div class="flex flex-col pr-4"><span class="font-black text-dm-blue text-sm uppercase leading-tight mb-1">${i.data.denumire}</span><span class="text-xs font-black text-blue-600/60">${i.data.pret.toFixed(2)} RON</span></div><span class="font-black bg-gray-100 px-5 py-3 rounded-[1.5rem] text-xl text-dm-blue">x ${i.quantity}</span></div>`;
+                return `<div class="flex justify-between items-center py-3 sm:py-4 border-b border-gray-50"><div class="flex flex-col pr-3 sm:pr-4"><span class="font-black text-dm-blue text-[11px] sm:text-sm uppercase leading-tight mb-1">${i.data.denumire}</span><span class="text-[10px] sm:text-xs font-black text-blue-600/60">${i.data.pret.toFixed(2)} RON</span></div><span class="font-black bg-gray-100 px-3 sm:px-5 py-2 sm:py-3 rounded-xl sm:rounded-[1.5rem] text-sm sm:text-xl text-dm-blue whitespace-nowrap">x ${i.quantity}</span></div>`;
             }).join('');
         }
 
@@ -697,7 +731,7 @@
         function renderSoldItems() {
             const table = document.getElementById('sold-items-table'), disp = document.getElementById('display-sold');
             if (!selectedClient || !allSoldData.length) { 
-                table.innerHTML = '<tr><td colspan="2" class="p-10 text-center font-bold text-gray-400 italic">Nu am găsit date. Sincronizează (🔄).</td></tr>'; 
+                table.innerHTML = '<tr><td colspan="2" class="p-8 sm:p-10 text-center font-bold text-gray-400 italic text-sm sm:text-base">Nu am găsit date. Sincronizează (🔄).</td></tr>'; 
                 disp.innerText = "0.00 RON"; return; 
             }
 
@@ -707,7 +741,7 @@
             });
 
             if (mySold.length === 0) { 
-                table.innerHTML = '<tr><td colspan="2" class="p-10 text-center font-bold text-gray-400 italic">CLIENT LA ZI. ZERO RESTANȚE.</td></tr>'; 
+                table.innerHTML = '<tr><td colspan="2" class="p-8 sm:p-10 text-center font-bold text-gray-400 italic text-sm sm:text-base">CLIENT LA ZI. ZERO RESTANȚE.</td></tr>'; 
                 disp.innerText = "0.00 RON"; return; 
             }
 
@@ -716,13 +750,13 @@
                 total += row.rest;
                 const formattedSum = row.rest.toLocaleString('ro-RO', {minimumFractionDigits: 2});
                 return `<tr class="border-b border-gray-100">
-                    <td class="pl-6 py-6 font-black text-dm-blue text-xl leading-tight">
-                        FACT: ${row.factura}<br><span class="text-base text-gray-400 font-bold">${row.data}</span>
+                    <td class="pl-4 sm:pl-6 py-4 sm:py-6 font-black text-dm-blue text-sm sm:text-xl leading-tight">
+                        FACT: ${row.factura}<br><span class="text-[10px] sm:text-base text-gray-400 font-bold">${row.data}</span>
                     </td>
-                    <td class="pr-6 text-right">
-                        <div class="flex flex-col items-end gap-3">
-                            <span class="font-black text-red-600 text-3xl">${formattedSum}</span>
-                            <button onclick="handleIncasareFactura('${row.factura}', ${row.rest})" class="bg-green-600 text-white px-5 py-3 rounded-xl font-black text-xs uppercase shadow-lg active:scale-90 transition-all">Încasează ✅</button>
+                    <td class="pr-4 sm:pr-6 text-right">
+                        <div class="flex flex-col items-end gap-2 sm:gap-3">
+                            <span class="font-black text-red-600 text-xl sm:text-3xl">${formattedSum}</span>
+                            <button onclick="handleIncasareFactura('${row.factura}', ${row.rest})" class="bg-green-600 text-white px-4 sm:px-5 py-2 sm:py-3 rounded-lg sm:rounded-xl font-black text-[9px] sm:text-xs uppercase shadow-lg active:scale-90 transition-all">Încasează ✅</button>
                         </div>
                     </td>
                 </tr>`;
@@ -889,7 +923,7 @@
 
         function renderClients(clients) {
             const container = document.getElementById('clients-list'); 
-            if (clients.length === 0) { container.innerHTML = '<p class="p-10 text-center text-gray-400 italic font-bold">Niciun client găsit.</p>'; return; }
+            if (clients.length === 0) { container.innerHTML = '<p class="p-8 sm:p-10 text-center text-gray-400 italic font-bold text-sm sm:text-base">Niciun client găsit.</p>'; return; }
             
             container.innerHTML = clients.map(c => {
                 const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire"));
@@ -903,42 +937,14 @@
                 const displayLoc = edit ? edit.loc : (c[kLoc] || '-');
 
                 return `<div onclick="selectClientByName('${originalName.replace(/'/g, "\\'")}')" 
-                     class="client-card bg-white p-7 rounded-[2.5rem] shadow-xl active:scale-[0.98] transition-all cursor-pointer flex justify-between items-center ${selectedClient && (selectedClient.name === displayName || selectedClient.name === originalName) ? 'active-client' : ''}">
-                    <div class="flex-1 min-w-0 pr-4">
-                        <p class="text-2xl font-black text-dm-blue uppercase truncate">${displayName}</p>
-                        <p class="text-lg font-bold text-gray-400">📍 ${displayLoc}</p>
+                     class="client-card bg-white p-5 sm:p-7 rounded-2xl sm:rounded-[2.5rem] shadow-xl active:scale-[0.98] transition-all cursor-pointer flex justify-between items-center ${selectedClient && (selectedClient.name === displayName || selectedClient.name === originalName) ? 'active-client' : ''}">
+                    <div class="flex-1 min-w-0 pr-3 sm:pr-4">
+                        <p class="text-base sm:text-2xl font-black text-dm-blue uppercase truncate leading-tight">${displayName}</p>
+                        <p class="text-[10px] sm:text-lg font-bold text-gray-400 mt-1">📍 ${displayLoc}</p>
                     </div>
-                    <button onclick="event.stopPropagation(); const idx = savedClientNames.indexOf('${originalName.replace(/'/g, "\\'")}'); if (idx > -1) savedClientNames.splice(idx, 1); else savedClientNames.push('${originalName.replace(/'/g, "\\'")}'); saveAgentData(); filterClients();" class="btn-save-client flex-shrink-0 ${isSaved ? 'bg-dm-yellow text-dm-blue' : 'bg-gray-100 text-gray-400'}"><span class="text-4xl">${isSaved ? '⭐' : '☆'}</span></button>
+                    <button onclick="event.stopPropagation(); const idx = savedClientNames.indexOf('${originalName.replace(/'/g, "\\'")}'); if (idx > -1) savedClientNames.splice(idx, 1); else savedClientNames.push('${originalName.replace(/'/g, "\\'")}'); saveAgentData(); filterClients();" class="btn-save-client flex-shrink-0 ${isSaved ? 'bg-dm-yellow text-dm-blue' : 'bg-gray-100 text-gray-400'}"><span class="text-2xl sm:text-4xl">${isSaved ? '⭐' : '☆'}</span></button>
                 </div>`;
             }).join('');
-        }
-
-        function selectMode(m) { if (m === 'vanzare') switchView('catalog'); else { renderSoldItems(); switchView('incasare'); } }
-        
-        function updateClientUI() {
-            const h = document.getElementById('header-client-name');
-            const c = document.getElementById('cart-client-name');
-            const a = document.getElementById('cart-client-address');
-            
-            if (selectedClient) {
-                h.innerText = selectedClient.name; 
-                h.className = "text-2xl font-black truncate text-dm-yellow text-left";
-                
-                c.innerText = `${selectedClient.name} (${selectedClient.loc})`; 
-                c.classList.remove('text-red-500');
-                
-                if(a) {
-                    a.innerText = `📍 Livrare: ${selectedClient.adresa || 'Nespecificat'}`;
-                }
-            } else {
-                h.innerText = "Neselectat 👤"; 
-                h.className = "text-2xl font-black truncate text-white text-left opacity-30";
-                
-                c.innerText = "ATENȚIE: NICIUN CLIENT SELECTAT!"; 
-                c.classList.add('text-red-500');
-                
-                if(a) a.innerText = "";
-            }
         }
 
         function formatPriceNum(val) {
