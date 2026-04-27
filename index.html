@@ -304,13 +304,13 @@
             </div>
         </div>
 
-        <!-- SELECTOR MOD (Meniul ce apare DUPĂ click pe client) -->
+        <!-- SELECTOR MOD (Apare IMEDIAT dupa ce apesi pe client) -->
         <div id="view-client-mode" class="view-hidden p-5 sm:p-6 flex flex-col justify-start pt-8 sm:pt-10 min-h-[60vh] sm:min-h-[70vh]">
             
-            <div id="client-mode-sold-container" class="bg-white rounded-[2rem] shadow-xl border border-gray-100 p-6 mb-6 sm:mb-8 text-center">
+            <div id="client-mode-sold-container" class="bg-gray-50 rounded-[2rem] shadow-sm border border-gray-200 p-6 mb-6 sm:mb-8 text-center transition-all duration-300">
                 <p class="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 sm:mb-2">Situație Sold AB / HD</p>
-                <p id="client-mode-sold-total" class="text-4xl sm:text-5xl font-black text-red-600 mb-3 sm:mb-4 tracking-tighter">0.00 RON</p>
-                <button id="btn-mode-incasare" onclick="selectMode('incasare')" class="bg-green-100 text-green-700 px-6 py-3 rounded-xl font-black text-xs sm:text-sm uppercase shadow-sm active:scale-95 transition-all w-full">Vezi Facturile 🧾</button>
+                <p id="client-mode-sold-total" class="text-xl sm:text-2xl font-black text-gray-500 tracking-tighter mb-0">Se verifică... ⏳</p>
+                <button id="btn-mode-incasare" onclick="selectMode('incasare')" class="hidden bg-green-100 text-green-700 px-6 py-3 rounded-xl font-black text-xs sm:text-sm uppercase shadow-sm active:scale-95 transition-all w-full mt-4">Vezi Facturile 🧾</button>
             </div>
 
             <h3 class="text-center text-gray-400 font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] mb-4 sm:mb-5 text-sm sm:text-base">Alte Acțiuni</h3>
@@ -432,6 +432,9 @@
         let savedClientNames = []; 
         let showOnlyMyClients = false; 
         
+        // VARIABILA GLOBALĂ PENTRU LISTA CURENTĂ DE CLIENȚI DE PE ECRAN
+        window.currentRenderedClients = [];
+        
         let selectedClient = null;
         let cart = {};
         let selectedCategory = null;
@@ -525,11 +528,7 @@
             cart = JSON.parse(localStorage.getItem(`dma_cart_${id}`) || '{}');
             selectedClient = JSON.parse(localStorage.getItem(`dma_cli_${id}`) || 'null');
             savedClientNames = JSON.parse(localStorage.getItem(`dma_sv_cli_${id}`) || '[]');
-            
             manuallyCreatedClients = JSON.parse(localStorage.getItem(`dma_man_cli_${id}`) || '[]');
-            // Adaugam ID-uri unice clientilor vechi manuali daca nu au
-            manuallyCreatedClients.forEach((c, i) => { if(!c._id) c._id = 'manual_old_' + i; });
-            
             editedClients = JSON.parse(localStorage.getItem(`dma_edit_cli_${id}`) || '{}');
             updateBadge(); updateClientUI();
         }
@@ -629,6 +628,7 @@
                 const pretNet = p.pret;
                 const stocVal = (p.stoc !== undefined && p.stoc !== "") ? parseFloat(p.stoc.toString().replace(/\./g, '').replace(',', '.')) : null;
                 const qty = cart[name] ? cart[name].quantity : 0;
+                // DOAR AICI FOLOSIM ENCODARE, LA PRODUSE ESTE OK PENTRU CĂ NU AU GHILIMELE DE OBICEI
                 const encodedName = encodeURIComponent(name);
                 
                 return `<tr class="${qty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100">
@@ -808,8 +808,6 @@
             const cached = localStorage.getItem(`dma_cache_cli`);
             if (cached) { 
                 allClients = JSON.parse(cached); 
-                // Asiguram ID-uri pt back-compatibility
-                allClients.forEach((c, i) => { if(!c._id) c._id = 'excel_' + i; });
                 filterClients(); 
             }
             if (window.location.protocol === 'blob:') return;
@@ -824,9 +822,6 @@
                     
                     allClients = XLSX.utils.sheet_to_json(sh, { range: idx === -1 ? 0 : idx, defval: "" }).filter(c => c[Object.keys(c).find(k => k.trim().toLowerCase().includes("denumire"))]);
                     
-                    // INJECTAM ID-URI UNICE LA CITIRE PENTRU A EVITA PROBLEMA DE CLICK
-                    allClients.forEach((c, i) => c._id = 'excel_' + i);
-                    
                     localStorage.setItem(`dma_cache_cli`, JSON.stringify(allClients));
                     filterClients();
                 }
@@ -839,7 +834,6 @@
             if (!n || !l) { showToast("INTRODU NUME ȘI LOCALITATE!"); return; }
             
             const newCli = { 
-                _id: 'manual_' + Date.now(), // ID UNIC
                 denumire: n, 
                 localitate: l, 
                 adresa: document.getElementById('new-client-adresa').value.trim().toUpperCase(),
@@ -859,36 +853,36 @@
             switchView('clients');
         }
 
-        // FUNCȚIA REPARATĂ: Acum primește doar un ID scurt (ex: "excel_42"), imposibil de blocat de browser
-        function handleClientClick(clientId) {
-            let baseClient = manuallyCreatedClients.find(c => c._id === clientId) || allClients.find(c => c._id === clientId);
-            
-            if (!baseClient) {
-                showToast("Eroare la încărcarea clientului!");
-                return;
-            }
+        // =====================================================================
+        // LOGICA BLINDATĂ DE SELECȚIE CLIENT (100% GARANTATĂ PE TELEFON)
+        // Nu mai trimitem nume prin HTML, ci folosim "numărul de ordine" din listă.
+        // =====================================================================
 
-            const kName = Object.keys(baseClient).find(k => k.toLowerCase().includes("denumire"));
-            const kLoc = Object.keys(baseClient).find(k => k.toLowerCase().includes("localitate")) || 'localitate';
-            const kCIF = Object.keys(baseClient).find(k => k.toLowerCase().includes("cod_fiscal")) || 'cod_fiscal';
-            const kRC = Object.keys(baseClient).find(k => k.toLowerCase().includes("reg_com")) || 'reg_com';
-            const kTel = Object.keys(baseClient).find(k => k.toLowerCase().includes("tel")) || 'tel';
-            const kAdresa = Object.keys(baseClient).find(k => k.toLowerCase().includes("adres")) || 'adresa';
+        function handleClientClick(index) {
+            // Extragem obiectul direct din variabila globală a ferestrei
+            const c = window.currentRenderedClients[index];
+            if (!c) return;
 
-            const originalName = baseClient[kName] ? baseClient[kName].toString().trim() : "NECUNOSCUT";
+            const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire"));
+            const kLoc = Object.keys(c).find(k => k.toLowerCase().includes("localitate")) || 'localitate';
+            const kCIF = Object.keys(c).find(k => k.toLowerCase().includes("cod_fiscal")) || 'cod_fiscal';
+            const kRC = Object.keys(c).find(k => k.toLowerCase().includes("reg_com")) || 'reg_com';
+            const kTel = Object.keys(c).find(k => k.toLowerCase().includes("tel")) || 'tel';
+            const kAdresa = Object.keys(c).find(k => k.toLowerCase().includes("adres")) || 'adresa';
+
+            const originalName = c[kName] ? c[kName].toString().trim() : "NECUNOSCUT";
 
             let clientData = {
-                _id: clientId,
                 originalName: originalName,
                 name: originalName,
-                loc: baseClient[kLoc] || '',
-                cif: baseClient[kCIF] || '',
-                rc: baseClient[kRC] || '',
-                tel: baseClient[kTel] || '',
-                adresa: baseClient[kAdresa] || ''
+                loc: c[kLoc] ? c[kLoc].toString().trim() : '',
+                cif: c[kCIF] ? c[kCIF].toString().trim() : '',
+                rc: c[kRC] ? c[kRC].toString().trim() : '',
+                tel: c[kTel] ? c[kTel].toString().trim() : '',
+                adresa: c[kAdresa] ? c[kAdresa].toString().trim() : ''
             };
 
-            // Aplicam modificarile salvate de agent
+            // Aplicăm modificările salvate (dacă a fost editat anterior de agent)
             if (editedClients[originalName]) {
                 clientData = { ...clientData, ...editedClients[originalName] };
             }
@@ -897,31 +891,48 @@
             saveAgentData();
             updateClientUI();
 
-            // Calculare automata SOLD la click
-            const targetNorm = normalizeName(selectedClient.name);
-            const mySold = allSoldData.filter(row => row.clientNorm.includes(targetNorm) || targetNorm.includes(row.clientNorm));
-            
-            let totalSold = 0;
-            mySold.forEach(r => totalSold += r.rest);
+            // PASUL 1: SCHIMBĂ ECRANUL IMEDIAT CA SĂ NU BLOCEZE TELEFONUL (EXACT CUM ERA ÎNAINTE)
+            switchView('client-mode');
 
+            // PASUL 2: CALCULEAZĂ SOLDUL ÎN LINIȘTE PE FUNDAL
+            calculateAndShowSoldAsync();
+        }
+
+        // Aceasta este funcția care verifică soldul DUPĂ ce ecranul s-a schimbat deja
+        function calculateAndShowSoldAsync() {
             const containerSold = document.getElementById('client-mode-sold-container');
             const totalSoldText = document.getElementById('client-mode-sold-total');
             const btnIncasareMode = document.getElementById('btn-mode-incasare');
+            
+            // Setăm starea de "Se verifică"
+            containerSold.className = "bg-gray-50 rounded-[2rem] shadow-sm border border-gray-200 p-6 mb-6 sm:mb-8 text-center";
+            totalSoldText.className = "text-xl sm:text-2xl font-black text-gray-500 tracking-tighter mb-0";
+            totalSoldText.innerText = "Se verifică... ⏳";
+            btnIncasareMode.classList.add('hidden');
 
-            if (totalSold > 0) {
-                containerSold.className = "bg-white rounded-[2rem] shadow-xl border-t-8 border-red-500 p-6 mb-6 sm:mb-8 text-center";
-                totalSoldText.className = "text-4xl sm:text-5xl font-black text-red-600 mb-3 sm:mb-4 tracking-tighter";
-                totalSoldText.innerText = totalSold.toLocaleString('ro-RO', {minimumFractionDigits: 2}) + ' RON';
-                btnIncasareMode.classList.remove('hidden');
-            } else {
-                containerSold.className = "bg-green-50 rounded-[2rem] shadow-sm border border-green-200 p-6 mb-6 sm:mb-8 text-center";
-                totalSoldText.className = "text-2xl sm:text-3xl font-black text-green-600 tracking-tighter mb-0";
-                totalSoldText.innerText = "CLIENT LA ZI ✅";
-                btnIncasareMode.classList.add('hidden');
-            }
+            // Așteptăm o zecime de secundă pentru a lăsa telefonul să afișeze meniul, apoi calculăm:
+            setTimeout(() => {
+                const targetNorm = normalizeName(selectedClient.name);
+                const mySold = allSoldData.filter(row => row.clientNorm.includes(targetNorm) || targetNorm.includes(row.clientNorm));
+                
+                let totalSold = 0;
+                mySold.forEach(r => totalSold += r.rest);
 
-            switchView('client-mode');
+                if (totalSold > 0) {
+                    containerSold.className = "bg-white rounded-[2rem] shadow-xl border-t-8 border-red-500 p-6 mb-6 sm:mb-8 text-center";
+                    totalSoldText.className = "text-4xl sm:text-5xl font-black text-red-600 mb-3 sm:mb-4 tracking-tighter";
+                    totalSoldText.innerText = totalSold.toLocaleString('ro-RO', {minimumFractionDigits: 2}) + ' RON';
+                    btnIncasareMode.classList.remove('hidden');
+                } else {
+                    containerSold.className = "bg-green-50 rounded-[2rem] shadow-sm border border-green-200 p-6 mb-6 sm:mb-8 text-center";
+                    totalSoldText.className = "text-2xl sm:text-3xl font-black text-green-600 tracking-tighter mb-0";
+                    totalSoldText.innerText = "CLIENT LA ZI ✅";
+                    btnIncasareMode.classList.add('hidden');
+                }
+            }, 150);
         }
+
+        // =====================================================================
 
         function openEditClient() {
             if (!selectedClient) return;
@@ -996,12 +1007,12 @@
             renderClients(filtered);
         }
 
-        function toggleSavedClient(clientId) {
-            let baseClient = manuallyCreatedClients.find(c => c._id === clientId) || allClients.find(c => c._id === clientId);
-            if (!baseClient) return;
-            
-            const kName = Object.keys(baseClient).find(k => k.toLowerCase().includes("denumire"));
-            const originalName = baseClient[kName] ? baseClient[kName].toString() : '';
+        function toggleSavedClient(index) {
+            const c = window.currentRenderedClients[index];
+            if (!c) return;
+            const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire"));
+            const originalName = c[kName] ? c[kName].toString().trim() : '';
+            if (!originalName) return;
 
             const idx = savedClientNames.indexOf(originalName);
             if (idx > -1) savedClientNames.splice(idx, 1); 
@@ -1012,9 +1023,16 @@
 
         function renderClients(clients) {
             const container = document.getElementById('clients-list'); 
-            if (clients.length === 0) { container.innerHTML = '<p class="p-8 sm:p-10 text-center text-gray-400 italic font-bold text-sm sm:text-base">Niciun client găsit.</p>'; return; }
             
-            container.innerHTML = clients.map(c => {
+            // Salvăm lista filtrată curentă pentru a putea fi accesată 100% sigur la click
+            window.currentRenderedClients = clients;
+
+            if (clients.length === 0) { 
+                container.innerHTML = '<p class="p-8 sm:p-10 text-center text-gray-400 italic font-bold text-sm sm:text-base">Niciun client găsit.</p>'; 
+                return; 
+            }
+            
+            container.innerHTML = clients.map((c, index) => {
                 const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire"));
                 const kLoc = Object.keys(c).find(k => k.toLowerCase().includes("localitate"));
                 
@@ -1025,15 +1043,14 @@
                 const displayName = edit ? edit.name : originalName;
                 const displayLoc = edit ? edit.loc : (c[kLoc] || '-');
 
-                const id = c._id; // Folosim strict ID-ul unic pentru click
-
-                return `<div onclick="handleClientClick('${id}')" 
-                     class="client-card bg-white p-5 sm:p-7 rounded-2xl sm:rounded-[2.5rem] shadow-xl active:scale-[0.98] transition-all cursor-pointer flex justify-between items-center ${selectedClient && selectedClient._id === id ? 'active-client' : ''}">
+                // AICI ESTE MAGICUL: 'onclick="handleClientClick(0)"'. Zero text, zero erori!
+                return `<div onclick="handleClientClick(${index})" 
+                     class="client-card bg-white p-5 sm:p-7 rounded-2xl sm:rounded-[2.5rem] shadow-xl active:scale-[0.98] transition-all cursor-pointer flex justify-between items-center ${selectedClient && (selectedClient.name === displayName || selectedClient.name === originalName) ? 'active-client' : ''}">
                     <div class="flex-1 min-w-0 pr-3 sm:pr-4 pointer-events-none">
                         <p class="text-base sm:text-2xl font-black text-dm-blue uppercase truncate leading-tight">${displayName}</p>
                         <p class="text-[10px] sm:text-lg font-bold text-gray-400 mt-1">📍 ${displayLoc}</p>
                     </div>
-                    <button onclick="event.stopPropagation(); toggleSavedClient('${id}')" class="btn-save-client flex-shrink-0 pointer-events-auto ${isSaved ? 'bg-dm-yellow text-dm-blue' : 'bg-gray-100 text-gray-400'}"><span class="text-2xl sm:text-4xl">${isSaved ? '⭐' : '☆'}</span></button>
+                    <button onclick="event.stopPropagation(); toggleSavedClient(${index})" class="btn-save-client flex-shrink-0 pointer-events-auto ${isSaved ? 'bg-dm-yellow text-dm-blue' : 'bg-gray-100 text-gray-400'}"><span class="text-2xl sm:text-4xl">${isSaved ? '⭐' : '☆'}</span></button>
                 </div>`;
             }).join('');
         }
