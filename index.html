@@ -292,7 +292,6 @@
         <div id="view-edit-client" class="view-hidden p-4 sm:p-5">
             <h2 class="text-2xl sm:text-3xl font-black text-dm-blue uppercase italic mb-6 sm:mb-8">✏️ Editează Client</h2>
             <div class="bg-white p-5 sm:p-8 rounded-[2rem] sm:rounded-[3rem] shadow-2xl border border-gray-100 space-y-4 sm:space-y-6">
-                <!-- Same compact styling as add-client -->
                 <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Denumire</label><input type="text" id="edit-client-name" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
                 <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Oraș</label><input type="text" id="edit-client-loc" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
                 <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Adresă Livrare</label><input type="text" id="edit-client-adresa" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
@@ -605,6 +604,7 @@
                 const pretNet = p.pret;
                 const stocVal = (p.stoc !== undefined && p.stoc !== "") ? parseFloat(p.stoc.toString().replace(/\./g, '').replace(',', '.')) : null;
                 const qty = cart[name] ? cart[name].quantity : 0;
+                const encodedName = encodeURIComponent(name);
                 
                 return `<tr class="${qty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100">
                     <td class="px-3 sm:px-6 py-4 sm:py-5 font-black text-dm-blue uppercase leading-tight tracking-tighter">
@@ -616,9 +616,9 @@
                     </td>
                     <td class="py-4 sm:py-5">
                         <div class="flex items-center justify-center gap-1 sm:gap-3 bg-gray-50 rounded-xl sm:rounded-[1.8rem] p-1 sm:p-1.5 border border-gray-100 shadow-inner">
-                            <button onclick="updateCart('${name.replace(/'/g, "\\'")}', -1)" class="flex items-center justify-center bg-white text-gray-400 shadow-sm border border-gray-100 text-lg sm:text-2xl rounded-lg sm:rounded-xl w-7 h-7 sm:w-12 sm:h-12">-</button>
+                            <button onclick="updateCart('${encodedName}', -1)" class="flex items-center justify-center bg-white text-gray-400 shadow-sm border border-gray-100 text-lg sm:text-2xl rounded-lg sm:rounded-xl w-7 h-7 sm:w-12 sm:h-12">-</button>
                             <span class="font-black text-sm sm:text-2xl w-5 sm:w-10 text-center text-dm-blue">${qty}</span>
-                            <button onclick="updateCart('${name.replace(/'/g, "\\'")}', 1)" class="flex items-center justify-center bg-dm-blue text-white shadow-md sm:shadow-xl text-lg sm:text-2xl rounded-lg sm:rounded-xl w-7 h-7 sm:w-12 sm:h-12">+</button>
+                            <button onclick="updateCart('${encodedName}', 1)" class="flex items-center justify-center bg-dm-blue text-white shadow-md sm:shadow-xl text-lg sm:text-2xl rounded-lg sm:rounded-xl w-7 h-7 sm:w-12 sm:h-12">+</button>
                         </div>
                     </td>
                     <td class="text-right pr-3 sm:pr-6 py-4 sm:py-5 font-black text-dm-blue text-sm sm:text-xl">${(qty*pretNet).toFixed(2)}</td>
@@ -626,7 +626,9 @@
             }).join('');
         }
 
-        function updateCart(name, d) {
+        // DECODARE ROBUSTĂ A PARAMETRILOR LA CLICK
+        function updateCart(encodedName, d) {
+            const name = decodeURIComponent(encodedName);
             const p = allProductsRaw.find(x => x.denumire === name);
             if (!p) return;
             if (!cart[name]) cart[name] = { quantity: 0, data: p, category: selectedCategory };
@@ -646,7 +648,9 @@
                 const name = i.data.denumire;
                 const pF_net = i.data.pret;
                 totalNet += i.quantity * pF_net;
-                return `<tr class="border-b border-gray-100"><td class="px-4 sm:px-6 py-4 sm:py-5 font-black text-dm-blue uppercase text-[10px] sm:text-sm leading-tight">${name}<br><span class="text-[9px] sm:text-xs font-bold text-blue-600/60 mt-1 block">${pF_net.toFixed(2)} RON</span></td><td class="py-4 sm:py-5"><div class="flex items-center justify-center gap-1 sm:gap-3 bg-gray-50 rounded-xl sm:rounded-2xl p-1 sm:p-2 border border-gray-100"><button onclick="updateCart('${name.replace(/'/g, "\\'")}', -1)" class="flex items-center justify-center bg-white text-gray-400 shadow-sm border border-gray-100 text-lg sm:text-xl rounded-lg w-7 h-7 sm:w-10 sm:h-10">-</button><span class="font-black text-sm sm:text-xl w-5 sm:w-8 text-center text-dm-blue">${i.quantity}</span><button onclick="updateCart('${name.replace(/'/g, "\\'")}', 1)" class="flex items-center justify-center bg-dm-blue text-white shadow-md text-lg sm:text-xl rounded-lg w-7 h-7 sm:w-10 sm:h-10">+</button></div></td><td class="text-right pr-4 sm:pr-6 py-4 sm:py-5 font-black text-dm-blue text-sm sm:text-lg">${(i.quantity*pF_net).toFixed(2)}</td></tr>`;
+                const encodedName = encodeURIComponent(name);
+                
+                return `<tr class="border-b border-gray-100"><td class="px-4 sm:px-6 py-4 sm:py-5 font-black text-dm-blue uppercase text-[10px] sm:text-sm leading-tight">${name}<br><span class="text-[9px] sm:text-xs font-bold text-blue-600/60 mt-1 block">${pF_net.toFixed(2)} RON</span></td><td class="py-4 sm:py-5"><div class="flex items-center justify-center gap-1 sm:gap-3 bg-gray-50 rounded-xl sm:rounded-2xl p-1 sm:p-2 border border-gray-100"><button onclick="updateCart('${encodedName}', -1)" class="flex items-center justify-center bg-white text-gray-400 shadow-sm border border-gray-100 text-lg sm:text-xl rounded-lg w-7 h-7 sm:w-10 sm:h-10">-</button><span class="font-black text-sm sm:text-xl w-5 sm:w-8 text-center text-dm-blue">${i.quantity}</span><button onclick="updateCart('${encodedName}', 1)" class="flex items-center justify-center bg-dm-blue text-white shadow-md text-lg sm:text-xl rounded-lg w-7 h-7 sm:w-10 sm:h-10">+</button></div></td><td class="text-right pr-4 sm:pr-6 py-4 sm:py-5 font-black text-dm-blue text-sm sm:text-lg">${(i.quantity*pF_net).toFixed(2)}</td></tr>`;
             }).join('');
             document.getElementById('totalNoVat').innerText = totalNet.toFixed(2) + ' RON';
         }
@@ -814,9 +818,10 @@
             switchView('clients');
         }
 
-        // FUNCȚIE ROBUSTĂ DE SELECȚIE (A REZOLVAT CLICK-UL MORT PE TELEFON)
-        function selectClientByName(nameToFind) {
-            if (!nameToFind) return;
+        // DECODARE ROBUSTĂ A PARAMETRILOR LA CLICK
+        function selectClientByName(encodedNameToFind) {
+            if (!encodedNameToFind) return;
+            const nameToFind = decodeURIComponent(encodedNameToFind);
             
             let baseClient = manuallyCreatedClients.find(c => c.denumire && c.denumire.toString() === nameToFind.toString());
             
@@ -930,8 +935,8 @@
             renderClients(filtered);
         }
 
-        // FUNCȚIE PENTRU SALVARE STEA CLIENT (Separata din HTML pt a evita erorile de randare)
-        function toggleSavedClient(name) {
+        function toggleSavedClient(encodedName) {
+            const name = decodeURIComponent(encodedName);
             const idx = savedClientNames.indexOf(name);
             if (idx > -1) savedClientNames.splice(idx, 1); 
             else savedClientNames.push(name); 
@@ -954,16 +959,16 @@
                 const displayName = edit ? edit.name : originalName;
                 const displayLoc = edit ? edit.loc : (c[kLoc] || '-');
 
-                // Escapare perfectă a ghilimelelor pentru HTML
-                const safeName = originalName.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                // ENCODARE 100% SIGURĂ PENTRU TELEFON (Evită orice eroare de caractere speciale)
+                const encodedName = encodeURIComponent(originalName);
 
-                return `<div onclick="selectClientByName('${safeName}')" 
+                return `<div onclick="selectClientByName('${encodedName}')" 
                      class="client-card bg-white p-5 sm:p-7 rounded-2xl sm:rounded-[2.5rem] shadow-xl active:scale-[0.98] transition-all cursor-pointer flex justify-between items-center ${selectedClient && (selectedClient.name === displayName || selectedClient.name === originalName) ? 'active-client' : ''}">
-                    <div class="flex-1 min-w-0 pr-3 sm:pr-4 pointer-events-none">
+                    <div class="flex-1 min-w-0 pr-3 sm:pr-4 select-none">
                         <p class="text-base sm:text-2xl font-black text-dm-blue uppercase truncate leading-tight">${displayName}</p>
                         <p class="text-[10px] sm:text-lg font-bold text-gray-400 mt-1">📍 ${displayLoc}</p>
                     </div>
-                    <button onclick="event.stopPropagation(); toggleSavedClient('${safeName}')" class="btn-save-client flex-shrink-0 ${isSaved ? 'bg-dm-yellow text-dm-blue' : 'bg-gray-100 text-gray-400'}"><span class="text-2xl sm:text-4xl">${isSaved ? '⭐' : '☆'}</span></button>
+                    <button onclick="event.stopPropagation(); toggleSavedClient('${encodedName}')" class="btn-save-client flex-shrink-0 ${isSaved ? 'bg-dm-yellow text-dm-blue' : 'bg-gray-100 text-gray-400'}"><span class="text-2xl sm:text-4xl">${isSaved ? '⭐' : '☆'}</span></button>
                 </div>`;
             }).join('');
         }
