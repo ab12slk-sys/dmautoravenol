@@ -273,10 +273,22 @@
             <div id="clients-list" class="space-y-3 sm:space-y-5 overflow-y-auto max-h-[60vh] pr-1 sm:pr-2"></div>
         </div>
 
-        <!-- FORMULARE COMPACTATE PENTRU MOBIL -->
+        <!-- FORMULAR CLIENT NOU -->
         <div id="view-add-client" class="view-hidden p-4 sm:p-5">
             <h2 class="text-2xl sm:text-3xl font-black text-dm-blue uppercase italic mb-6 sm:mb-8">➕ Client Nou</h2>
             <div class="bg-white p-5 sm:p-8 rounded-[2rem] sm:rounded-[3rem] shadow-2xl border border-gray-100 space-y-4 sm:space-y-6">
+                <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Denumire</label><input type="text" id="new-client-name" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
+                <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Oraș</label><input type="text" id="new-client-loc" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
+                <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Adresă Livrare</label><input type="text" id="new-client-adresa" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
+                <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                    <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">CIF</label><input type="text" id="new-client-cif" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
+                    <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Reg. Com.</label><input type="text" id="new-client-rc" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
+                </div>
+                <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Telefon</label><input type="tel" id="new-client-tel" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all"></div>
+                <button onclick="handleCreateClient()" class="w-full bg-dm-blue text-dm-yellow py-4 sm:py-6 rounded-xl sm:rounded-[2rem] font-black uppercase text-base sm:text-xl shadow-2xl active:scale-95 transition-all mt-2 sm:mt-4">Salvează ✅</button>
+            </div>
+        </div>
+
         <!-- FORMULAR EDITARE CLIENT -->
         <div id="view-edit-client" class="view-hidden p-4 sm:p-5">
             <h2 class="text-2xl sm:text-3xl font-black text-dm-blue uppercase italic mb-6 sm:mb-8">✏️ Editează Client</h2>
@@ -396,7 +408,23 @@
 
         const MASTER_FILES = ['STOCEG.xls', 'STOCEG.xlsx'];
         const CLIENTS_FILE = 'LISTA_CLIENTI.xlsx';
-        const SOLD_FILES = ['SOLD_ALBA.xlsx', 'SOLD_ALBA.xls', 'SOLD_HUNEDOARA.xlsx', 'SOLD_HUNEDOARA.xls'];
+        
+        // GHID DE PREVENIRE A ERORILOR DE "CASE SENSITIVITY" PENTRU GITHUB:
+        // Pe Windows `SOLD_ALBA.xlsx` și `Sold_Alba.xlsx` sunt același fișier. Pe GitHub sunt două fișiere diferite!
+        // Am adăugat toate variațiile posibile de litere mari/mici și spații pentru a ne asigura că fișierele sunt citite corect mereu.
+        const SOLD_FILES_ALBA = [
+            'SOLD_ALBA.xlsx', 'SOLD_ALBA.xls',
+            'Sold_Alba.xlsx', 'Sold_Alba.xls',
+            'sold_alba.xlsx', 'sold_alba.xls',
+            'SOLD ALBA.xlsx', 'Sold Alba.xlsx'
+        ];
+        
+        const SOLD_FILES_HUNEDOARA = [
+            'SOLD_HUNEDOARA.xlsx', 'SOLD_HUNEDOARA.xls',
+            'Sold_Hunedoara.xlsx', 'Sold_Hunedoara.xls',
+            'sold_hunedoara.xlsx', 'sold_hunedoara.xls',
+            'SOLD HUNEDOARA.xlsx', 'Sold Hunedoara.xlsx'
+        ];
 
         let currentAgent = null;
         let allProductsRaw = []; 
@@ -565,12 +593,9 @@
                             allProductsRaw = newProducts;
                             localStorage.setItem(`dma_mast_cache`, JSON.stringify(allProductsRaw));
                             success = true;
-                            console.log(`Inventar citit cu succes din ${file} (TVA 21% extras automat)`);
                         }
                     }
-                } catch (e) { 
-                    console.warn(`Nu s-a putut citi ${file}.`); 
-                }
+                } catch (e) { }
             }
         }
 
@@ -626,7 +651,6 @@
             }).join('');
         }
 
-        // DECODARE ROBUSTĂ A PARAMETRILOR LA CLICK
         function updateCart(encodedName, d) {
             const name = decodeURIComponent(encodedName);
             const p = allProductsRaw.find(x => x.denumire === name);
@@ -692,9 +716,9 @@
         function retrimiteComandaDirect() { if (currentViewingOrderIndex === null) return; const o = window.orderHistory[currentViewingOrderIndex]; selectedClient = o.client; trimiteWhatsApp(o.timestamp, o.cartData); if (o.status === 'Ciornă') { window.orderHistory[currentViewingOrderIndex].status = 'Trimisă'; saveAgentData(); renderHistory(); } }
         function stergeComandaCurenta() { if (currentViewingOrderIndex === null) return; if (confirm("Ștergi definitiv?")) { window.orderHistory.splice(currentViewingOrderIndex, 1); saveAgentData(); switchView('history'); } }
         
-        async function syncSoldData() {
-            allSoldData = [];
-            for (const file of SOLD_FILES) {
+        // --- FUNCTIE ROBUSTĂ DE EXTRAGERE SOLDURI (REPARĂ PROBLEMA DE CASE SENSITIVITY DE PE GITHUB) ---
+        async function fetchSoldForRegion(fileList) {
+            for (const file of fileList) {
                 try {
                     const response = await fetchExcel(file);
                     if (response.ok) {
@@ -724,11 +748,20 @@
                                 });
                             }
                         });
+                        console.log(`Sold citit cu succes din: ${file}`);
+                        return; // Oprește căutarea pentru această regiune imediat ce găsește fișierul bun
                     }
                 } catch (e) { 
-                    // Erorile se ignoră pentru a permite verificarea ambelor extensii (.xls și .xlsx)
+                    // Trece la următoarea variantă de nume din listă
                 }
             }
+        }
+
+        async function syncSoldData() {
+            allSoldData = [];
+            // Apelează pe rând cele două regiuni cu noile liste securizate
+            await fetchSoldForRegion(SOLD_FILES_ALBA);
+            await fetchSoldForRegion(SOLD_FILES_HUNEDOARA);
         }
 
         function renderSoldItems() {
@@ -820,7 +853,6 @@
             switchView('clients');
         }
 
-        // DECODARE ROBUSTĂ A PARAMETRILOR LA CLICK ȘI CALCULARE SOLD INSTANT
         function selectClientByName(encodedNameToFind) {
             if (!encodedNameToFind) return;
             const nameToFind = decodeURIComponent(encodedNameToFind);
@@ -862,7 +894,6 @@
             saveAgentData();
             updateClientUI();
 
-            // CALCULARE SOLD CURENT PENTRU AFIȘARE INSTANTĂ
             const targetNorm = normalizeName(selectedClient.name);
             const mySold = allSoldData.filter(row => row.clientNorm.includes(targetNorm) || targetNorm.includes(row.clientNorm));
             
@@ -985,7 +1016,6 @@
                 const displayName = edit ? edit.name : originalName;
                 const displayLoc = edit ? edit.loc : (c[kLoc] || '-');
 
-                // ENCODARE 100% SIGURĂ PENTRU TELEFON (Evită orice eroare de caractere speciale)
                 const encodedName = encodeURIComponent(originalName);
 
                 return `<div onclick="selectClientByName('${encodedName}')" 
