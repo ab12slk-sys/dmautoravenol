@@ -853,9 +853,11 @@
             switchView('clients');
         }
 
-        function selectClientByName(encodedNameToFind) {
-            if (!encodedNameToFind) return;
-            const nameToFind = decodeURIComponent(encodedNameToFind);
+        window.clientDataMap = {}; // Harta sigură pentru click-uri
+
+        function selectClientById(clientId) {
+            const nameToFind = window.clientDataMap[clientId];
+            if (!nameToFind) return;
             
             let baseClient = manuallyCreatedClients.find(c => c.denumire && c.denumire.toString() === nameToFind.toString());
             
@@ -992,11 +994,12 @@
             renderClients(filtered);
         }
 
-        function toggleSavedClient(encodedName) {
-            const name = decodeURIComponent(encodedName);
-            const idx = savedClientNames.indexOf(name);
+        function toggleSavedClientById(clientId) {
+            const nameToFind = window.clientDataMap[clientId];
+            if (!nameToFind) return;
+            const idx = savedClientNames.indexOf(nameToFind);
             if (idx > -1) savedClientNames.splice(idx, 1); 
-            else savedClientNames.push(name); 
+            else savedClientNames.push(nameToFind); 
             saveAgentData(); 
             filterClients();
         }
@@ -1005,7 +1008,9 @@
             const container = document.getElementById('clients-list'); 
             if (clients.length === 0) { container.innerHTML = '<p class="p-8 sm:p-10 text-center text-gray-400 italic font-bold text-sm sm:text-base">Niciun client găsit.</p>'; return; }
             
-            container.innerHTML = clients.map(c => {
+            window.clientDataMap = {}; // Resetăm harta la fiecare randare
+            
+            container.innerHTML = clients.map((c, index) => {
                 const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire"));
                 const kLoc = Object.keys(c).find(k => k.toLowerCase().includes("localitate"));
                 
@@ -1016,15 +1021,17 @@
                 const displayName = edit ? edit.name : originalName;
                 const displayLoc = edit ? edit.loc : (c[kLoc] || '-');
 
-                const encodedName = encodeURIComponent(originalName);
+                // FOLOSIM UN ID UNIC PENTRU A EVITA ORICE EROARE DE CARACTERE SPECIALE PE TELEFON
+                const clientId = 'client_' + index;
+                window.clientDataMap[clientId] = originalName;
 
-                return `<div onclick="selectClientByName('${encodedName}')" 
+                return `<div onclick="selectClientById('${clientId}')" 
                      class="client-card bg-white p-5 sm:p-7 rounded-2xl sm:rounded-[2.5rem] shadow-xl active:scale-[0.98] transition-all cursor-pointer flex justify-between items-center ${selectedClient && (selectedClient.name === displayName || selectedClient.name === originalName) ? 'active-client' : ''}">
-                    <div class="flex-1 min-w-0 pr-3 sm:pr-4 select-none">
+                    <div class="flex-1 min-w-0 pr-3 sm:pr-4 pointer-events-none">
                         <p class="text-base sm:text-2xl font-black text-dm-blue uppercase truncate leading-tight">${displayName}</p>
                         <p class="text-[10px] sm:text-lg font-bold text-gray-400 mt-1">📍 ${displayLoc}</p>
                     </div>
-                    <button onclick="event.stopPropagation(); toggleSavedClient('${encodedName}')" class="btn-save-client flex-shrink-0 ${isSaved ? 'bg-dm-yellow text-dm-blue' : 'bg-gray-100 text-gray-400'}"><span class="text-2xl sm:text-4xl">${isSaved ? '⭐' : '☆'}</span></button>
+                    <button onclick="event.stopPropagation(); toggleSavedClientById('${clientId}')" class="btn-save-client flex-shrink-0 pointer-events-auto ${isSaved ? 'bg-dm-yellow text-dm-blue' : 'bg-gray-100 text-gray-400'}"><span class="text-2xl sm:text-4xl">${isSaved ? '⭐' : '☆'}</span></button>
                 </div>`;
             }).join('');
         }
