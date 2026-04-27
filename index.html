@@ -231,7 +231,7 @@
                     <div class="overflow-x-auto max-h-[60vh]">
                         <table class="w-full text-left">
                             <thead class="bg-gray-50 border-b border-gray-100 uppercase text-[10px] font-black text-gray-400">
-                                <tr><th class="pl-8 py-5">Reper / Stoc / Preț Net</th><th class="text-center">Cant.</th><th class="pr-8 text-right">Total Net</th></tr>
+                                <tr><th class="pl-6 py-4">Reper / Stoc / Preț Net</th><th class="text-center">Cant.</th><th class="pr-6 text-right">Total Net</th></tr>
                             </thead>
                             <tbody id="productTableBody" class="divide-y divide-gray-100"></tbody>
                         </table>
@@ -339,7 +339,7 @@
                 <button onclick="switchView('clients')" class="text-xs font-black bg-dm-blue text-white px-6 py-4 rounded-2xl uppercase shadow-xl flex-shrink-0">Schimbă</button>
             </div>
             <div class="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden mb-10">
-                <div class="overflow-x-auto"><table class="w-full text-left"><thead class="bg-gray-50 border-b border-gray-100 font-black uppercase text-[10px]"><tr><th class="pl-8 py-5 text-base">Produs</th><th class="text-center text-base">Cant.</th><th class="pr-8 text-right text-base">Net</th></tr></thead><tbody id="cart-content-table" class="divide-y divide-gray-100"></tbody></table></div>
+                <div class="overflow-x-auto"><table class="w-full text-left"><thead class="bg-gray-50 border-b border-gray-100 font-black uppercase text-[10px]"><tr><th class="pl-6 py-4 text-sm">Produs</th><th class="text-center text-sm">Cant.</th><th class="pr-6 text-right text-sm">Net</th></tr></thead><tbody id="cart-content-table" class="divide-y divide-gray-100"></tbody></table></div>
                 <div id="cart-empty-msg" class="p-20 text-center text-gray-400 uppercase font-black text-lg italic view-hidden">Coș gol</div>
             </div>
             <div id="cart-summary-box" class="bg-dm-blue text-white rounded-[3rem] p-10 shadow-2xl">
@@ -591,7 +591,7 @@
                 const stocVal = (p.stoc !== undefined && p.stoc !== "") ? parseFloat(p.stoc.toString().replace(/\./g, '').replace(',', '.')) : null;
                 const qty = cart[name] ? cart[name].quantity : 0;
                 
-                return `<tr class="${qty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100"><td class="px-8 py-8 font-black text-dm-blue uppercase leading-tight tracking-tighter leading-tight"><span class="text-3xl block mb-3 leading-none">${name}</span><div class="flex items-center gap-4"><span class="text-xl font-black text-blue-600/80">${pretNet.toFixed(2)} RON</span>${stocVal !== null ? `<span class="text-[10px] font-black ${stocVal>0?'text-green-600 bg-green-50':'text-red-500 bg-red-50'} px-3 py-1 rounded-xl border">STOC: ${stocVal.toFixed(0)}</span>` : ''}</div></td><td class="py-8"><div class="flex items-center justify-center gap-4 bg-gray-50 rounded-[1.8rem] p-1.5 border border-gray-100 shadow-inner"><button onclick="updateCart('${name.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100 text-3xl">-</button><span class="font-black text-4xl w-14 text-center text-dm-blue">${qty}</span><button onclick="updateCart('${name.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-xl text-3xl">+</button></div></td><td class="text-right pr-8 py-8 font-black text-dm-blue text-2xl">${(qty*pretNet).toFixed(2)}</td></tr>`;
+                return `<tr class="${qty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100"><td class="px-6 py-5 font-black text-dm-blue uppercase leading-tight tracking-tighter"><span class="text-lg block mb-2 leading-tight">${name}</span><div class="flex items-center gap-3"><span class="text-base font-black text-blue-600/80">${pretNet.toFixed(2)} RON</span>${stocVal !== null ? `<span class="text-[10px] font-black ${stocVal>0?'text-green-600 bg-green-50':'text-red-500 bg-red-50'} px-3 py-1 rounded-xl border">STOC: ${stocVal.toFixed(0)}</span>` : ''}</div></td><td class="py-5"><div class="flex items-center justify-center gap-3 bg-gray-50 rounded-[1.8rem] p-1.5 border border-gray-100 shadow-inner"><button onclick="updateCart('${name.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100 text-2xl" style="width: 48px; height: 48px;">-</button><span class="font-black text-2xl w-10 text-center text-dm-blue">${qty}</span><button onclick="updateCart('${name.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-xl text-2xl" style="width: 48px; height: 48px;">+</button></div></td><td class="text-right pr-6 py-5 font-black text-dm-blue text-xl">${(qty*pretNet).toFixed(2)}</td></tr>`;
             }).join('');
         }
 
@@ -615,7 +615,7 @@
                 const name = i.data.denumire;
                 const pF_net = i.data.pret;
                 totalNet += i.quantity * pF_net;
-                return `<tr class="border-b border-gray-100"><td class="px-8 py-6 font-black text-dm-blue uppercase text-xl">${name}<br><span class="text-sm font-bold text-blue-600/60">${pF_net.toFixed(2)} RON</span></td><td class="py-6"><div class="flex items-center justify-center gap-4 bg-gray-50 rounded-2xl p-2 border border-gray-100"><button onclick="updateCart('${name.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button><span class="font-black text-3xl w-14 text-center text-dm-blue">${i.quantity}</span><button onclick="updateCart('${name.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-md">+</button></div></td><td class="text-right pr-8 py-6 font-black text-dm-blue text-2xl">${(i.quantity*pF_net).toFixed(2)}</td></tr>`;
+                return `<tr class="border-b border-gray-100"><td class="px-6 py-5 font-black text-dm-blue uppercase text-sm leading-tight">${name}<br><span class="text-xs font-bold text-blue-600/60 mt-1 block">${pF_net.toFixed(2)} RON</span></td><td class="py-5"><div class="flex items-center justify-center gap-3 bg-gray-50 rounded-2xl p-2 border border-gray-100"><button onclick="updateCart('${name.replace(/'/g, "\\'")}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100" style="width: 42px; height: 42px; font-size: 1.5rem;">-</button><span class="font-black text-xl w-8 text-center text-dm-blue">${i.quantity}</span><button onclick="updateCart('${name.replace(/'/g, "\\'")}', 1)" class="qty-btn bg-dm-blue text-white shadow-md" style="width: 42px; height: 42px; font-size: 1.5rem;">+</button></div></td><td class="text-right pr-6 py-5 font-black text-dm-blue text-lg">${(i.quantity*pF_net).toFixed(2)}</td></tr>`;
             }).join('');
             document.getElementById('totalNoVat').innerText = totalNet.toFixed(2) + ' RON';
         }
@@ -649,7 +649,7 @@
             currentViewingOrderIndex = idx; const o = window.orderHistory[idx]; switchView('order-details');
             document.getElementById('order-details-header').innerHTML = `<div class="flex justify-between items-center mb-5"><h3 class="text-sm font-black text-gray-400 uppercase italic text-lg">DETALII</h3><span class="text-[11px] font-black bg-gray-100 px-5 py-2 rounded-2xl uppercase">${o.status}</span></div><p class="text-3xl font-black text-dm-blue uppercase mb-5 leading-none">${o.client ? o.client.name : '-'}</p><p class="text-5xl font-black text-dm-blue italic tracking-tighter">${o.total} RON</p>`;
             document.getElementById('order-details-items').innerHTML = Object.values(o.cartData).map(i => {
-                return `<div class="flex justify-between items-center text-sm py-6 border-b border-gray-50"><div class="flex flex-col"><span class="font-black text-dm-blue text-2xl uppercase">${i.data.denumire}</span><span class="text-xl font-black text-blue-600/60">${i.data.pret.toFixed(2)} RON</span></div><span class="font-black bg-gray-100 px-8 py-5 rounded-[2rem] text-4xl text-dm-blue">x ${i.quantity}</span></div>`;
+                return `<div class="flex justify-between items-center text-sm py-4 border-b border-gray-50"><div class="flex flex-col pr-4"><span class="font-black text-dm-blue text-sm uppercase leading-tight mb-1">${i.data.denumire}</span><span class="text-xs font-black text-blue-600/60">${i.data.pret.toFixed(2)} RON</span></div><span class="font-black bg-gray-100 px-5 py-3 rounded-[1.5rem] text-xl text-dm-blue">x ${i.quantity}</span></div>`;
             }).join('');
         }
 
