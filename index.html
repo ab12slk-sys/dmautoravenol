@@ -305,7 +305,7 @@
             </div>
         </div>
 
-        <!-- SELECTOR MOD (Meniul ce apare DUPĂ click pe client) -->
+        <!-- SELECTOR MOD (Apare IMEDIAT dupa ce apesi pe client) -->
         <div id="view-client-mode" class="view-hidden p-5 sm:p-6 flex flex-col justify-start pt-8 sm:pt-10 min-h-[60vh] sm:min-h-[70vh]">
             
             <div id="client-mode-sold-container" class="bg-gray-50 rounded-[2rem] shadow-sm border border-gray-200 p-6 mb-6 sm:mb-8 text-center transition-all duration-300">
@@ -433,6 +433,9 @@
         let savedClientNames = []; 
         let showOnlyMyClients = false; 
         
+        // VARIABILĂ GLOBALĂ SIGURĂ PENTRU LISTA CURENTĂ DE CLIENȚI AFIȘATĂ PE ECRAN
+        window.renderedClientsList = [];
+        
         let selectedClient = null;
         let cart = {};
         let selectedCategory = null;
@@ -453,11 +456,6 @@
                 .replace(/S\.A\./g, "").replace(/SA/g, "")
                 .replace(/[^A-Z0-9]/g, "")
                 .trim();
-        }
-
-        function getProductMatchKey(name) {
-            if (!name) return "";
-            return name.toString().toUpperCase().replace(/[\s\-_]/g, '');
         }
 
         function switchView(viewName, saveHistory = true) {
@@ -541,9 +539,6 @@
             localStorage.setItem(`dma_edit_cli_${id}`, JSON.stringify(editedClients));
         }
 
-        // ==============================================================================
-        // FUNCTIE FETCH LIVE (CITESTE 100% DIN GITHUB LA CERERE, IGNORA CACHE-UL VECHI)
-        // ==============================================================================
         async function fetchExcelLive(filename) {
             const cacheBuster = '?t=' + new Date().getTime();
             const path = window.location.pathname.includes('DM-Auto-App') ? `./${filename}${cacheBuster}` : filename + cacheBuster;
@@ -769,25 +764,38 @@
         }
 
         // ==============================================================================
-        // SELECȚIA CLIENTULUI ȘI DESCĂRCAREA SOLDULUI "LA CERERE" 
-        // Aici este logica originală restaurată complet 100% cu URL encode.
+        // SELECȚIA CLIENTULUI ȘI DESCĂRCAREA SOLDULUI
+        // (COMPLET RESCRIS FARA A MAI TRIMITE TEXT PRIN BUTON)
+        // Folosim direct Index-ul (pozitia numarului) din lista
         // ==============================================================================
-        async function selectClientLive(encName, encLoc, encCif, encRc, encTel, encAdresa) {
-            const name = decodeURIComponent(encName);
+
+        async function handleClientSelection(idx) {
+            // Preluam obiectul clientului exact pe care am apasat
+            const c = window.renderedClientsList[idx];
+            if (!c) return;
+
+            const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire"));
+            const kLoc = Object.keys(c).find(k => k.toLowerCase().includes("localitate"));
+            const kCIF = Object.keys(c).find(k => k.toLowerCase().includes("cod_fiscal"));
+            const kRC = Object.keys(c).find(k => k.toLowerCase().includes("reg_com"));
+            const kTel = Object.keys(c).find(k => k.toLowerCase().includes("tel"));
+            const kAdresa = Object.keys(c).find(k => k.toLowerCase().includes("adres"));
+
+            const originalName = c[kName] ? c[kName].toString().trim() : '';
             
             let clientData = {
-                originalName: name,
-                name: name,
-                loc: decodeURIComponent(encLoc) || '',
-                cif: decodeURIComponent(encCif) || '',
-                rc: decodeURIComponent(encRc) || '',
-                tel: decodeURIComponent(encTel) || '',
-                adresa: decodeURIComponent(encAdresa) || ''
+                originalName: originalName,
+                name: originalName,
+                loc: c[kLoc] ? c[kLoc].toString().trim() : '',
+                cif: c[kCIF] ? c[kCIF].toString().trim() : '',
+                rc: c[kRC] ? c[kRC].toString().trim() : '',
+                tel: c[kTel] ? c[kTel].toString().trim() : '',
+                adresa: c[kAdresa] ? c[kAdresa].toString().trim() : ''
             };
 
             // Dacă clientul a fost editat anterior de agent, suprascriem datele
-            if (editedClients[name]) {
-                clientData = { ...clientData, ...editedClients[name] };
+            if (editedClients[originalName]) {
+                clientData = { ...clientData, ...editedClients[originalName] };
             }
 
             selectedClient = clientData;
@@ -804,7 +812,7 @@
             
             containerSold.className = "bg-gray-50 rounded-[2rem] shadow-sm border border-gray-200 p-6 mb-6 sm:mb-8 text-center transition-all duration-300";
             totalSoldText.className = "text-xl sm:text-2xl font-black text-gray-500 tracking-tighter mb-0 animate-pulse";
-            totalSoldText.innerText = "⏳ Se descarcă soldul live...";
+            totalSoldText.innerText = "⏳ Se verifică soldul...";
             btnIncasareMode.classList.add('hidden');
 
             // DESCĂRCĂM DATELE DE SOLD (EXACT ACUM)
@@ -1019,11 +1027,16 @@
             renderClients(filtered);
         }
 
-        function toggleSavedClient(encodedName) {
-            const name = decodeURIComponent(encodedName);
-            const idx = savedClientNames.indexOf(name);
-            if (idx > -1) savedClientNames.splice(idx, 1); 
-            else savedClientNames.push(name); 
+        function toggleSavedClient(idx) {
+            const c = window.renderedClientsList[idx];
+            if (!c) return;
+            const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire"));
+            const originalName = c[kName] ? c[kName].toString().trim() : '';
+
+            const indexName = savedClientNames.indexOf(originalName);
+            if (indexName > -1) savedClientNames.splice(indexName, 1); 
+            else savedClientNames.push(originalName); 
+            
             saveAgentData(); 
             filterClients();
         }
@@ -1031,25 +1044,20 @@
         function renderClients(clients) {
             const container = document.getElementById('clients-list'); 
             
+            // Salvăm global lista EXACTĂ care este afișată acum (Asta rezolvă bug-ul de click pe telefon)
+            window.renderedClientsList = clients;
+
             if (clients.length === 0) { 
                 container.innerHTML = '<p class="p-8 sm:p-10 text-center text-gray-400 italic font-bold text-sm sm:text-base">Niciun client găsit.</p>'; 
                 return; 
             }
             
-            container.innerHTML = clients.map(c => {
+            container.innerHTML = clients.map((c, idx) => {
                 const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire"));
                 const kLoc = Object.keys(c).find(k => k.toLowerCase().includes("localitate"));
-                const kCIF = Object.keys(c).find(k => k.toLowerCase().includes("cod_fiscal"));
-                const kRC = Object.keys(c).find(k => k.toLowerCase().includes("reg_com"));
-                const kTel = Object.keys(c).find(k => k.toLowerCase().includes("tel"));
-                const kAdresa = Object.keys(c).find(k => k.toLowerCase().includes("adres"));
                 
                 const originalName = c[kName] ? c[kName].toString().trim() : ''; 
                 const loc = c[kLoc] ? c[kLoc].toString().trim() : '';
-                const cif = c[kCIF] ? c[kCIF].toString().trim() : '';
-                const rc = c[kRC] ? c[kRC].toString().trim() : '';
-                const tel = c[kTel] ? c[kTel].toString().trim() : '';
-                const adresa = c[kAdresa] ? c[kAdresa].toString().trim() : '';
 
                 const isSaved = savedClientNames.includes(originalName);
                 
@@ -1057,22 +1065,14 @@
                 const displayName = edit ? edit.name : originalName;
                 const displayLoc = edit ? edit.loc : (loc || '-');
 
-                // ENCODARE 100% BLINDATĂ A FIECĂRUI PARAMETRU (EVITĂ ERORILE LA CLICK PE TELEFOANE)
-                const encName = encodeURIComponent(originalName);
-                const encLoc = encodeURIComponent(loc);
-                const encCif = encodeURIComponent(cif);
-                const encRc = encodeURIComponent(rc);
-                const encTel = encodeURIComponent(tel);
-                const encAdresa = encodeURIComponent(adresa);
-
-                // Aici se apelează selectClientLive
-                return `<div onclick="selectClientLive('${encName}', '${encLoc}', '${encCif}', '${encRc}', '${encTel}', '${encAdresa}')" 
+                // FOLOSIM DOAR INDEXUL (idx) CA SĂ NU MAI CRAPE NICIODATĂ DIN CAUZA GHILIMELELOR
+                return `<div onclick="handleClientSelection(${idx})" 
                      class="client-card bg-white p-5 sm:p-7 rounded-2xl sm:rounded-[2.5rem] shadow-xl active:scale-[0.98] transition-all cursor-pointer flex justify-between items-center ${selectedClient && (selectedClient.name === displayName || selectedClient.name === originalName) ? 'active-client' : ''}">
                     <div class="flex-1 min-w-0 pr-3 sm:pr-4 pointer-events-none">
                         <p class="text-base sm:text-2xl font-black text-dm-blue uppercase truncate leading-tight">${displayName}</p>
                         <p class="text-[10px] sm:text-lg font-bold text-gray-400 mt-1">📍 ${displayLoc}</p>
                     </div>
-                    <button onclick="event.stopPropagation(); toggleSavedClient('${encName}')" class="btn-save-client flex-shrink-0 pointer-events-auto ${isSaved ? 'bg-dm-yellow text-dm-blue' : 'bg-gray-100 text-gray-400'}"><span class="text-2xl sm:text-4xl">${isSaved ? '⭐' : '☆'}</span></button>
+                    <button onclick="event.stopPropagation(); toggleSavedClient(${idx})" class="btn-save-client flex-shrink-0 pointer-events-auto ${isSaved ? 'bg-dm-yellow text-dm-blue' : 'bg-gray-100 text-gray-400'}"><span class="text-2xl sm:text-4xl">${isSaved ? '⭐' : '☆'}</span></button>
                 </div>`;
             }).join('');
         }
