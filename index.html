@@ -182,7 +182,7 @@
                 </button>
                 <div class="flex-1">
                     <h1 class="text-xs sm:text-sm font-medium opacity-70 leading-none mb-1">Salut, <span id="agent-display-name" class="font-black text-white">Agent!</span></h1>
-                    <button onclick="openClientsViewLive()" class="mt-1 sm:mt-2 w-full bg-black/40 border border-white/20 p-3 sm:p-4 rounded-xl sm:rounded-2xl flex flex-col items-start gap-1 active:scale-95 transition-all shadow-inner">
+                    <button onclick="switchView('clients')" class="mt-1 sm:mt-2 w-full bg-black/40 border border-white/20 p-3 sm:p-4 rounded-xl sm:rounded-2xl flex flex-col items-start gap-1 active:scale-95 transition-all shadow-inner">
                         <span class="text-[8px] sm:text-[9px] font-black text-dm-yellow uppercase tracking-[0.2em] opacity-80">Client Actual:</span>
                         <div class="flex items-center justify-between w-full">
                             <span id="header-client-name" class="text-lg sm:text-2xl font-black truncate leading-none text-left">Neselectat 👤</span>
@@ -229,7 +229,6 @@
                 </div>
             </div>
 
-            <!-- TABEL PRODUSE RESPONSIV -->
             <div id="product-section" class="px-2 sm:px-4 view-hidden">
                 <div class="flex justify-between items-center mb-3 sm:mb-5 px-1 pt-2 sm:pt-4">
                     <div class="flex items-center gap-3 sm:gap-4">
@@ -326,7 +325,7 @@
             <button onclick="openEditClient()" class="w-full bg-gray-100 text-gray-600 shadow-md rounded-2xl sm:rounded-3xl py-4 sm:py-6 active:scale-95 transition-all mb-6 sm:mb-8">
                 <span class="font-black uppercase tracking-widest text-xs sm:text-sm flex items-center justify-center gap-2 sm:gap-3"><span class="text-xl sm:text-2xl">✏️</span> Editează Date Client</span>
             </button>
-            <button onclick="openClientsViewLive()" class="text-center text-dm-blue font-black uppercase tracking-widest text-xs sm:text-sm opacity-50 underline w-full">Schimbă Clientul</button>
+            <button onclick="switchView('clients')" class="text-center text-dm-blue font-black uppercase tracking-widest text-xs sm:text-sm opacity-50 underline w-full">Schimbă Clientul</button>
         </div>
 
         <!-- VEDERE ÎNCASARE -->
@@ -357,7 +356,7 @@
                     <p id="cart-client-name" class="text-base sm:text-xl font-black text-dm-blue uppercase mt-1 sm:mt-2 truncate">Neselectat!</p>
                     <p id="cart-client-address" class="text-[10px] sm:text-xs font-bold text-dm-blue/60 mt-1 truncate">Adresă: Nespecificat</p>
                 </div>
-                <button onclick="openClientsViewLive()" class="text-[10px] sm:text-xs font-black bg-dm-blue text-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl uppercase shadow-xl flex-shrink-0">Schimbă</button>
+                <button onclick="switchView('clients')" class="text-[10px] sm:text-xs font-black bg-dm-blue text-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl uppercase shadow-xl flex-shrink-0">Schimbă</button>
             </div>
             <div class="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden mb-8 sm:mb-10">
                 <div class="overflow-x-auto"><table class="w-full text-left"><thead class="bg-gray-50 border-b border-gray-100 font-black uppercase text-[9px] sm:text-[10px]"><tr><th class="pl-4 sm:pl-6 py-3 sm:py-4 text-xs sm:text-sm">Produs</th><th class="text-center text-xs sm:text-sm">Cant.</th><th class="pr-4 sm:pr-6 text-right text-xs sm:text-sm">Net</th></tr></thead><tbody id="cart-content-table" class="divide-y divide-gray-100"></tbody></table></div>
@@ -432,9 +431,6 @@
         let editedClients = {};
         let savedClientNames = []; 
         let showOnlyMyClients = false; 
-        
-        // VARIABILĂ GLOBALĂ SIGURĂ PENTRU LISTA CURENTĂ DE CLIENȚI AFIȘATĂ PE ECRAN
-        window.renderedClientsList = [];
         
         let selectedClient = null;
         let cart = {};
@@ -515,7 +511,12 @@
             document.getElementById('view-login').classList.add('view-hidden');
             document.getElementById('app-content').classList.remove('view-hidden');
             document.getElementById('agent-display-name').innerText = currentAgent.name;
-            loadAgentData(); syncMasterData(); syncClients(); syncSoldData();
+            loadAgentData(); 
+            
+            // Incarcam toate datele in memorie inca de la deschidere!
+            syncMasterData(); 
+            syncClients(); 
+            syncSoldData();
         }
 
         function loadAgentData() {
@@ -537,12 +538,6 @@
             localStorage.setItem(`dma_sv_cli_${id}`, JSON.stringify(savedClientNames));
             localStorage.setItem(`dma_man_cli_${id}`, JSON.stringify(manuallyCreatedClients));
             localStorage.setItem(`dma_edit_cli_${id}`, JSON.stringify(editedClients));
-        }
-
-        async function fetchExcelLive(filename) {
-            const cacheBuster = '?t=' + new Date().getTime();
-            const path = window.location.pathname.includes('DM-Auto-App') ? `./${filename}${cacheBuster}` : filename + cacheBuster;
-            return await fetch(path);
         }
 
         async function fetchExcel(filename) {
@@ -683,7 +678,7 @@
 
         function golesteCos() { if(confirm("Golești tot coșul?")) { cart = {}; saveAgentData(); updateBadge(); renderCart(); filterProducts(); } }
         function salveazaComanda(isDraft) {
-            if (!selectedClient && !isDraft) { showToast("SELECTEAZĂ CLIENTUL!"); openClientsViewLive(); return; }
+            if (!selectedClient && !isDraft) { showToast("SELECTEAZĂ CLIENTUL!"); switchView('clients'); return; }
             if (Object.keys(cart).length === 0) return;
             const ts = new Date().toLocaleString('ro-RO'); let total = 0;
             Object.values(cart).forEach(i => total += i.quantity * i.data.pret);
@@ -717,108 +712,54 @@
         function incarcaComandaInCos() { if (currentViewingOrderIndex === null) return; const o = window.orderHistory[currentViewingOrderIndex]; cart = JSON.parse(JSON.stringify(o.cartData)); selectedClient = o.client; saveAgentData(); updateClientUI(); switchView('cart'); }
         function retrimiteComandaDirect() { if (currentViewingOrderIndex === null) return; const o = window.orderHistory[currentViewingOrderIndex]; selectedClient = o.client; trimiteWhatsApp(o.timestamp, o.cartData); if (o.status === 'Ciornă') { window.orderHistory[currentViewingOrderIndex].status = 'Trimisă'; saveAgentData(); renderHistory(); } }
         function stergeComandaCurenta() { if (currentViewingOrderIndex === null) return; if (confirm("Ștergi definitiv?")) { window.orderHistory.splice(currentViewingOrderIndex, 1); saveAgentData(); switchView('history'); } }
-        
-        // ==============================================================================
-        // DESCHIDERE LIVE BAZĂ CLIENȚI (Citește fișierul cand apeși Selecteaza Client)
-        // ==============================================================================
-        async function openClientsViewLive() {
-            switchView('clients');
-            const container = document.getElementById('clients-list');
-            container.innerHTML = '<div class="p-10 text-center"><p class="text-4xl mb-4 animate-spin">📡</p><p class="text-dm-blue font-black uppercase text-sm sm:text-base animate-pulse">Se descarcă clienții...</p></div>';
-            
-            await syncClientsLive();
-        }
-
-        async function syncClientsLive() {
-            if (window.location.protocol === 'blob:') {
-                const cached = localStorage.getItem(`dma_cache_cli`);
-                if (cached) { allClients = JSON.parse(cached); filterClients(); }
-                return;
-            }
-            try {
-                const response = await fetchExcelLive(CLIENTS_FILE);
-                if (response.ok) {
-                    const data = await response.arrayBuffer();
-                    const wb = XLSX.read(data, {type: 'array'});
-                    const sh = wb.Sheets[wb.SheetNames[0]];
-                    const raw = XLSX.utils.sheet_to_json(sh, { header: 1 });
-                    let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().trim().includes("denumire")));
-                    
-                    allClients = XLSX.utils.sheet_to_json(sh, { range: idx === -1 ? 0 : idx, defval: "" }).filter(c => c[Object.keys(c).find(k => k.trim().toLowerCase().includes("denumire"))]);
-                    localStorage.setItem(`dma_cache_cli`, JSON.stringify(allClients));
-                    filterClients();
-                } else {
-                    const cached = localStorage.getItem(`dma_cache_cli`);
-                    if (cached) { allClients = JSON.parse(cached); filterClients(); }
-                }
-            } catch (e) {
-                const cached = localStorage.getItem(`dma_cache_cli`);
-                if (cached) { allClients = JSON.parse(cached); filterClients(); }
-            }
-        }
-
-        // Se mentine o functie normala pentru initializarea la pornirea aplicatiei (fallback)
-        async function syncClients() {
-            const cached = localStorage.getItem(`dma_cache_cli`);
-            if (cached) { allClients = JSON.parse(cached); filterClients(); }
-        }
 
         // ==============================================================================
-        // SELECȚIA CLIENTULUI ȘI DESCĂRCAREA SOLDULUI
-        // (COMPLET RESCRIS FARA A MAI TRIMITE TEXT PRIN BUTON)
-        // Folosim direct Index-ul (pozitia numarului) din lista
+        // SELECȚIA CLIENTULUI (RESTAURATĂ EXACT CUM A FOST LA ÎNCEPUT)
         // ==============================================================================
 
-        async function handleClientSelection(idx) {
-            // Preluam obiectul clientului exact pe care am apasat
-            const c = window.renderedClientsList[idx];
-            if (!c) return;
-
-            const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire"));
-            const kLoc = Object.keys(c).find(k => k.toLowerCase().includes("localitate"));
-            const kCIF = Object.keys(c).find(k => k.toLowerCase().includes("cod_fiscal"));
-            const kRC = Object.keys(c).find(k => k.toLowerCase().includes("reg_com"));
-            const kTel = Object.keys(c).find(k => k.toLowerCase().includes("tel"));
-            const kAdresa = Object.keys(c).find(k => k.toLowerCase().includes("adres"));
-
-            const originalName = c[kName] ? c[kName].toString().trim() : '';
+        function selectClient(encName, encLoc, encCif, encRc, encTel, encAdresa) {
+            // 1. Decodăm valorile trimise din HTML
+            const name = decodeURIComponent(encName);
+            const loc = decodeURIComponent(encLoc);
+            const cif = decodeURIComponent(encCif);
+            const rc = decodeURIComponent(encRc);
+            const tel = decodeURIComponent(encTel);
+            const adresa = decodeURIComponent(encAdresa);
             
             let clientData = {
-                originalName: originalName,
-                name: originalName,
-                loc: c[kLoc] ? c[kLoc].toString().trim() : '',
-                cif: c[kCIF] ? c[kCIF].toString().trim() : '',
-                rc: c[kRC] ? c[kRC].toString().trim() : '',
-                tel: c[kTel] ? c[kTel].toString().trim() : '',
-                adresa: c[kAdresa] ? c[kAdresa].toString().trim() : ''
+                originalName: name,
+                name: name,
+                loc: loc,
+                cif: cif,
+                rc: rc,
+                tel: tel,
+                adresa: adresa
             };
 
-            // Dacă clientul a fost editat anterior de agent, suprascriem datele
-            if (editedClients[originalName]) {
-                clientData = { ...clientData, ...editedClients[originalName] };
+            // 2. Aplicăm editările manuale ale agentului (dacă există)
+            if (editedClients[name]) {
+                clientData = { ...clientData, ...editedClients[name] };
             }
 
+            // 3. Salvăm clientul selectat în sistem
             selectedClient = clientData;
             saveAgentData();
             updateClientUI();
 
-            // SĂRIM IMEDIAT LA ECRANUL CLIENTULUI! (Fără blocaje)
+            // 4. TRECEM IMEDIAT LA ECRANUL CLIENTULUI! Fără nicio întârziere.
             switchView('client-mode');
 
-            // Setăm ecranul pe modul "Încărcare Sold"
+            // 5. Calculăm și afișăm soldul pe baza datelor din memorie
+            calculateAndDisplaySold();
+        }
+
+        function calculateAndDisplaySold() {
+            if (!selectedClient) return;
+
             const containerSold = document.getElementById('client-mode-sold-container');
             const totalSoldText = document.getElementById('client-mode-sold-total');
             const btnIncasareMode = document.getElementById('btn-mode-incasare');
-            
-            containerSold.className = "bg-gray-50 rounded-[2rem] shadow-sm border border-gray-200 p-6 mb-6 sm:mb-8 text-center transition-all duration-300";
-            totalSoldText.className = "text-xl sm:text-2xl font-black text-gray-500 tracking-tighter mb-0 animate-pulse";
-            totalSoldText.innerText = "⏳ Se verifică soldul...";
-            btnIncasareMode.classList.add('hidden');
 
-            // DESCĂRCĂM DATELE DE SOLD (EXACT ACUM)
-            await syncSoldDataLive();
-
-            // CALCULĂM SOLDUL CLIENTULUI CURENT
             const targetNorm = normalizeName(selectedClient.name);
             const mySold = allSoldData.filter(row => row.clientNorm.includes(targetNorm) || targetNorm.includes(row.clientNorm));
             
@@ -838,10 +779,14 @@
             }
         }
 
-        async function fetchSoldForRegionLive(fileList) {
+        // ==============================================================================
+        // CITIREA DATELOR DIN EXCEL (SE FACE LA DESCHIDEREA APLICATIEI)
+        // ==============================================================================
+        
+        async function fetchSoldForRegion(fileList) {
             for (const file of fileList) {
                 try {
-                    const response = await fetchExcelLive(file);
+                    const response = await fetchExcel(file);
                     if (response.ok) {
                         const data = await response.arrayBuffer();
                         const wb = XLSX.read(data, {type: 'array'});
@@ -869,20 +814,17 @@
                                 });
                             }
                         });
-                        return; // Oprește la prima descărcare de succes
+                        return; // Oprește după ce a citit cu succes primul fișier din listă
                     }
                 } catch (e) {}
             }
         }
 
-        async function syncSoldDataLive() {
+        async function syncSoldData() {
             allSoldData = [];
-            await fetchSoldForRegionLive(SOLD_FILES_ALBA);
-            await fetchSoldForRegionLive(SOLD_FILES_HUNEDOARA);
+            await fetchSoldForRegion(SOLD_FILES_ALBA);
+            await fetchSoldForRegion(SOLD_FILES_HUNEDOARA);
         }
-
-        // Functia goala ca fallback pentru initApp
-        async function syncSoldData() { }
 
         function selectMode(m) { if (m === 'vanzare') switchView('catalog'); else { renderSoldItems(); switchView('incasare'); } }
 
@@ -927,6 +869,27 @@
                 window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
                 showToast("Încasare raportată!");
             }
+        }
+
+        async function syncClients() {
+            const cached = localStorage.getItem(`dma_cache_cli`);
+            if (cached) { allClients = JSON.parse(cached); filterClients(); }
+            if (window.location.protocol === 'blob:') return;
+            try {
+                const response = await fetchExcel(CLIENTS_FILE);
+                if (response.ok) {
+                    const data = await response.arrayBuffer();
+                    const wb = XLSX.read(data, {type: 'array'});
+                    const sh = wb.Sheets[wb.SheetNames[0]];
+                    const raw = XLSX.utils.sheet_to_json(sh, { header: 1 });
+                    let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().trim().includes("denumire")));
+                    
+                    allClients = XLSX.utils.sheet_to_json(sh, { range: idx === -1 ? 0 : idx, defval: "" }).filter(c => c[Object.keys(c).find(k => k.trim().toLowerCase().includes("denumire"))]);
+                    
+                    localStorage.setItem(`dma_cache_cli`, JSON.stringify(allClients));
+                    filterClients();
+                }
+            } catch (e) { console.error(e); }
         }
 
         function handleCreateClient() {
@@ -1027,16 +990,11 @@
             renderClients(filtered);
         }
 
-        function toggleSavedClient(idx) {
-            const c = window.renderedClientsList[idx];
-            if (!c) return;
-            const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire"));
-            const originalName = c[kName] ? c[kName].toString().trim() : '';
-
-            const indexName = savedClientNames.indexOf(originalName);
-            if (indexName > -1) savedClientNames.splice(indexName, 1); 
-            else savedClientNames.push(originalName); 
-            
+        function toggleSavedClient(encodedName) {
+            const name = decodeURIComponent(encodedName);
+            const idx = savedClientNames.indexOf(name);
+            if (idx > -1) savedClientNames.splice(idx, 1); 
+            else savedClientNames.push(name); 
             saveAgentData(); 
             filterClients();
         }
@@ -1044,20 +1002,25 @@
         function renderClients(clients) {
             const container = document.getElementById('clients-list'); 
             
-            // Salvăm global lista EXACTĂ care este afișată acum (Asta rezolvă bug-ul de click pe telefon)
-            window.renderedClientsList = clients;
-
             if (clients.length === 0) { 
                 container.innerHTML = '<p class="p-8 sm:p-10 text-center text-gray-400 italic font-bold text-sm sm:text-base">Niciun client găsit.</p>'; 
                 return; 
             }
             
-            container.innerHTML = clients.map((c, idx) => {
+            container.innerHTML = clients.map(c => {
                 const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire"));
                 const kLoc = Object.keys(c).find(k => k.toLowerCase().includes("localitate"));
+                const kCIF = Object.keys(c).find(k => k.toLowerCase().includes("cod_fiscal"));
+                const kRC = Object.keys(c).find(k => k.toLowerCase().includes("reg_com"));
+                const kTel = Object.keys(c).find(k => k.toLowerCase().includes("tel"));
+                const kAdresa = Object.keys(c).find(k => k.toLowerCase().includes("adres"));
                 
                 const originalName = c[kName] ? c[kName].toString().trim() : ''; 
                 const loc = c[kLoc] ? c[kLoc].toString().trim() : '';
+                const cif = c[kCIF] ? c[kCIF].toString().trim() : '';
+                const rc = c[kRC] ? c[kRC].toString().trim() : '';
+                const tel = c[kTel] ? c[kTel].toString().trim() : '';
+                const adresa = c[kAdresa] ? c[kAdresa].toString().trim() : '';
 
                 const isSaved = savedClientNames.includes(originalName);
                 
@@ -1065,33 +1028,56 @@
                 const displayName = edit ? edit.name : originalName;
                 const displayLoc = edit ? edit.loc : (loc || '-');
 
-                // FOLOSIM DOAR INDEXUL (idx) CA SĂ NU MAI CRAPE NICIODATĂ DIN CAUZA GHILIMELELOR
-                return `<div onclick="handleClientSelection(${idx})" 
+                // ÎMPACHETĂM FIECĂRE VARIABILĂ ÎNTR-UN COD SIGUR PENTRU A PREVENI ORICE EROARE DE CLICK!
+                const encName = encodeURIComponent(originalName || '');
+                const encLoc = encodeURIComponent(loc || '');
+                const encCif = encodeURIComponent(cif || '');
+                const encRc = encodeURIComponent(rc || '');
+                const encTel = encodeURIComponent(tel || '');
+                const encAdresa = encodeURIComponent(adresa || '');
+
+                return `<div onclick="selectClient('${encName}', '${encLoc}', '${encCif}', '${encRc}', '${encTel}', '${encAdresa}')" 
                      class="client-card bg-white p-5 sm:p-7 rounded-2xl sm:rounded-[2.5rem] shadow-xl active:scale-[0.98] transition-all cursor-pointer flex justify-between items-center ${selectedClient && (selectedClient.name === displayName || selectedClient.name === originalName) ? 'active-client' : ''}">
                     <div class="flex-1 min-w-0 pr-3 sm:pr-4 pointer-events-none">
                         <p class="text-base sm:text-2xl font-black text-dm-blue uppercase truncate leading-tight">${displayName}</p>
                         <p class="text-[10px] sm:text-lg font-bold text-gray-400 mt-1">📍 ${displayLoc}</p>
                     </div>
-                    <button onclick="event.stopPropagation(); toggleSavedClient(${idx})" class="btn-save-client flex-shrink-0 pointer-events-auto ${isSaved ? 'bg-dm-yellow text-dm-blue' : 'bg-gray-100 text-gray-400'}"><span class="text-2xl sm:text-4xl">${isSaved ? '⭐' : '☆'}</span></button>
+                    <button onclick="event.stopPropagation(); toggleSavedClient('${encName}')" class="btn-save-client flex-shrink-0 pointer-events-auto ${isSaved ? 'bg-dm-yellow text-dm-blue' : 'bg-gray-100 text-gray-400'}"><span class="text-2xl sm:text-4xl">${isSaved ? '⭐' : '☆'}</span></button>
                 </div>`;
             }).join('');
         }
 
-        function formatPriceNum(val) {
-            if (val === undefined || val === null || val === "") return 0;
-            if (typeof val === 'number') return val;
-            let s = val.toString().trim();
-            if (s.includes(',') && s.includes('.')) {
-                if (s.lastIndexOf('.') > s.lastIndexOf(',')) s = s.replace(/,/g, ''); 
-                else s = s.replace(/\./g, '').replace(',', '.');
-            } else if (s.includes(',')) s = s.replace(',', '.');
-            const p = parseFloat(s); return isNaN(p) ? 0 : p;
+        function updateClientUI() {
+            const h = document.getElementById('header-client-name');
+            const c = document.getElementById('cart-client-name');
+            const a = document.getElementById('cart-client-address');
+            
+            if (selectedClient) {
+                h.innerText = selectedClient.name; 
+                h.className = "text-2xl font-black truncate text-dm-yellow text-left";
+                
+                c.innerText = `${selectedClient.name} (${selectedClient.loc})`; 
+                c.classList.remove('text-red-500');
+                
+                if(a) {
+                    a.innerText = `📍 Livrare: ${selectedClient.adresa || 'Nespecificat'}`;
+                }
+            } else {
+                h.innerText = "Neselectat 👤"; 
+                h.className = "text-2xl font-black truncate text-white text-left opacity-30";
+                
+                c.innerText = "ATENȚIE: NICIUN CLIENT SELECTAT!"; 
+                c.classList.add('text-red-500');
+                
+                if(a) a.innerText = "";
+            }
         }
 
         function triggerManualSync() { 
             showToast("SE SINCRONIZEAZĂ BAZA DE DATE...");
             syncMasterData(); 
             syncClients(); 
+            syncSoldData();
             if(selectedCategory) selectCategory(selectedCategory); 
         }
         
