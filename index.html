@@ -862,6 +862,7 @@
 
                                 if (currentClient && factNr && factNr !== currentClient && restVal > 0) {
                                     allSoldData.push({
+                                        client: currentClient,
                                         clientNorm: normalizeName(currentClient),
                                         factura: factNr,
                                         data: dateStr,
@@ -1060,6 +1061,52 @@
         // =====================================================================
         // SOLUȚIA GARANTATĂ: CLICK PE BAZA DE INDEX
         // =====================================================================
+        
+        // Funcție "Blindată" pentru calcularea soldului, care nu se blochează niciodată
+        function calculateAndShowSoldSafe() {
+            const containerSold = document.getElementById('client-mode-sold-container');
+            const totalSoldText = document.getElementById('client-mode-sold-total');
+            const btnIncasareMode = document.getElementById('btn-mode-incasare');
+
+            try {
+                if (!selectedClient || !selectedClient.name) {
+                    throw new Error("Client invalid");
+                }
+                
+                const targetNorm = normalizeName(selectedClient.name);
+                let totalSold = 0;
+                
+                if (allSoldData && allSoldData.length > 0) {
+                    const mySold = allSoldData.filter(row => {
+                        if (!row || !row.clientNorm) return false;
+                        return row.clientNorm.includes(targetNorm) || targetNorm.includes(row.clientNorm);
+                    });
+                    
+                    mySold.forEach(r => {
+                        if (r.rest) totalSold += r.rest;
+                    });
+                }
+
+                if (totalSold > 0) {
+                    containerSold.className = "bg-white rounded-[2rem] shadow-xl border-t-8 border-red-500 p-6 mb-6 sm:mb-8 text-center";
+                    totalSoldText.className = "text-4xl sm:text-5xl font-black text-red-600 mb-3 sm:mb-4 tracking-tighter";
+                    totalSoldText.innerText = totalSold.toLocaleString('ro-RO', {minimumFractionDigits: 2}) + ' RON';
+                    btnIncasareMode.classList.remove('hidden');
+                } else {
+                    containerSold.className = "bg-green-50 rounded-[2rem] shadow-sm border border-green-200 p-6 mb-6 sm:mb-8 text-center";
+                    totalSoldText.className = "text-2xl sm:text-3xl font-black text-green-600 tracking-tighter mb-0";
+                    totalSoldText.innerText = "CLIENT LA ZI ✅";
+                    btnIncasareMode.classList.add('hidden');
+                }
+            } catch (e) {
+                console.error("Eroare la calculul soldului:", e);
+                containerSold.className = "bg-gray-100 rounded-[2rem] shadow-sm border border-gray-300 p-6 mb-6 sm:mb-8 text-center";
+                totalSoldText.className = "text-2xl font-black text-gray-500 tracking-tighter mb-0";
+                totalSoldText.innerText = "EROARE CITIRE";
+                btnIncasareMode.classList.add('hidden');
+            }
+        }
+
         function handleClientSelection(idx) {
             try {
                 const c = window.currentRenderedClients[idx];
@@ -1099,27 +1146,8 @@
                 switchView('client-mode');
 
                 // Calculare automata SOLD la click
-                const targetNorm = normalizeName(selectedClient.name);
-                const mySold = allSoldData.filter(row => row.clientNorm.includes(targetNorm) || targetNorm.includes(row.clientNorm));
+                calculateAndShowSoldSafe();
                 
-                let totalSold = 0;
-                mySold.forEach(r => totalSold += r.rest);
-
-                const containerSold = document.getElementById('client-mode-sold-container');
-                const totalSoldText = document.getElementById('client-mode-sold-total');
-                const btnIncasareMode = document.getElementById('btn-mode-incasare');
-
-                if (totalSold > 0) {
-                    containerSold.className = "bg-white rounded-[2rem] shadow-xl border-t-8 border-red-500 p-6 mb-6 sm:mb-8 text-center";
-                    totalSoldText.className = "text-4xl sm:text-5xl font-black text-red-600 mb-3 sm:mb-4 tracking-tighter";
-                    totalSoldText.innerText = totalSold.toLocaleString('ro-RO', {minimumFractionDigits: 2}) + ' RON';
-                    btnIncasareMode.classList.remove('hidden');
-                } else {
-                    containerSold.className = "bg-green-50 rounded-[2rem] shadow-sm border border-green-200 p-6 mb-6 sm:mb-8 text-center";
-                    totalSoldText.className = "text-2xl sm:text-3xl font-black text-green-600 tracking-tighter mb-0";
-                    totalSoldText.innerText = "CLIENT LA ZI ✅";
-                    btnIncasareMode.classList.add('hidden');
-                }
             } catch (e) {
                 console.error(e);
                 showToast("S-a deschis cu avertisment.");
@@ -1252,19 +1280,7 @@
             // Calculam sold si schimbam ecranul
             switchView('client-mode');
             
-            const targetNorm = normalizeName(selectedClient.name);
-            const mySold = allSoldData.filter(row => row.clientNorm.includes(targetNorm) || targetNorm.includes(row.clientNorm));
-            let totalSold = 0;
-            mySold.forEach(r => totalSold += r.rest);
-
-            const containerSold = document.getElementById('client-mode-sold-container');
-            const totalSoldText = document.getElementById('client-mode-sold-total');
-            const btnIncasareMode = document.getElementById('btn-mode-incasare');
-
-            containerSold.className = "bg-white rounded-[2rem] shadow-xl border-t-8 border-red-500 p-6 mb-6 sm:mb-8 text-center";
-            totalSoldText.className = "text-4xl sm:text-5xl font-black text-red-600 mb-3 sm:mb-4 tracking-tighter";
-            totalSoldText.innerText = totalSold.toLocaleString('ro-RO', {minimumFractionDigits: 2}) + ' RON';
-            btnIncasareMode.classList.remove('hidden');
+            calculateAndShowSoldSafe();
         }
 
         window.addEventListener('load', () => { 
