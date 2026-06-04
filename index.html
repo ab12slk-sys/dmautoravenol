@@ -435,13 +435,8 @@
         const MASTER_FILES = ['STOCEGIUNIE.xlsx', 'STOCEG29NOUNOU.xlsx', 'STOCEG.xlsx', 'STOCEG.xls'];
         const CLIENTS_FILE = 'LISTA_CLIENTI.xlsx';
         
-        // GRUPARE INTELIGENTĂ A FIȘIERELOR PENTRU CĂUTARE EXACTĂ PE GITHUB
-        const SOLD_SOURCES = [
-            ['SOLD_ALBA.xlsx', 'SOLD_ALBA.xls', 'NEINCASATEALBA04.06.xls', 'sold_alba.xlsx'],
-            ['SOLD_HUNEDOARA.xlsx', 'SOLD_HUNEDOARA.xls', 'NEINCASATEHUNEDOARA04.06.xls', 'sold_hunedoara.xlsx'],
-            ['SOLD_CALIN.xlsx', 'SOLD_CALIN.xls', 'NEINACATECALIN04.06.xls', 'sold_calin.xlsx'],
-            ['SOLD_CALIN_M.xlsx', 'SOLD_CALIN_M.xls', 'NEINCASATECALINM04.06.xls', 'sold_calin_m.xlsx']
-        ];
+        // FIȘIER UNIC PENTRU TOATE SOLDURILE
+        const SOLD_FILE = 'Centralizator_Facturi_Neincasate.xlsx';
 
         let currentAgent = null;
         let allProductsRaw = []; 
@@ -835,84 +830,78 @@
         function retrimiteComandaDirect() { if (currentViewingOrderIndex === null) return; const o = window.orderHistory[currentViewingOrderIndex]; selectedClient = o.client; trimiteWhatsApp(o.timestamp, o.cartData); if (o.status === 'Ciornă') { window.orderHistory[currentViewingOrderIndex].status = 'Trimisă'; saveAgentData(); renderHistory(); } }
         function stergeComandaCurenta() { if (currentViewingOrderIndex === null) return; if (confirm("Ștergi definitiv?")) { window.orderHistory.splice(currentViewingOrderIndex, 1); saveAgentData(); switchView('history'); } }
         
-        // --- FUNCTIE ROBUSTĂ DE EXTRAGERE SOLDURI (PT CELE 4 FISIERE) ---
-        async function fetchSoldForRegion(sourceGroups) {
-            for (const group of sourceGroups) {
-                for (const file of group) {
-                    try {
-                        const response = await fetchExcel(file);
-                        if (response.ok) {
-                            const data = await response.arrayBuffer();
-                            const wb = XLSX.read(data, {type: 'array'});
-                            const sh = wb.Sheets[wb.SheetNames[0]];
-                            const raw = XLSX.utils.sheet_to_json(sh, { header: 1 });
-                            
-                            let restColIndex = -1;
-                            let factColIndex = 1;
-                            let dateColIndex = 2;
-
-                            for(let i = 0; i < Math.min(20, raw.length); i++) {
-                                let r = raw[i];
-                                if(!r) continue;
-                                for(let j = 0; j < r.length; j++) {
-                                    let txt = (r[j] || '').toString().toUpperCase();
-                                    if (txt.includes('REST') || txt.includes('NEINCASAT') || txt.includes('SOLD')) restColIndex = j;
-                                    if (txt.includes('FACTUR') || txt.includes('DOC')) factColIndex = j;
-                                    if (txt.includes('DATA')) dateColIndex = j;
-                                }
-                            }
-
-                            if (restColIndex === -1) restColIndex = 5; 
-                            
-                            let currentClient = "";
-                            raw.forEach((row, index) => {
-                                if (!row || row.length === 0) return;
-
-                                let c0 = row[0] ? row[0].toString().trim().toUpperCase() : "";
-                                let c1 = row[1] ? row[1].toString().trim().toUpperCase() : "";
-
-                                if (c0.includes("TOTAL") || c0.includes("UNITATEA") || c0.includes("REPORT")) {
-                                    currentClient = ""; 
-                                    return;
-                                }
-
-                                if (c0 && (!c1 || c0.includes("SRL") || c0.includes("S.R.L") || c0.includes("SA") || c0.includes("PFA") || c0.includes("S.C."))) {
-                                    if (!c0.includes("FACT") && !c0.includes("CHIT")) {
-                                        currentClient = c0;
-                                    }
-                                }
-
-                                let factNr = row[factColIndex] ? row[factColIndex].toString().trim() : c1;
-                                let dateStr = row[dateColIndex] ? row[dateColIndex].toString().trim() : (row[2] || "-");
-                                let restVal = formatPriceNum(row[restColIndex]);
-
-                                if (restVal === 0 && restColIndex === 5) {
-                                    for (let k = row.length - 1; k >= 2; k--) {
-                                        let v = formatPriceNum(row[k]);
-                                        if (v > 0) { restVal = v; break; }
-                                    }
-                                }
-
-                                if (currentClient && factNr && factNr !== currentClient && restVal > 0) {
-                                    allSoldData.push({
-                                        client: currentClient,
-                                        clientNorm: normalizeName(currentClient),
-                                        factura: factNr,
-                                        data: dateStr,
-                                        rest: restVal
-                                    });
-                                }
-                            });
-                            break; 
-                        }
-                    } catch (e) { }
-                }
-            }
-        }
-
+        // --- FUNCTIE UNIFICATĂ PENTRU CITIREA CENTRALIZATORULUI DE SOLDURI ---
         async function syncSoldData() {
             allSoldData = [];
-            await fetchSoldForRegion(SOLD_SOURCES);
+            try {
+                const response = await fetchExcel(SOLD_FILE);
+                if (response.ok) {
+                    const data = await response.arrayBuffer();
+                    const wb = XLSX.read(data, {type: 'array'});
+                    const sh = wb.Sheets[wb.SheetNames[0]];
+                    const raw = XLSX.utils.sheet_to_json(sh, { header: 1 });
+                    
+                    let restColIndex = -1;
+                    let factColIndex = 1;
+                    let dateColIndex = 2;
+
+                    for(let i = 0; i < Math.min(20, raw.length); i++) {
+                        let r = raw[i];
+                        if(!r) continue;
+                        for(let j = 0; j < r.length; j++) {
+                            let txt = (r[j] || '').toString().toUpperCase();
+                            if (txt.includes('REST') || txt.includes('NEINCASAT') || txt.includes('SOLD')) restColIndex = j;
+                            if (txt.includes('FACTUR') || txt.includes('DOC')) factColIndex = j;
+                            if (txt.includes('DATA')) dateColIndex = j;
+                        }
+                    }
+
+                    if (restColIndex === -1) restColIndex = 5; 
+                    
+                    let currentClient = "";
+                    raw.forEach((row, index) => {
+                        if (!row || row.length === 0) return;
+
+                        let c0 = row[0] ? row[0].toString().trim().toUpperCase() : "";
+                        let c1 = row[1] ? row[1].toString().trim().toUpperCase() : "";
+
+                        if (c0.includes("TOTAL") || c0.includes("UNITATEA") || c0.includes("REPORT")) {
+                            currentClient = ""; 
+                            return;
+                        }
+
+                        if (c0 && (!c1 || c0.includes("SRL") || c0.includes("S.R.L") || c0.includes("SA") || c0.includes("PFA") || c0.includes("S.C."))) {
+                            if (!c0.includes("FACT") && !c0.includes("CHIT")) {
+                                currentClient = c0;
+                            }
+                        }
+
+                        let factNr = row[factColIndex] ? row[factColIndex].toString().trim() : c1;
+                        let dateStr = row[dateColIndex] ? row[dateColIndex].toString().trim() : (row[2] || "-");
+                        let restVal = formatPriceNum(row[restColIndex]);
+
+                        if (restVal === 0 && restColIndex === 5) {
+                            for (let k = row.length - 1; k >= 2; k--) {
+                                let v = formatPriceNum(row[k]);
+                                if (v > 0) { restVal = v; break; }
+                            }
+                        }
+
+                        if (currentClient && factNr && factNr !== currentClient && restVal > 0) {
+                            allSoldData.push({
+                                client: currentClient,
+                                clientNorm: normalizeName(currentClient),
+                                factura: factNr,
+                                data: dateStr,
+                                rest: restVal
+                            });
+                        }
+                    });
+                    console.log("Centralizatorul de solduri a fost descărcat cu succes.");
+                }
+            } catch (e) {
+                console.warn("Fișierul Centralizator_Facturi_Neincasate.xlsx nu a fost găsit.");
+            }
         }
 
         function selectMode(m) { if (m === 'vanzare') switchView('catalog'); else { renderSoldItems(); switchView('incasare'); } }
