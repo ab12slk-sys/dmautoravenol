@@ -830,7 +830,7 @@
         function retrimiteComandaDirect() { if (currentViewingOrderIndex === null) return; const o = window.orderHistory[currentViewingOrderIndex]; selectedClient = o.client; trimiteWhatsApp(o.timestamp, o.cartData); if (o.status === 'Ciornă') { window.orderHistory[currentViewingOrderIndex].status = 'Trimisă'; saveAgentData(); renderHistory(); } }
         function stergeComandaCurenta() { if (currentViewingOrderIndex === null) return; if (confirm("Ștergi definitiv?")) { window.orderHistory.splice(currentViewingOrderIndex, 1); saveAgentData(); switchView('history'); } }
         
-        // --- FUNCTIE ROBUSTĂ DE EXTRAGERE SOLDURI PENTRU NOUL FISIER ---
+        // --- FUNCTIE ROBUSTĂ DE EXTRAGERE SOLDURI ---
         async function syncSoldData() {
             allSoldData = [];
             try {
@@ -848,6 +848,7 @@
                         if (index === 0) return; // Sărim peste antetul tabelului
 
                         // Extragem valorile bazându-ne strict pe poziția coloanelor cerute de tine
+                        // A: Denumire, B: Factura, C: Data, F(index 5): Rest de plata
                         let colA_Client = row[0] ? row[0].toString().trim().toUpperCase() : "";
                         let colB_Factura = row[1] ? row[1].toString().trim().toUpperCase() : "";
                         let colC_Data = row[2] ? row[2].toString().trim() : "-";
@@ -901,7 +902,10 @@
             }
 
             const targetNorm = normalizeName(selectedClient.name);
-            const mySold = allSoldData.filter(row => row.clientNorm.includes(targetNorm) || targetNorm.includes(row.clientNorm));
+            const mySold = allSoldData.filter(row => {
+                // Potrivire foarte îngăduitoare
+                return row.clientNorm.includes(targetNorm) || targetNorm.includes(row.clientNorm);
+            });
 
             if (mySold.length === 0) { 
                 table.innerHTML = '<tr><td colspan="2" class="p-8 sm:p-10 text-center font-bold text-gray-400 italic text-sm sm:text-base">CLIENT LA ZI. ZERO RESTANȚE.</td></tr>'; 
@@ -1053,8 +1057,8 @@
             renderClients(filtered);
         }
 
-        function toggleSavedClient(idx) {
-            const c = window.currentRenderedClients[idx];
+        function toggleSavedClient(index) {
+            const c = window.currentRenderedClients[index];
             if (!c) return;
             const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire"));
             const originalName = c[kName] ? c[kName].toString().trim() : '';
@@ -1210,30 +1214,22 @@
             const p = parseFloat(s); return isNaN(p) ? 0 : p;
         }
 
-        function triggerManualSync() { syncMasterData(); syncClients(); syncSoldData(); if(selectedCategory) selectCategory(selectedCategory); showToast("ACTUALIZARE FINALIZATĂ!"); }
-        function filterProducts() { const q = document.getElementById('searchInput').value.toLowerCase().trim(); renderProducts(currentCategoryData.filter(p => p.denumire.toLowerCase().includes(q))); }
-        function resetSelection() { document.getElementById('searchInput').value = ''; selectedCategory = null; document.getElementById('product-section').classList.add('view-hidden'); document.getElementById('category-placeholder').classList.remove('view-hidden'); ['Ravenol', 'Banner', 'Cyclon', 'Cemsa', 'Inventar'].forEach(cat => { const card = document.getElementById(`card-${cat}`); if (card) card.classList.remove('selected-category'); }); window.scrollTo({ top: 0, behavior: 'smooth' }); }
-
-        // =====================================================================
-        // VEDERE GLOBALA RESTANTIERI
-        // =====================================================================
+        // --- ACTUALIZAT PENTRU NOUL BUTON ---
         function renderAllDebts() {
             switchView('all-debts');
             const tbody = document.getElementById('all-debts-table');
             
             if (allSoldData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="2" class="p-10 text-center font-bold text-gray-400 italic">Nu s-au găsit facturi neîncasate în fișiere. Verificați fișierele Excel.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="2" class="p-10 text-center font-bold text-gray-400 italic">Nu s-au găsit facturi neîncasate în fișier.</td></tr>';
                 return;
             }
 
-            // Grupăm datoriile pe fiecare client
             const debtsByClient = {};
             allSoldData.forEach(row => {
                 if (!debtsByClient[row.client]) debtsByClient[row.client] = 0;
                 debtsByClient[row.client] += row.rest;
             });
 
-            // Convertim în array și sortăm descrescător după suma datorată
             const debtsArray = Object.keys(debtsByClient).map(client => ({
                 client: client,
                 total: debtsByClient[client]
@@ -1258,18 +1254,15 @@
             }).join('');
         }
 
-        // Fortare selectie client direct din lista de debite
         function forceSelectClientByName(encodedName) {
             const nameToFind = decodeURIComponent(encodedName);
             
-            // Creăm un profil de client de bază din numele din sold
             let clientData = {
                 originalName: nameToFind,
                 name: nameToFind,
                 loc: '', cif: '', rc: '', tel: '', adresa: ''
             };
 
-            // Căutăm dacă avem detalii suplimentare în Excel-ul de clienți
             let baseClient = allClients.find(c => {
                 const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire"));
                 return kName && c[kName].toString().toUpperCase().includes(nameToFind);
@@ -1286,11 +1279,13 @@
             saveAgentData();
             updateClientUI();
             
-            // Calculam sold si schimbam ecranul
             switchView('client-mode');
-            
             calculateAndShowSoldSafe();
         }
+
+        function triggerManualSync() { syncMasterData(); syncClients(); syncSoldData(); if(selectedCategory) selectCategory(selectedCategory); showToast("ACTUALIZARE FINALIZATĂ!"); }
+        function filterProducts() { const q = document.getElementById('searchInput').value.toLowerCase().trim(); renderProducts(currentCategoryData.filter(p => p.denumire.toLowerCase().includes(q))); }
+        function resetSelection() { document.getElementById('searchInput').value = ''; selectedCategory = null; document.getElementById('product-section').classList.add('view-hidden'); document.getElementById('category-placeholder').classList.remove('view-hidden'); ['Ravenol', 'Banner', 'Cyclon', 'Cemsa', 'Inventar'].forEach(cat => { const card = document.getElementById(`card-${cat}`); if (card) card.classList.remove('selected-category'); }); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
         window.addEventListener('load', () => { 
             const s = localStorage.getItem('dmauto_session'); 
