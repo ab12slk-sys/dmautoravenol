@@ -435,8 +435,8 @@
         const MASTER_FILES = ['STOCEGIUNIE.xlsx', 'STOCEG29NOUNOU.xlsx', 'STOCEG.xlsx', 'STOCEG.xls'];
         const CLIENTS_FILE = 'LISTA_CLIENTI.xlsx';
         
-        // FIȘIER UNIC PENTRU TOATE SOLDURILE
-        const SOLD_FILE = 'Centralizator_Facturi_Neincasate.xlsx';
+        // FISIER NOU PENTRU FACTURI NEINCASATE
+        const SOLD_FILE = 'Facturi_Neincasate.xlsx';
 
         let currentAgent = null;
         let allProductsRaw = []; 
@@ -830,7 +830,7 @@
         function retrimiteComandaDirect() { if (currentViewingOrderIndex === null) return; const o = window.orderHistory[currentViewingOrderIndex]; selectedClient = o.client; trimiteWhatsApp(o.timestamp, o.cartData); if (o.status === 'Ciornă') { window.orderHistory[currentViewingOrderIndex].status = 'Trimisă'; saveAgentData(); renderHistory(); } }
         function stergeComandaCurenta() { if (currentViewingOrderIndex === null) return; if (confirm("Ștergi definitiv?")) { window.orderHistory.splice(currentViewingOrderIndex, 1); saveAgentData(); switchView('history'); } }
         
-        // --- FUNCTIE UNIFICATĂ PENTRU CITIREA CENTRALIZATORULUI DE SOLDURI ---
+        // --- FUNCTIE ROBUSTĂ DE EXTRAGERE SOLDURI PENTRU NOUL FISIER ---
         async function syncSoldData() {
             allSoldData = [];
             try {
@@ -839,68 +839,55 @@
                     const data = await response.arrayBuffer();
                     const wb = XLSX.read(data, {type: 'array'});
                     const sh = wb.Sheets[wb.SheetNames[0]];
-                    const raw = XLSX.utils.sheet_to_json(sh, { header: 1 });
-                    
-                    let restColIndex = -1;
-                    let factColIndex = 1;
-                    let dateColIndex = 2;
-
-                    for(let i = 0; i < Math.min(20, raw.length); i++) {
-                        let r = raw[i];
-                        if(!r) continue;
-                        for(let j = 0; j < r.length; j++) {
-                            let txt = (r[j] || '').toString().toUpperCase();
-                            if (txt.includes('REST') || txt.includes('NEINCASAT') || txt.includes('SOLD')) restColIndex = j;
-                            if (txt.includes('FACTUR') || txt.includes('DOC')) factColIndex = j;
-                            if (txt.includes('DATA')) dateColIndex = j;
-                        }
-                    }
-
-                    if (restColIndex === -1) restColIndex = 5; 
+                    // Citim datele sub formă de rânduri și coloane brute
+                    const raw = XLSX.utils.sheet_to_json(sh, { header: 1, defval: "" });
                     
                     let currentClient = "";
+                    
                     raw.forEach((row, index) => {
-                        if (!row || row.length === 0) return;
+                        if (index === 0) return; // Sărim peste antetul tabelului
 
-                        let c0 = row[0] ? row[0].toString().trim().toUpperCase() : "";
-                        let c1 = row[1] ? row[1].toString().trim().toUpperCase() : "";
+                        // Extragem valorile bazându-ne strict pe poziția coloanelor cerute de tine
+                        let colA_Client = row[0] ? row[0].toString().trim().toUpperCase() : "";
+                        let colB_Factura = row[1] ? row[1].toString().trim().toUpperCase() : "";
+                        let colC_Data = row[2] ? row[2].toString().trim() : "-";
+                        let colF_Rest = row[5] ? row[5].toString().trim() : "";
 
-                        if (c0.includes("TOTAL") || c0.includes("UNITATEA") || c0.includes("REPORT")) {
-                            currentClient = ""; 
+                        // Evităm rândurile de totaluri
+                        if (colA_Client.startsWith("TOTAL") || colA_Client.includes("UNITATEA") || colA_Client.includes("REPORT")) {
+                            currentClient = "";
                             return;
                         }
 
-                        if (c0 && (!c1 || c0.includes("SRL") || c0.includes("S.R.L") || c0.includes("SA") || c0.includes("PFA") || c0.includes("S.C."))) {
-                            if (!c0.includes("FACT") && !c0.includes("CHIT")) {
-                                currentClient = c0;
-                            }
+                        // Dacă pe coloana A este un text valid, acela devine clientul curent
+                        if (colA_Client !== "") {
+                            currentClient = colA_Client;
                         }
 
-                        let factNr = row[factColIndex] ? row[factColIndex].toString().trim() : c1;
-                        let dateStr = row[dateColIndex] ? row[dateColIndex].toString().trim() : (row[2] || "-");
-                        let restVal = formatPriceNum(row[restColIndex]);
+                        // Curățăm valoarea sumei
+                        let restVal = formatPriceNum(colF_Rest);
 
-                        if (restVal === 0 && restColIndex === 5) {
-                            for (let k = row.length - 1; k >= 2; k--) {
-                                let v = formatPriceNum(row[k]);
-                                if (v > 0) { restVal = v; break; }
-                            }
+                        // Fallback în caz că ai folosit un fișier vechi (cu restul pe col 8 sau 9)
+                        if (restVal === 0 && (row[8] || row[9])) {
+                            restVal = formatPriceNum(row[8]) || formatPriceNum(row[9]);
                         }
 
-                        if (currentClient && factNr && factNr !== currentClient && restVal > 0) {
+                        // Dacă avem client, avem număr de factură și suma e peste 0, salvăm datoria!
+                        if (currentClient && colB_Factura && colB_Factura !== currentClient && restVal > 0) {
                             allSoldData.push({
                                 client: currentClient,
                                 clientNorm: normalizeName(currentClient),
-                                factura: factNr,
-                                data: dateStr,
+                                factura: colB_Factura,
+                                data: colC_Data,
                                 rest: restVal
                             });
                         }
                     });
-                    console.log("Centralizatorul de solduri a fost descărcat cu succes.");
+                    
+                    console.log("Fișierul de facturi neîncasate a fost descărcat și procesat cu succes.");
                 }
             } catch (e) {
-                console.warn("Fișierul Centralizator_Facturi_Neincasate.xlsx nu a fost găsit.");
+                console.warn("Eroare: Nu s-a putut citi fișierul " + SOLD_FILE, e);
             }
         }
 
