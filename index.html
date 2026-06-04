@@ -568,6 +568,39 @@
             localStorage.setItem(`dma_edit_cli_${id}`, JSON.stringify(editedClients));
         }
 
+        // FUNCȚIA LIPSĂ CARE ACTUALIZEAZĂ VIZUAL CLIENTUL PE ECRAN
+        function updateClientUI() {
+            const elHeader = document.getElementById('header-client-name');
+            const elCartName = document.getElementById('cart-client-name');
+            const elCartAddress = document.getElementById('cart-client-address');
+            
+            if (selectedClient) {
+                if (elHeader) {
+                    elHeader.innerText = selectedClient.name;
+                    elHeader.classList.add('text-dm-yellow');
+                }
+                if (elCartName) {
+                    elCartName.innerText = selectedClient.name;
+                    elCartName.classList.remove('text-red-500');
+                }
+                if (elCartAddress) {
+                    elCartAddress.innerText = `Adresă: ${selectedClient.adresa || selectedClient.loc || 'Nespecificat'}`;
+                }
+            } else {
+                if (elHeader) {
+                    elHeader.innerText = "Neselectat 👤";
+                    elHeader.classList.remove('text-dm-yellow');
+                }
+                if (elCartName) {
+                    elCartName.innerText = "ATENȚIE: NICIUN CLIENT SELECTAT!";
+                    elCartName.classList.add('text-red-500');
+                }
+                if (elCartAddress) {
+                    elCartAddress.innerText = "Adresă: Nespecificat";
+                }
+            }
+        }
+
         async function fetchExcelLive(filename) {
             const cacheBuster = '?t=' + new Date().getTime();
             const path = window.location.pathname.includes('DM-Auto-App') ? `./${filename}${cacheBuster}` : filename + cacheBuster;
