@@ -446,9 +446,9 @@
             'ovidiu': { pass: 'rahovean', name: 'Ovidiu Rahovean', filter: 'RAHOVEAN' }
         };
 
-        const MASTER_FILES = ['STOCEGIUNIE.xlsx', 'STOCEG.xlsx', 'STOCEG.xls'];
+        const MASTER_FILE = 'STOCEGIUNIE.xlsx';
         const CLIENTS_FILE = 'LISTA_CLIENTI.xlsx';
-        const SOLD_FILES = ['Facturi_Neincasate.xlsx']; // Singurul fisier care conteaza acum pt solduri!
+        const SOLD_FILE = 'Facturi_Neincasate.xlsx';
 
         let currentAgent = null;
         let allProductsRaw = []; 
@@ -575,10 +575,11 @@
             localStorage.setItem(`dma_edit_cli_${id}`, JSON.stringify(editedClients));
         }
 
+        // FUNCȚIE PENTRU BYPASS CACHE PE TELEFON/TABLETĂ 100%
         async function fetchExcelLive(filename) {
             const cacheBuster = '?t=' + new Date().getTime();
             const path = window.location.pathname.includes('DM-Auto-App') ? `./${filename}${cacheBuster}` : filename + cacheBuster;
-            return await fetch(path);
+            return await fetch(path, { cache: 'no-store' });
         }
 
         async function fetchExcel(filename) {
@@ -586,60 +587,58 @@
             return await fetch(path);
         }
 
-        // CITIRE NOUUL FISIER DE SOLD (Facturi_Neincasate.xlsx) CU ZERO ERORI
+        // --- CITIRE NOUL FISIER DE SOLD (Facturi_Neincasate.xlsx) ---
         async function syncSoldData() {
             allSoldData = [];
-            for (const file of SOLD_FILES) {
-                try {
-                    // Fortam citirea de pe github ca sa fim siguri ca e ultimul fisier urcat de tine
-                    const response = await fetchExcelLive(file);
-                    if (response.ok) {
-                        const data = await response.arrayBuffer();
-                        const wb = XLSX.read(data, {type: 'array'});
-                        const sh = wb.Sheets[wb.SheetNames[0]];
-                        const raw = XLSX.utils.sheet_to_json(sh, { header: 1 });
+            try {
+                // Fortam citirea de pe github ca sa fim siguri ca e ultimul fisier
+                const response = await fetchExcelLive(SOLD_FILE);
+                if (response.ok) {
+                    const data = await response.arrayBuffer();
+                    const wb = XLSX.read(data, {type: 'array'});
+                    const sh = wb.Sheets[wb.SheetNames[0]];
+                    const raw = XLSX.utils.sheet_to_json(sh, { header: 1 });
+                    
+                    let currentClient = "";
+                    raw.forEach((row, index) => {
+                        if (index === 0) return; // Skip Header
                         
-                        let currentClient = "";
-                        raw.forEach((row, index) => {
-                            if (index === 0) return; // Skip Header
-                            
-                            // A: Denumire Client (Coloana 0)
-                            if (row[0] && row[0].toString().trim()) {
-                                const val = row[0].toString().trim().toUpperCase();
-                                // Nu mai excludem "TOTAL" pt ca ai firma TOTAL FOCUS. Excludem doar cuvinte de contabilitate
-                                if (val === "TOTAL" || val.startsWith("SOLD ANALITIC") || val.includes("UNITATEA:") || val.includes("REPORT")) {
-                                    currentClient = ""; 
-                                } else {
-                                    currentClient = val;
-                                }
+                        // A: Denumire Client (Coloana 0)
+                        if (row[0] && row[0].toString().trim()) {
+                            const val = row[0].toString().trim().toUpperCase();
+                            // Am scos excluderea cuvantului "TOTAL" ca sa lase "TOTAL FOCUS TRADE" si "GOW TOTAL"
+                            if (val.startsWith("SOLD ANALITIC") || val.includes("UNITATEA:") || val.includes("REPORT")) {
+                                currentClient = ""; 
+                            } else {
+                                currentClient = val;
                             }
-                            
-                            // B: Numar Factura (Coloana 1)
-                            const factNr = row[1] ? row[1].toString().trim() : "";
-                            
-                            // F: Rest Plata (Coloana 5) - Acum si cu minus
-                            const restVal = formatPriceNum(row[5]);
+                        }
+                        
+                        // B: Numar Factura (Coloana 1)
+                        const factNr = row[1] ? row[1].toString().trim() : "";
+                        
+                        // F: Rest Plata (Coloana 5) - Acum cu formatPriceNum care intelege si numere cu minus
+                        const restVal = formatPriceNum(row[5]);
 
-                            // Adaugam DACA exista un client si factura (si ignoram randul unde scrie doar "CLIENTI - Sold")
-                            if (currentClient && factNr && restVal !== 0 && !factNr.includes("CLIENTI")) {
-                                allSoldData.push({
-                                    client: currentClient,
-                                    clientNorm: normalizeName(currentClient),
-                                    factura: factNr,
-                                    data: row[2] || "-",
-                                    scadenta: row[3] || "-",
-                                    totalFact: formatPriceNum(row[4]),
-                                    rest: restVal
-                                });
-                            }
-                        });
-                        console.log(`Solduri unificate din ${file}`);
-                    }
-                } catch (e) { console.warn(`Eroare la citirea soldurilor din ${file}`); }
-            }
+                        // Adaugam DACA exista un client, o factura, si valoarea facturii NU E ZERO. 
+                        if (currentClient && factNr && restVal !== 0 && !factNr.includes("CLIENTI")) {
+                            allSoldData.push({
+                                client: currentClient,
+                                clientNorm: normalizeName(currentClient),
+                                factura: factNr,
+                                data: row[2] || "-",
+                                scadenta: row[3] || "-",
+                                totalFact: formatPriceNum(row[4]),
+                                rest: restVal
+                            });
+                        }
+                    });
+                    console.log(`Solduri unificate din ${SOLD_FILE}`);
+                }
+            } catch (e) { console.warn(`Eroare la citirea soldurilor din ${SOLD_FILE}`); }
         }
 
-        // Clic pe clientul din lista. Sigur, bazat pe ID. Fara "encode" care strica.
+        // Clic pe clientul din lista folosind ID, complet imun la ghilimele din Excel
         function handleClientClick(clientId) {
             let baseClient = manuallyCreatedClients.find(c => c._id === clientId) || allClients.find(c => c._id === clientId);
             
@@ -669,7 +668,7 @@
             };
 
             if (editedClients[originalName]) {
-                clientData = { ...clientData, ...editedClients[originalName] };
+                clientData = { ...clientData, ...editedClients[name] };
             }
 
             selectedClient = clientData;
@@ -680,7 +679,7 @@
             calculateAndShowSoldSafe();
         }
 
-        // Aceasta functie calculeaza soldul DUPA ce te-a bagat in pagina, ca sa nu dea freeze telefonului
+        // Aceasta functie calculeaza soldul si il afiseaza dupa ce a schimbat ecranul ca sa nu dea freeze la telefon
         function calculateAndShowSoldSafe() {
             const containerSold = document.getElementById('client-mode-sold-container');
             const totalSoldText = document.getElementById('client-mode-sold-total');
@@ -705,13 +704,12 @@
                         totalSoldText.innerText = totalSold.toLocaleString('ro-RO', {minimumFractionDigits: 2}) + ' RON';
                         btnIncasareMode.classList.remove('hidden');
                     } else if (totalSold < -0.1) {
-                        // DACA E PE MINUS (CREDIT)
+                        // DACA E PE MINUS (CREDIT / STORNO / AVANS)
                         containerSold.className = "bg-white rounded-[1.5rem] shadow-xl border-t-8 border-blue-500 p-5 mb-6 text-center";
                         totalSoldText.className = "text-3xl font-black text-blue-600 mb-2 tracking-tighter";
                         totalSoldText.innerText = Math.abs(totalSold).toLocaleString('ro-RO', {minimumFractionDigits: 2}) + ' RON (CREDIT)';
                         btnIncasareMode.classList.remove('hidden');
                     } else {
-                        // LA ZI
                         containerSold.className = "bg-green-50 rounded-[1.5rem] shadow-sm border border-green-200 p-5 mb-6 text-center";
                         totalSoldText.className = "text-xl font-black text-green-600 tracking-tighter mb-0";
                         totalSoldText.innerText = "CLIENT LA ZI ✅";
@@ -806,7 +804,7 @@
 
                 const container = document.getElementById('clients-list');
                 if(debtors.length === 0) {
-                    container.innerHTML = '<p class="p-10 text-center text-gray-400 font-bold italic">Niciun restanțier găsit.</p>';
+                    container.innerHTML = '<p class="p-10 text-center text-gray-400 font-bold italic">Niciun restanțier găsit. Asigurați-vă că ați dat Sincronizare 🔄.</p>';
                     return;
                 }
 
@@ -830,231 +828,6 @@
             }, 100);
         }
 
-        // --- MASTER DATA IMBINARE OFERTA+STOC ---
-        async function syncMasterData() {
-            const cached = localStorage.getItem(`dma_mast_cache`);
-            if (cached) allProductsRaw = JSON.parse(cached);
-            if (window.location.protocol === 'blob:') return;
-            
-            let inventarMap = new Map();
-            let ofertaMap = new Map();
-            let successCount = 0;
-
-            try {
-                const resInv = await fetchExcel('STOCEGIUNIE.xlsx');
-                if (resInv.ok) {
-                    const data = await resInv.arrayBuffer();
-                    const wb = XLSX.read(data, {type: 'array'});
-                    const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
-                    let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().includes("denumire")));
-                    
-                    if(idx !== -1) {
-                        const items = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { range: idx, defval: "" });
-                        items.forEach(p => {
-                            const kD = Object.keys(p).find(k => k.toLowerCase().includes("denumire"));
-                            const kP = Object.keys(p).find(k => k.toLowerCase().includes("pret") || k.toLowerCase().includes("valoare"));
-                            const kS = Object.keys(p).find(k => k.toLowerCase().includes("stoc"));
-                            
-                            if(!kD || !p[kD]) return;
-                            
-                            const name = p[kD].toString().trim();
-                            const matchKey = getProductMatchKey(name);
-                            const pretNet = formatPriceNum(p[kP]) / TVA_RATE;
-                            
-                            inventarMap.set(matchKey, { denumire: name, pret: pretNet, stoc: p[kS] !== undefined ? p[kS] : "" });
-                        });
-                        successCount++;
-                    }
-                }
-            } catch (e) { console.warn("Eroare la INVENTAR"); }
-
-            try {
-                const resOf = await fetchExcel('Oferta_Ravenol_Aranjata.xlsx');
-                if (resOf.ok) {
-                    const data = await resOf.arrayBuffer();
-                    const wb = XLSX.read(data, {type: 'array'});
-                    const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
-                    let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().includes("denumire")));
-                    if(idx === -1) idx = 0; 
-                    
-                    const items = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { range: idx, defval: "" });
-                    items.forEach(p => {
-                        const kD = Object.keys(p).find(k => k.toLowerCase().includes("denumire"));
-                        const kP = Object.keys(p).find(k => k.toLowerCase().includes("pret fara tva") || k.toLowerCase().includes("pret"));
-                        
-                        if(!kD || !p[kD] || !kP || !p[kP]) return;
-                        
-                        const nameRaw = p[kD].toString().trim();
-                        const matchKey = getProductMatchKey(nameRaw);
-                        ofertaMap.set(matchKey, { denumire: nameRaw, pret: formatPriceNum(p[kP]) });
-                    });
-                    successCount++;
-                }
-            } catch (e) { console.warn("Eroare la Oferta Ravenol"); }
-
-            if(successCount > 0) {
-                let finalProducts = [];
-                inventarMap.forEach((data, key) => {
-                    const isRavenol = data.denumire.toUpperCase().startsWith("RAV");
-                    if (isRavenol && ofertaMap.has(key)) return; 
-                    finalProducts.push(data);
-                });
-                ofertaMap.forEach((data, key) => {
-                    let stocGasit = "";
-                    if (inventarMap.has(key)) stocGasit = inventarMap.get(key).stoc;
-                    finalProducts.push({ denumire: data.denumire, pret: data.pret, stoc: stocGasit });
-                });
-
-                allProductsRaw = finalProducts;
-                localStorage.setItem(`dma_mast_cache`, JSON.stringify(allProductsRaw));
-            }
-        }
-
-        function selectCategory(category) {
-            document.getElementById('searchInput').value = ''; selectedCategory = category;
-            document.getElementById('product-section').classList.remove('view-hidden');
-            document.getElementById('category-placeholder').classList.add('view-hidden');
-            document.getElementById('selected-category-title').innerText = category === 'Inventar' ? "INVENTAR COMPLET" : category;
-            ['Ravenol', 'Banner', 'Cyclon', 'Cemsa', 'Inventar'].forEach(cat => {
-                const card = document.getElementById(`card-${cat}`); if (card) card.classList.toggle('selected-category', cat === category);
-            });
-            currentCategoryData = allProductsRaw.filter(p => {
-                if (category === 'Inventar') return true;
-                const n = p.denumire.toUpperCase();
-                if (category === 'Ravenol') return n.startsWith('RAV');
-                if (category === 'Cyclon') return n.startsWith('CYC');
-                if (category === 'Banner') return n.startsWith('BANNER');
-                if (category === 'Cemsa') return !n.startsWith('RAV') && !n.startsWith('CYC') && !n.startsWith('BANNER');
-                return false;
-            });
-            filterProducts();
-            document.getElementById('product-section').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function renderProducts(products) {
-            const tbody = document.getElementById('productTableBody'); if (!tbody) return;
-            if (products.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-10 text-center text-gray-400 font-black text-sm">Niciun produs găsit.</td></tr>'; return; }
-            
-            tbody.innerHTML = products.map(p => {
-                const name = p.denumire;
-                const pretNet = p.pret;
-                const stocVal = (p.stoc !== undefined && p.stoc !== "") ? parseFloat(p.stoc.toString().replace(/\./g, '').replace(',', '.')) : null;
-                const qty = cart[name] ? cart[name].quantity : 0;
-                const encodedName = encodeURIComponent(name);
-                
-                return `<tr class="${qty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100">
-                    <td class="px-4 py-4 font-black text-dm-blue uppercase leading-tight tracking-tighter">
-                        <span class="text-sm block mb-1 leading-tight">${name}</span>
-                        <div class="flex items-center gap-2">
-                            <span class="text-sm font-black text-blue-600/80">${pretNet.toFixed(2)} RON</span>
-                            ${stocVal !== null ? `<span class="text-[9px] font-black ${stocVal>0?'text-green-600 bg-green-50':'text-red-500 bg-red-50'} px-2 py-0.5 rounded-lg border">STOC: ${stocVal.toFixed(0)}</span>` : ''}
-                        </div>
-                    </td>
-                    <td class="py-4">
-                        <div class="flex items-center justify-center gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100 shadow-inner">
-                            <button onclick="updateCart('${encodedName}', -1)" class="flex items-center justify-center bg-white text-gray-400 shadow-sm border border-gray-100 text-lg rounded-lg w-8 h-8">-</button>
-                            <span class="font-black text-lg w-6 text-center text-dm-blue">${qty}</span>
-                            <button onclick="updateCart('${encodedName}', 1)" class="flex items-center justify-center bg-dm-blue text-white shadow-md text-lg rounded-lg w-8 h-8">+</button>
-                        </div>
-                    </td>
-                    <td class="text-right pr-4 py-4 font-black text-dm-blue text-sm">${(qty*pretNet).toFixed(2)}</td>
-                </tr>`;
-            }).join('');
-        }
-
-        function updateCart(encodedName, d) {
-            const name = decodeURIComponent(encodedName);
-            const p = allProductsRaw.find(x => x.denumire === name);
-            if (!p) return;
-            if (!cart[name]) cart[name] = { quantity: 0, data: p, category: selectedCategory };
-            cart[name].quantity += d;
-            if (cart[name].quantity <= 0) delete cart[name];
-            saveAgentData(); filterProducts(); if (currentActiveView === 'cart') renderCart(); updateBadge();
-        }
-
-        function updateBadge() { const c = Object.values(cart).reduce((s, i) => s + i.quantity, 0); const b = document.getElementById('cartBadge'); if (b) { b.innerText = c; b.classList.toggle('hidden', c === 0); } }
-
-        function renderCart() {
-            const tbody = document.getElementById('cart-content-table'), em = document.getElementById('cart-empty-msg'); if (!tbody) return;
-            let totalNet = 0; const items = Object.values(cart);
-            if (items.length === 0) { tbody.innerHTML = ''; em.classList.remove('view-hidden'); document.getElementById('totalNoVat').innerText = '0.00 RON'; return; }
-            em.classList.add('view-hidden');
-            tbody.innerHTML = items.map(i => {
-                const name = i.data.denumire;
-                const pF_net = i.data.pret;
-                totalNet += i.quantity * pF_net;
-                const encodedName = encodeURIComponent(name);
-                
-                return `<tr class="border-b border-gray-100"><td class="px-4 py-4 font-black text-dm-blue uppercase text-xs leading-tight">${name}<br><span class="text-[9px] font-bold text-blue-600/60 mt-1 block">${pF_net.toFixed(2)} RON</span></td><td class="py-4"><div class="flex items-center justify-center gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100"><button onclick="updateCart('${encodedName}', -1)" class="flex items-center justify-center bg-white text-gray-400 shadow-sm border border-gray-100 text-lg rounded-lg w-8 h-8">-</button><span class="font-black text-base w-6 text-center text-dm-blue">${i.quantity}</span><button onclick="updateCart('${encodedName}', 1)" class="flex items-center justify-center bg-dm-blue text-white shadow-md text-lg rounded-lg w-8 h-8">+</button></div></td><td class="text-right pr-4 py-4 font-black text-dm-blue text-sm">${(i.quantity*pF_net).toFixed(2)}</td></tr>`;
-            }).join('');
-            document.getElementById('totalNoVat').innerText = totalNet.toFixed(2) + ' RON';
-        }
-
-        function golesteCos() { if(confirm("Golești tot coșul?")) { cart = {}; saveAgentData(); updateBadge(); renderCart(); filterProducts(); } }
-        function salveazaComanda(isDraft) {
-            if (!selectedClient && !isDraft) { showToast("SELECTEAZĂ CLIENTUL!"); switchView('clients'); return; }
-            if (Object.keys(cart).length === 0) return;
-            const ts = new Date().toLocaleString('ro-RO'); let total = 0;
-            Object.values(cart).forEach(i => total += i.quantity * i.data.pret);
-            window.orderHistory.unshift({ timestamp: ts, total: total.toFixed(2), items: Object.keys(cart).length, cartData: JSON.parse(JSON.stringify(cart)), status: isDraft ? 'Ciornă' : 'Trimisă', client: selectedClient });
-            saveAgentData(); if (!isDraft) { trimiteWhatsApp(ts, cart); cart = {}; selectedClient = null; saveAgentData(); updateBadge(); updateClientUI(); switchView('history'); } else { showToast("SALVAT!"); switchView('history'); }
-        }
-
-        function trimiteWhatsApp(ts, data) {
-            const clientName = selectedClient ? selectedClient.name : "N/A";
-            const clientAdresa = (selectedClient && selectedClient.adresa) ? selectedClient.adresa : ((selectedClient && selectedClient.loc) ? selectedClient.loc : "Nespecificat");
-            
-            let msg = `Salut! Comandă DM Auto Sebeș\nAGENT: ${currentAgent.name}\nCLIENT: ${clientName}\n📍 ADRESĂ: ${clientAdresa}\nData: ${ts}\n\n`;
-            Object.values(data).forEach(i => msg += `• ${i.quantity} x ${i.data.denumire}\n`);
-            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
-        }
-
-        function handleIncasareFactura(facturaNr, suma) {
-            const confirmed = confirm(`Confirmi încasarea facturii ${facturaNr} în valoare de ${Math.abs(suma).toFixed(2)} RON?`);
-            if (confirmed) {
-                const msg = `💰 ÎNCASARE DM AUTO\nAgent: ${currentAgent.name}\nClient: ${selectedClient.name}\nFactură: ${facturaNr}\nSumă: ${Math.abs(suma).toFixed(2)} RON\nData: ${new Date().toLocaleDateString('ro-RO')}`;
-                window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
-                showToast("Încasare raportată!");
-            }
-        }
-
-        function renderHistory() {
-            const c = document.getElementById('history-content'); if (!c) return;
-            if (window.orderHistory.length === 0) { c.innerHTML = '<div class="p-12 text-center text-gray-400 font-bold uppercase tracking-widest italic text-sm">Istoric Gol.</div>'; return; }
-            c.innerHTML = window.orderHistory.map((o, idx) => `<div onclick="veziDetaliiComanda(${idx})" class="bg-white p-6 rounded-[2rem] shadow-xl border-l-[12px] border-dm-yellow active:scale-[0.98] transition-all cursor-pointer"><div class="flex justify-between items-start mb-4"><span class="text-[10px] font-black text-gray-400 italic">${o.timestamp}</span><span class="${o.status==='Ciornă'?'bg-blue-100 text-blue-700':'bg-green-100 text-green-700'} text-[9px] font-black px-3 py-1.5 rounded-xl uppercase">${o.status}</span></div><p class="text-lg font-black text-dm-blue uppercase leading-none truncate mb-3">${o.client ? o.client.name : 'N/A'}</p><div class="flex justify-between items-end border-t border-gray-50 pt-4"><p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">${o.items} REPERE</p><p class="text-xl font-black text-dm-blue">${o.total} RON</p></div></div>`).join('');
-        }
-
-        function veziDetaliiComanda(idx) {
-            currentViewingOrderIndex = idx; const o = window.orderHistory[idx]; switchView('order-details');
-            document.getElementById('order-details-header').innerHTML = `<div class="flex justify-between items-center mb-4"><h3 class="text-xs font-black text-gray-400 uppercase italic">DETALII</h3><span class="text-[9px] font-black bg-gray-100 px-3 py-1.5 rounded-xl uppercase">${o.status}</span></div><p class="text-lg font-black text-dm-blue uppercase mb-3 leading-none">${o.client ? o.client.name : '-'}</p><p class="text-2xl font-black text-dm-blue italic tracking-tighter">${o.total} RON</p>`;
-            document.getElementById('order-details-items').innerHTML = Object.values(o.cartData).map(i => {
-                return `<div class="flex justify-between items-center py-3 border-b border-gray-50"><div class="flex flex-col pr-3"><span class="font-black text-dm-blue text-[11px] uppercase leading-tight mb-1">${i.data.denumire}</span><span class="text-[10px] font-black text-blue-600/60">${i.data.pret.toFixed(2)} RON</span></div><span class="font-black bg-gray-100 px-3 py-2 rounded-xl text-sm text-dm-blue whitespace-nowrap">x ${i.quantity}</span></div>`;
-            }).join('');
-        }
-
-        function incarcaComandaInCos() { if (currentViewingOrderIndex === null) return; const o = window.orderHistory[currentViewingOrderIndex]; cart = JSON.parse(JSON.stringify(o.cartData)); selectedClient = o.client; saveAgentData(); updateClientUI(); switchView('cart'); updateBadge(); }
-        function retrimiteComandaDirect() { if (currentViewingOrderIndex === null) return; const o = window.orderHistory[currentViewingOrderIndex]; selectedClient = o.client; trimiteWhatsApp(o.timestamp, o.cartData); if (o.status === 'Ciornă') { window.orderHistory[currentViewingOrderIndex].status = 'Trimisă'; saveAgentData(); renderHistory(); } }
-        function stergeComandaCurenta() { if (currentViewingOrderIndex === null) return; if (confirm("Ștergi definitiv?")) { window.orderHistory.splice(currentViewingOrderIndex, 1); saveAgentData(); switchView('history'); } }
-        
-        function formatPriceNum(val) {
-            if (val === undefined || val === null || val === "") return 0;
-            if (typeof val === 'number') return val;
-            let s = val.toString().trim();
-            // Suport si pt minus (storno)
-            let isNegative = s.startsWith('-');
-            if (isNegative) s = s.substring(1);
-            
-            if (s.includes(',') && s.includes('.')) {
-                if (s.lastIndexOf('.') > s.lastIndexOf(',')) s = s.replace(/,/g, ''); 
-                else s = s.replace(/\./g, '').replace(',', '.');
-            } else if (s.includes(',')) s = s.replace(',', '.');
-            
-            let result = parseFloat(s); 
-            if (isNaN(result)) return 0;
-            return isNegative ? -result : result;
-        }
-
-        // --- FETCH CLIENTI LA START ---
         async function syncClients() {
             const cached = localStorage.getItem(`dma_cache_cli`);
             if (cached) { 
@@ -1064,7 +837,8 @@
             }
             if (window.location.protocol === 'blob:') return;
             try {
-                const response = await fetchExcel(CLIENTS_FILE);
+                // Live fetch
+                const response = await fetchExcelLive(CLIENTS_FILE);
                 if (response.ok) {
                     const data = await response.arrayBuffer();
                     const wb = XLSX.read(data, {type: 'array'});
@@ -1074,95 +848,13 @@
                     
                     allClients = XLSX.utils.sheet_to_json(sh, { range: idx === -1 ? 0 : idx, defval: "" }).filter(c => c[Object.keys(c).find(k => k.trim().toLowerCase().includes("denumire"))]);
                     
-                    // ATRIBUIRE ID UNIC
+                    // ATRIBUIRE ID UNIC DIRECT LA CITIRE
                     allClients.forEach((c, i) => c._id = 'excel_' + i);
                     
                     localStorage.setItem(`dma_cache_cli`, JSON.stringify(allClients));
                     filterClients();
                 }
             } catch (e) { console.error(e); }
-        }
-
-        function toggleClientFilter(mine) {
-            showOnlyMyClients = mine;
-            document.getElementById('btnFilterMyClients').className = `sheet-tab ${mine ? 'sheet-tab-active' : 'sheet-tab-inactive'} shadow-md`;
-            document.getElementById('btnFilterAllClients').className = `sheet-tab ${!mine ? 'sheet-tab-active' : 'sheet-tab-inactive'} shadow-lg`;
-            filterClients();
-        }
-
-        function toggleSavedClient(clientId) {
-            let baseClient = manuallyCreatedClients.find(c => c._id === clientId) || allClients.find(c => c._id === clientId);
-            if (!baseClient) return;
-            
-            const kName = Object.keys(baseClient).find(k => k.toLowerCase().includes("denumire"));
-            const originalName = baseClient[kName] ? baseClient[kName].toString() : '';
-
-            const idx = savedClientNames.indexOf(originalName);
-            if (idx > -1) savedClientNames.splice(idx, 1); 
-            else savedClientNames.push(originalName); 
-            saveAgentData(); 
-            filterClients();
-        }
-
-        function filterClients() {
-            const q = document.getElementById('clientSearch').value.toLowerCase().trim();
-            const merged = [...manuallyCreatedClients, ...allClients];
-            
-            const filtered = merged.filter(c => {
-                const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire"));
-                const kLoc = Object.keys(c).find(k => k.toLowerCase().includes("localitate"));
-                const kCIF = Object.keys(c).find(k => k.toLowerCase().includes("cod_fiscal"));
-                
-                const originalName = c[kName]?.toString() || "";
-                
-                const edit = editedClients[originalName];
-                const name = edit ? edit.name : originalName;
-                const loc = edit ? edit.loc : (c[kLoc]?.toString() || "");
-                const cif = edit ? edit.cif : (c[kCIF]?.toString() || "");
-                const adresa = edit ? edit.adresa : "";
-
-                const match = name.toLowerCase().includes(q) || loc.toLowerCase().includes(q) || cif.toLowerCase().includes(q) || adresa.toLowerCase().includes(q);
-                
-                let agentMatch = true;
-                if (showOnlyMyClients && currentAgent) {
-                    const kAgent = Object.keys(c).find(k => k.toLowerCase().includes("den_agent"));
-                    const agentVal = (c[kAgent]?.toString().toUpperCase() || "");
-                    agentMatch = agentVal.includes(currentAgent.filter) || savedClientNames.includes(originalName);
-                }
-                return match && agentMatch;
-            });
-            renderClients(filtered);
-        }
-
-        function renderClients(clients) {
-            const container = document.getElementById('clients-list'); 
-            
-            if (clients.length === 0) { 
-                container.innerHTML = '<p class="p-8 text-center text-gray-400 italic font-bold text-sm">Niciun client găsit.</p>'; 
-                return; 
-            }
-            
-            container.innerHTML = clients.map(c => {
-                const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire"));
-                const kLoc = Object.keys(c).find(k => k.toLowerCase().includes("localitate"));
-                
-                const originalName = c[kName] ? c[kName].toString() : ''; 
-                const isSaved = savedClientNames.includes(originalName);
-                
-                const edit = editedClients[originalName];
-                const displayName = edit ? edit.name : originalName;
-                const displayLoc = edit ? edit.loc : (c[kLoc] || '-');
-
-                // FARA ENCODARE. FARA BATAIE DE CAP. DOAR ID UNIC.
-                return `<div onclick="handleClientClick('${c._id}')" 
-                     class="client-card bg-white p-5 rounded-2xl shadow-xl active:scale-[0.98] transition-all cursor-pointer flex justify-between items-center ${selectedClient && (selectedClient.name === displayName || selectedClient.name === originalName) ? 'active-client' : ''}">
-                    <div class="flex-1 min-w-0 pr-3 pointer-events-none">
-                        <p class="text-sm font-black text-dm-blue uppercase truncate leading-tight">${displayName}</p>
-                        <p class="text-[10px] font-bold text-gray-400 mt-1">📍 ${displayLoc}</p>
-                    </div>
-                    <button onclick="event.stopPropagation(); toggleSavedClient('${c._id}')" class="btn-save-client flex-shrink-0 pointer-events-auto ${isSaved ? 'bg-dm-yellow text-dm-blue' : 'bg-gray-100 text-gray-400'}"><span class="text-2xl">${isSaved ? '⭐' : '☆'}</span></button>
-                </div>`;
-            }).join('');
         }
 
         function handleCreateClient() {
@@ -1227,26 +919,317 @@
             switchView('client-mode');
         }
 
-        function selectMode(m) { if (m === 'vanzare') switchView('catalog'); else { renderSoldItems(); switchView('incasare'); } }
+        function toggleClientFilter(mine) {
+            showOnlyMyClients = mine;
+            document.getElementById('btnFilterMyClients').className = `sheet-tab ${mine ? 'sheet-tab-active' : 'sheet-tab-inactive'} shadow-md`;
+            document.getElementById('btnFilterAllClients').className = `sheet-tab ${!mine ? 'sheet-tab-active' : 'sheet-tab-inactive'} shadow-lg`;
+            filterClients();
+        }
 
+        function filterClients() {
+            const q = document.getElementById('clientSearch').value.toLowerCase().trim();
+            const merged = [...manuallyCreatedClients, ...allClients];
+            
+            const filtered = merged.filter(c => {
+                const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire"));
+                const kLoc = Object.keys(c).find(k => k.toLowerCase().includes("localitate"));
+                const kCIF = Object.keys(c).find(k => k.toLowerCase().includes("cod_fiscal"));
+                
+                const originalName = c[kName]?.toString() || "";
+                
+                const edit = editedClients[originalName];
+                const name = edit ? edit.name : originalName;
+                const loc = edit ? edit.loc : (c[kLoc]?.toString() || "");
+                const cif = edit ? edit.cif : (c[kCIF]?.toString() || "");
+                const adresa = edit ? edit.adresa : "";
+
+                const match = name.toLowerCase().includes(q) || loc.toLowerCase().includes(q) || cif.toLowerCase().includes(q) || adresa.toLowerCase().includes(q);
+                
+                let agentMatch = true;
+                if (showOnlyMyClients && currentAgent) {
+                    const kAgent = Object.keys(c).find(k => k.toLowerCase().includes("den_agent"));
+                    const agentVal = (c[kAgent]?.toString().toUpperCase() || "");
+                    agentMatch = agentVal.includes(currentAgent.filter) || savedClientNames.includes(originalName);
+                }
+                return match && agentMatch;
+            });
+            renderClients(filtered);
+        }
+
+        function toggleSavedClient(clientId) {
+            let baseClient = manuallyCreatedClients.find(c => c._id === clientId) || allClients.find(c => c._id === clientId);
+            if (!baseClient) return;
+            
+            const kName = Object.keys(baseClient).find(k => k.toLowerCase().includes("denumire"));
+            const originalName = baseClient[kName] ? baseClient[kName].toString() : '';
+
+            const idx = savedClientNames.indexOf(originalName);
+            if (idx > -1) savedClientNames.splice(idx, 1); 
+            else savedClientNames.push(originalName); 
+            saveAgentData(); 
+            filterClients();
+        }
+
+        function renderClients(clients) {
+            const container = document.getElementById('clients-list'); 
+            
+            if (clients.length === 0) { 
+                container.innerHTML = '<p class="p-8 text-center text-gray-400 italic font-bold text-sm">Niciun client găsit.</p>'; 
+                return; 
+            }
+            
+            container.innerHTML = clients.map(c => {
+                const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire"));
+                const kLoc = Object.keys(c).find(k => k.toLowerCase().includes("localitate"));
+                
+                const originalName = c[kName] ? c[kName].toString() : ''; 
+                const isSaved = savedClientNames.includes(originalName);
+                
+                const edit = editedClients[originalName];
+                const displayName = edit ? edit.name : originalName;
+                const displayLoc = edit ? edit.loc : (c[kLoc] || '-');
+
+                // FARA ENCODARE. FARA BATAIE DE CAP. DOAR ID UNIC.
+                return `<div onclick="handleClientClick('${c._id}')" 
+                     class="client-card bg-white p-5 rounded-2xl shadow-xl active:scale-[0.98] transition-all cursor-pointer flex justify-between items-center ${selectedClient && (selectedClient.name === displayName || selectedClient.name === originalName) ? 'active-client' : ''}">
+                    <div class="flex-1 min-w-0 pr-3 pointer-events-none">
+                        <p class="text-sm font-black text-dm-blue uppercase truncate leading-tight">${displayName}</p>
+                        <p class="text-[10px] font-bold text-gray-400 mt-1">📍 ${displayLoc}</p>
+                    </div>
+                    <button onclick="event.stopPropagation(); toggleSavedClient('${c._id}')" class="btn-save-client flex-shrink-0 pointer-events-auto ${isSaved ? 'bg-dm-yellow text-dm-blue' : 'bg-gray-100 text-gray-400'}"><span class="text-2xl">${isSaved ? '⭐' : '☆'}</span></button>
+                </div>`;
+            }).join('');
+        }
+
+        function selectMode(m) { if (m === 'vanzare') switchView('catalog'); else { renderSoldItems(); switchView('incasare'); } }
+        
         function updateClientUI() {
             const h = document.getElementById('header-client-name');
             const c = document.getElementById('cart-client-name');
+            const a = document.getElementById('cart-client-address');
             
             if (selectedClient) {
                 h.innerText = selectedClient.name; 
                 h.className = "text-lg font-black truncate leading-none text-dm-yellow text-left";
+                
                 c.innerText = `${selectedClient.name} (${selectedClient.loc})`; 
                 c.classList.remove('text-red-500');
+                
+                if(a) {
+                    a.innerText = `📍 Livrare: ${selectedClient.adresa || 'Nespecificat'}`;
+                }
             } else {
                 h.innerText = "Neselectat 👤"; 
                 h.className = "text-lg font-black truncate leading-none text-white text-left opacity-30";
+                
                 c.innerText = "ATENȚIE: NICIUN CLIENT SELECTAT!"; 
                 c.classList.add('text-red-500');
+                
+                if(a) a.innerText = "";
             }
         }
 
-        function triggerManualSync() { syncMasterData(); syncClients(); syncSoldData(); if(selectedCategory) selectCategory(selectedCategory); showToast("ACTUALIZARE FINALIZATĂ!"); }
+        // --- MASTER PRODUSE ---
+        async function syncMasterData() {
+            const cached = localStorage.getItem(`dma_mast_cache`);
+            if (cached) allProductsRaw = JSON.parse(cached);
+            
+            if (window.location.protocol === 'blob:') return;
+            
+            try {
+                const resInv = await fetchExcelLive(MASTER_FILE);
+                if (resInv.ok) {
+                    const data = await resInv.arrayBuffer();
+                    const wb = XLSX.read(data, {type: 'array'});
+                    const sh = wb.Sheets[wb.SheetNames[0]];
+                    const raw = XLSX.utils.sheet_to_json(sh, { header: 1 });
+                    
+                    let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().includes("denumire")));
+                    if(idx === -1) idx = 0; 
+                    
+                    const items = XLSX.utils.sheet_to_json(sh, { range: idx, defval: "" });
+                    let newProducts = [];
+
+                    items.forEach(p => {
+                        const keys = Object.keys(p);
+                        const kD = keys.find(k => k.toLowerCase().includes("denumire") || k.toLowerCase().includes("articol") || k.toLowerCase().includes("produs"));
+                        const kPretNet = keys.find(k => k.toLowerCase().includes("fara tva") || k.toLowerCase().includes("net"));
+                        const kPretBrut = keys.find(k => k.toLowerCase().includes("pret") || k.toLowerCase().includes("valoare") || k.toLowerCase().includes("vanzare"));
+                        const kS = keys.find(k => k.toLowerCase().includes("stoc") || k.toLowerCase().includes("cantitate"));
+                        
+                        if(!kD || !p[kD]) return;
+                        
+                        const name = p[kD].toString().trim();
+                        if (name === "" || name.toUpperCase().includes("TOTAL") || name.toUpperCase().includes("REPORT")) return;
+
+                        let stoc = (kS && p[kS] !== "") ? parseFloat(p[kS]) : 0;
+                        if (isNaN(stoc)) stoc = 0;
+
+                        let finalPrice = 0;
+                        if (kPretNet && p[kPretNet] !== "") {
+                            finalPrice = formatPriceNum(p[kPretNet]);
+                        } else if (kPretBrut && p[kPretBrut] !== "") {
+                            finalPrice = formatPriceNum(p[kPretBrut]) / 1.21;
+                        }
+                        
+                        newProducts.push({ denumire: name, pret: finalPrice, stoc: stoc });
+                    });
+                    
+                    if (newProducts.length > 0) {
+                        allProductsRaw = newProducts;
+                        localStorage.setItem(`dma_mast_cache`, JSON.stringify(allProductsRaw));
+                    }
+                }
+            } catch (e) { console.warn("Eroare la", MASTER_FILE); }
+        }
+
+        function selectCategory(category) {
+            document.getElementById('searchInput').value = ''; selectedCategory = category;
+            document.getElementById('product-section').classList.remove('view-hidden');
+            document.getElementById('category-placeholder').classList.add('view-hidden');
+            document.getElementById('selected-category-title').innerText = category === 'Inventar' ? "INVENTAR COMPLET" : category;
+            ['Ravenol', 'Banner', 'Cyclon', 'Cemsa', 'Inventar'].forEach(cat => {
+                const card = document.getElementById(`card-${cat}`); if (card) card.classList.toggle('selected-category', cat === category);
+            });
+            currentCategoryData = allProductsRaw.filter(p => {
+                if (category === 'Inventar') return true;
+                const n = p.denumire.toUpperCase();
+                if (category === 'Ravenol') return n.startsWith('RAV');
+                if (category === 'Cyclon') return n.startsWith('CYC');
+                if (category === 'Banner') return n.startsWith('BANNER');
+                if (category === 'Cemsa') return !n.startsWith('RAV') && !n.startsWith('CYC') && !n.startsWith('BANNER');
+                return false;
+            });
+            filterProducts();
+            document.getElementById('product-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function renderProducts(products) {
+            const tbody = document.getElementById('productTableBody'); if (!tbody) return;
+            if (products.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-10 text-center text-gray-400 font-black text-sm">Niciun produs găsit.</td></tr>'; return; }
+            
+            tbody.innerHTML = products.map(p => {
+                const name = p.denumire;
+                const pretNet = p.pret;
+                const stocVal = p.stoc;
+                const qty = cart[name] ? cart[name].quantity : 0;
+                const encodedName = encodeURIComponent(name);
+                
+                return `<tr class="${qty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100">
+                    <td class="px-4 py-4 font-black text-dm-blue uppercase leading-tight tracking-tighter">
+                        <span class="text-[11px] sm:text-sm block mb-1 leading-tight">${name}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-black text-blue-600/80">${pretNet.toFixed(2)} RON</span>
+                            ${stocVal !== null ? `<span class="text-[9px] font-black ${stocVal>0?'text-green-600 bg-green-50':'text-red-500 bg-red-50'} px-2 py-0.5 rounded-lg border">STOC: ${stocVal.toFixed(0)}</span>` : ''}
+                        </div>
+                    </td>
+                    <td class="py-4">
+                        <div class="flex items-center justify-center gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100 shadow-inner">
+                            <button onclick="updateCart('${encodedName}', -1)" class="flex items-center justify-center bg-white text-gray-400 shadow-sm border border-gray-100 text-lg rounded-lg w-8 h-8">-</button>
+                            <span class="font-black text-base w-6 text-center text-dm-blue">${qty}</span>
+                            <button onclick="updateCart('${encodedName}', 1)" class="flex items-center justify-center bg-dm-blue text-white shadow-md text-lg rounded-lg w-8 h-8">+</button>
+                        </div>
+                    </td>
+                    <td class="text-right pr-4 py-4 font-black text-dm-blue text-sm">${(qty*pretNet).toFixed(2)}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function updateCart(encodedName, d) {
+            const name = decodeURIComponent(encodedName);
+            const p = allProductsRaw.find(x => x.denumire === name);
+            if (!p) return;
+            if (!cart[name]) cart[name] = { quantity: 0, data: p, category: selectedCategory };
+            cart[name].quantity += d;
+            if (cart[name].quantity <= 0) delete cart[name];
+            saveAgentData(); filterProducts(); if (currentActiveView === 'cart') renderCart(); updateBadge();
+        }
+
+        function updateBadge() { const c = Object.values(cart).reduce((s, i) => s + i.quantity, 0); const b = document.getElementById('cartBadge'); if (b) { b.innerText = c; b.classList.toggle('hidden', c === 0); } }
+
+        function renderCart() {
+            const tbody = document.getElementById('cart-content-table'), em = document.getElementById('cart-empty-msg'); if (!tbody) return;
+            let totalNet = 0; const items = Object.values(cart);
+            if (items.length === 0) { tbody.innerHTML = ''; em.classList.remove('view-hidden'); document.getElementById('totalNoVat').innerText = '0.00 RON'; document.getElementById('totalWithVat').innerText = '0.00 RON'; return; }
+            em.classList.add('view-hidden');
+            tbody.innerHTML = items.map(i => {
+                const name = i.data.denumire;
+                const pF_net = i.data.pret;
+                totalNet += i.quantity * pF_net;
+                const encodedName = encodeURIComponent(name);
+                
+                return `<tr class="border-b border-gray-100"><td class="px-4 py-4 font-black text-dm-blue uppercase text-[10px] leading-tight">${name}<br><span class="text-[9px] font-bold text-blue-600/60 mt-1 block">${pF_net.toFixed(2)} RON</span></td><td class="py-4"><div class="flex items-center justify-center gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100"><button onclick="updateCart('${encodedName}', -1)" class="flex items-center justify-center bg-white text-gray-400 shadow-sm border border-gray-100 text-lg rounded-lg w-8 h-8">-</button><span class="font-black text-base w-6 text-center text-dm-blue">${i.quantity}</span><button onclick="updateCart('${encodedName}', 1)" class="flex items-center justify-center bg-dm-blue text-white shadow-md text-lg rounded-lg w-8 h-8">+</button></div></td><td class="text-right pr-4 py-4 font-black text-dm-blue text-sm">${(i.quantity*pF_net).toFixed(2)}</td></tr>`;
+            }).join('');
+            document.getElementById('totalNoVat').innerText = totalNet.toFixed(2) + ' RON';
+            document.getElementById('totalWithVat').innerText = (totalNet * TVA_RATE).toFixed(2) + ' RON';
+        }
+
+        function golesteCos() { if(confirm("Golești tot coșul?")) { cart = {}; saveAgentData(); updateBadge(); renderCart(); filterProducts(); } }
+        function salveazaComanda(isDraft) {
+            if (!selectedClient && !isDraft) { showToast("SELECTEAZĂ CLIENTUL!"); switchView('clients'); return; }
+            if (Object.keys(cart).length === 0) return;
+            const ts = new Date().toLocaleString('ro-RO'); let total = 0;
+            Object.values(cart).forEach(i => total += i.quantity * i.data.pret);
+            window.orderHistory.unshift({ timestamp: ts, total: total.toFixed(2), items: Object.keys(cart).length, cartData: JSON.parse(JSON.stringify(cart)), status: isDraft ? 'Ciornă' : 'Trimisă', client: selectedClient });
+            saveAgentData(); if (!isDraft) { trimiteWhatsApp(ts, cart); cart = {}; selectedClient = null; saveAgentData(); updateBadge(); updateClientUI(); switchView('history'); } else { showToast("SALVAT!"); switchView('history'); }
+        }
+
+        function trimiteWhatsApp(ts, data) {
+            const clientName = selectedClient ? selectedClient.name : "N/A";
+            const clientAdresa = (selectedClient && selectedClient.adresa) ? selectedClient.adresa : ((selectedClient && selectedClient.loc) ? selectedClient.loc : "Nespecificat");
+            
+            let msg = `Salut! Comandă DM Auto Sebeș\nAGENT: ${currentAgent.name}\nCLIENT: ${clientName}\n📍 ADRESĂ: ${clientAdresa}\nData: ${ts}\n\n`;
+            Object.values(data).forEach(i => msg += `• ${i.quantity} x ${i.data.denumire}\n`);
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
+        }
+
+        function renderHistory() {
+            const c = document.getElementById('history-content'); if (!c) return;
+            if (window.orderHistory.length === 0) { c.innerHTML = '<div class="p-12 text-center text-gray-400 font-bold uppercase tracking-widest italic text-sm">Istoric Gol.</div>'; return; }
+            c.innerHTML = window.orderHistory.map((o, idx) => `<div onclick="veziDetaliiComanda(${idx})" class="bg-white p-6 rounded-[2rem] shadow-xl border-l-[12px] border-dm-yellow active:scale-[0.98] transition-all cursor-pointer"><div class="flex justify-between items-start mb-4"><span class="text-[10px] font-black text-gray-400 italic">${o.timestamp}</span><span class="${o.status==='Ciornă'?'bg-blue-100 text-blue-700':'bg-green-100 text-green-700'} text-[9px] font-black px-3 py-1.5 rounded-xl uppercase">${o.status}</span></div><p class="text-lg font-black text-dm-blue uppercase leading-none truncate mb-3">${o.client ? o.client.name : 'N/A'}</p><div class="flex justify-between items-end border-t border-gray-50 pt-4"><p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">${o.items} REPERE</p><p class="text-xl font-black text-dm-blue">${o.total} RON</p></div></div>`).join('');
+        }
+
+        function veziDetaliiComanda(idx) {
+            currentViewingOrderIndex = idx; const o = window.orderHistory[idx]; switchView('order-details');
+            document.getElementById('order-details-header').innerHTML = `<div class="flex justify-between items-center mb-4"><h3 class="text-xs font-black text-gray-400 uppercase italic">DETALII</h3><span class="text-[9px] font-black bg-gray-100 px-3 py-1.5 rounded-xl uppercase">${o.status}</span></div><p class="text-lg font-black text-dm-blue uppercase mb-3 leading-none">${o.client ? o.client.name : '-'}</p><p class="text-2xl font-black text-dm-blue italic tracking-tighter">${o.total} RON</p>`;
+            document.getElementById('order-details-items').innerHTML = Object.values(o.cartData).map(i => {
+                return `<div class="flex justify-between items-center py-3 border-b border-gray-50"><div class="flex flex-col pr-3"><span class="font-black text-dm-blue text-[11px] uppercase leading-tight mb-1">${i.data.denumire}</span><span class="text-[10px] font-black text-blue-600/60">${i.data.pret.toFixed(2)} RON</span></div><span class="font-black bg-gray-100 px-3 py-2 rounded-xl text-sm text-dm-blue whitespace-nowrap">x ${i.quantity}</span></div>`;
+            }).join('');
+        }
+
+        function incarcaComandaInCos() { if (currentViewingOrderIndex === null) return; const o = window.orderHistory[currentViewingOrderIndex]; cart = JSON.parse(JSON.stringify(o.cartData)); selectedClient = o.client; saveAgentData(); updateClientUI(); switchView('cart'); }
+        function retrimiteComandaDirect() { if (currentViewingOrderIndex === null) return; const o = window.orderHistory[currentViewingOrderIndex]; selectedClient = o.client; trimiteWhatsApp(o.timestamp, o.cartData); if (o.status === 'Ciornă') { window.orderHistory[currentViewingOrderIndex].status = 'Trimisă'; saveAgentData(); renderHistory(); } }
+        function stergeComandaCurenta() { if (currentViewingOrderIndex === null) return; if (confirm("Ștergi definitiv?")) { window.orderHistory.splice(currentViewingOrderIndex, 1); saveAgentData(); switchView('history'); } }
+        
+        function formatPriceNum(val) {
+            if (val === undefined || val === null || val === "") return 0;
+            if (typeof val === 'number') return val;
+            let s = val.toString().trim();
+            let isNegative = s.startsWith('-');
+            if (isNegative) s = s.substring(1);
+
+            if (s.includes(',') && s.includes('.')) {
+                if (s.lastIndexOf('.') > s.lastIndexOf(',')) s = s.replace(/,/g, ''); 
+                else s = s.replace(/\./g, '').replace(',', '.');
+            } else if (s.includes(',')) s = s.replace(',', '.');
+            
+            let p = parseFloat(s); 
+            if (isNaN(p)) return 0;
+            return isNegative ? -p : p;
+        }
+
+        function triggerManualSync() { 
+            // Fortam stergerea din memorie si citirea live de pe Github!
+            localStorage.removeItem(`dma_mast_cache`);
+            localStorage.removeItem(`dma_cache_cli`);
+            
+            syncMasterData(); 
+            syncClients(); 
+            syncSoldData(); 
+            if(selectedCategory) selectCategory(selectedCategory); 
+            showToast("ACTUALIZARE LIVE FINALIZATĂ!"); 
+        }
+
         function filterProducts() { const q = document.getElementById('searchInput').value.toLowerCase().trim(); renderProducts(currentCategoryData.filter(p => p.denumire.toLowerCase().includes(q))); }
         function resetSelection() { document.getElementById('searchInput').value = ''; selectedCategory = null; document.getElementById('product-section').classList.add('view-hidden'); document.getElementById('category-placeholder').classList.remove('view-hidden'); ['Ravenol', 'Banner', 'Cyclon', 'Cemsa', 'Inventar'].forEach(cat => { const card = document.getElementById(`card-${cat}`); if (card) card.classList.remove('selected-category'); }); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
