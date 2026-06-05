@@ -952,7 +952,7 @@
                         if(!kD || !p[kD]) return;
                         
                         const name = p[kD].toString().trim();
-                        // PRETUL RAMANE CEL DIN FISIER, FARA A MAI EXTRAGE TVA (Conform cerintei)
+                        // Prețul Rămâne Exact Cum e în Fișier, nu mai împărțim
                         const pretNet = formatPriceNum(p[kP]);
                         
                         newProducts.push({ 
@@ -967,7 +967,7 @@
                         localStorage.setItem(`dma_mast_cache`, JSON.stringify(allProductsRaw));
                     }
                 }
-            } catch (e) { console.warn("Eroare la STOCEGIUNIE", e); }
+            } catch (e) { console.warn("Eroare la STOCEGIUNIE"); }
         }
 
         function selectCategory(category) {
@@ -1038,7 +1038,7 @@
         function renderCart() {
             const tbody = document.getElementById('cart-content-table'), em = document.getElementById('cart-empty-msg'); if (!tbody) return;
             let totalNet = 0; const items = Object.values(cart);
-            if (items.length === 0) { tbody.innerHTML = ''; em.classList.remove('view-hidden'); document.getElementById('totalNoVat').innerText = '0.00 RON'; document.getElementById('totalWithVat').innerText = '0.00 RON'; return; }
+            if (items.length === 0) { tbody.innerHTML = ''; em.classList.remove('view-hidden'); document.getElementById('totalNoVat').innerText = '0.00 RON'; return; }
             em.classList.add('view-hidden');
             tbody.innerHTML = items.map(i => {
                 const name = i.data.denumire;
@@ -1049,7 +1049,6 @@
                 return `<tr class="border-b border-gray-100"><td class="px-4 sm:px-6 py-4 sm:py-5 font-black text-dm-blue uppercase text-[10px] sm:text-xs leading-tight">${name}<br><span class="text-[9px] sm:text-[10px] font-bold text-blue-600/60 mt-1 block">${pF_net.toFixed(2)} RON</span></td><td class="py-4 sm:py-5"><div class="flex items-center justify-center gap-1 sm:gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100"><button onclick="updateCart('${encodedName}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100" style="width:38px;height:38px;font-size:1.2rem;">-</button><span class="font-black text-sm sm:text-base w-5 sm:w-6 text-center text-dm-blue">${i.quantity}</span><button onclick="updateCart('${encodedName}', 1)" class="qty-btn bg-dm-blue text-white shadow-md" style="width:38px;height:38px;font-size:1.2rem;">+</button></div></td><td class="text-right pr-4 sm:pr-6 py-4 sm:py-5 font-black text-dm-blue text-sm sm:text-base">${(i.quantity*pF_net).toFixed(2)}</td></tr>`;
             }).join('');
             document.getElementById('totalNoVat').innerText = totalNet.toFixed(2) + ' RON';
-            document.getElementById('totalWithVat').innerText = (totalNet * TVA_RATE).toFixed(2) + ' RON';
         }
 
         function golesteCos() { if(confirm("Golești tot coșul?")) { cart = {}; saveAgentData(); updateBadge(); renderCart(); filterProducts(); } }
@@ -1089,21 +1088,11 @@
         function retrimiteComandaDirect() { if (currentViewingOrderIndex === null) return; const o = window.orderHistory[currentViewingOrderIndex]; selectedClient = o.client; trimiteWhatsApp(o.timestamp, o.cartData); if (o.status === 'Ciornă') { window.orderHistory[currentViewingOrderIndex].status = 'Trimisă'; saveAgentData(); renderHistory(); } }
         function stergeComandaCurenta() { if (currentViewingOrderIndex === null) return; if (confirm("Ștergi definitiv?")) { window.orderHistory.splice(currentViewingOrderIndex, 1); saveAgentData(); switchView('history'); } }
         
-        function triggerManualSync() { 
-            showToast("ACTUALIZARE LIVE...");
-            syncMasterData(); 
-            syncClients(); 
-            syncSoldData();
-            if(selectedCategory) selectCategory(selectedCategory); 
-        }
-        
+        function triggerManualSync() { showToast("ACTUALIZARE LIVE..."); syncMasterData(); syncClients(); syncSoldData(); if(selectedCategory) selectCategory(selectedCategory); }
         function filterProducts() { const q = document.getElementById('searchInput').value.toLowerCase().trim(); renderProducts(currentCategoryData.filter(p => p.denumire.toLowerCase().includes(q))); }
         function resetSelection() { document.getElementById('searchInput').value = ''; selectedCategory = null; document.getElementById('product-section').classList.add('view-hidden'); document.getElementById('category-placeholder').classList.remove('view-hidden'); ['Ravenol', 'Banner', 'Cyclon', 'Cemsa', 'Inventar'].forEach(cat => { const card = document.getElementById(`card-${cat}`); if (card) card.classList.remove('selected-category'); }); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
-        window.addEventListener('load', () => { 
-            const s = localStorage.getItem('dmauto_session'); 
-            if (s) { currentAgent = JSON.parse(s); initApp(); } 
-        });
+        window.addEventListener('load', () => { const s = localStorage.getItem('dmauto_session'); if (s) { currentAgent = JSON.parse(s); initApp(); } });
     </script>
 </body>
 </html>
