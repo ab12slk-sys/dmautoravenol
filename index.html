@@ -341,7 +341,7 @@
 
         <!-- VEDERE ÎNCASARE -->
         <div id="view-incasare" class="view-hidden p-4 sm:p-6">
-            <h2 class="text-2xl sm:text-3xl font-black text-green-700 uppercase italic mb-4 sm:mb-6 leading-none">💰 Neîncasate</h2>
+            <h2 class="text-2xl sm:text-3xl font-black text-green-700 uppercase italic mb-4 sm:mb-6 leading-none italic">💰 Neîncasate</h2>
             <div class="bg-white p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] shadow-xl mb-6 sm:mb-8 text-center">
                 <p class="text-gray-400 font-black uppercase text-[10px] sm:text-xs mb-1 sm:mb-2">Rest Total de Încasat:</p>
                 <p id="display-sold" class="text-4xl sm:text-5xl font-black text-red-600 tracking-tighter">0.00 RON</p>
@@ -376,8 +376,8 @@
             <div id="cart-summary-box" class="bg-dm-blue text-white rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 shadow-2xl">
                 <div class="flex justify-between items-end border-b border-white/10 pb-4 sm:pb-6 mb-4 sm:mb-6"><span class="text-[10px] sm:text-xs font-black text-dm-yellow uppercase tracking-widest">Total Net</span><span id="totalNoVat" class="text-3xl sm:text-5xl font-black italic tracking-tighter">0.00 RON</span></div>
                 <div class="grid grid-cols-2 gap-4 sm:gap-6">
-                    <button onclick="handleSaveAction(true)" class="bg-blue-600 text-white py-4 sm:py-7 rounded-[1.5rem] sm:rounded-[2rem] font-black uppercase shadow-2xl flex flex-col items-center gap-1 sm:gap-2 text-xs sm:text-base"><span class="text-xl sm:text-2xl">💾</span> SALVEAZĂ</button>
-                    <button onclick="handleSaveAction(false)" class="bg-dm-yellow text-dm-blue py-4 sm:py-7 rounded-[1.5rem] sm:rounded-[2rem] font-black uppercase shadow-2xl flex flex-col items-center gap-1 sm:gap-2 text-xs sm:text-base"><span class="text-xl sm:text-2xl">🚀</span> TRIMITE</button>
+                    <button onclick="salveazaComanda(true)" class="bg-blue-600 text-white py-4 sm:py-7 rounded-[1.5rem] sm:rounded-[2rem] font-black uppercase shadow-2xl flex flex-col items-center gap-1 sm:gap-2 text-xs sm:text-base"><span class="text-xl sm:text-2xl">💾</span> SALVEAZĂ</button>
+                    <button onclick="salveazaComanda(false)" class="bg-dm-yellow text-dm-blue py-4 sm:py-7 rounded-[1.5rem] sm:rounded-[2rem] font-black uppercase shadow-2xl flex flex-col items-center gap-1 sm:gap-2 text-xs sm:text-base"><span class="text-xl sm:text-2xl">🚀</span> TRIMITE</button>
                 </div>
             </div>
         </div>
@@ -394,16 +394,13 @@
                 <div id="order-details-header" class="border-b border-gray-100 pb-5 sm:pb-8 mb-5 sm:mb-8"></div>
                 <div id="order-details-items" class="space-y-4 sm:space-y-6 mb-8 sm:mb-12"></div>
                 <div class="flex flex-col gap-3 sm:gap-4">
-                    <div class="grid grid-cols-2 gap-3 sm:gap-5">
-                        <button onclick="incarcaComandaInCos()" class="bg-dm-blue text-white py-4 sm:py-6 rounded-2xl sm:rounded-3xl font-black uppercase shadow-xl text-xs sm:text-sm">🔄 MODIFICĂ</button>
-                        <button onclick="retrimiteComandaDirect()" class="bg-dm-yellow text-dm-blue py-4 sm:py-6 rounded-2xl sm:rounded-3xl font-black uppercase shadow-xl text-xs sm:text-sm">🚀 TRIMITE</button>
-                    </div>
-                    <button onclick="handleDeleteOrder()" class="w-full bg-red-500 text-white py-4 sm:py-6 rounded-2xl sm:rounded-3xl font-black uppercase shadow-xl text-xs sm:text-sm">🗑️ ȘTERGE</button>
+                    <div class="grid grid-cols-2 gap-3 sm:gap-5"><button onclick="incarcaComandaInCos()" class="bg-dm-blue text-white py-4 sm:py-6 rounded-2xl sm:rounded-3xl font-black uppercase shadow-xl text-xs sm:text-sm">🔄 MODIFICĂ</button><button onclick="retrimiteComandaDirect()" class="bg-dm-yellow text-dm-blue py-4 sm:py-6 rounded-2xl sm:rounded-3xl font-black uppercase shadow-xl text-xs sm:text-sm">🚀 TRIMITE</button></div>
+                    <button onclick="stergeComandaCurenta()" class="w-full bg-red-500 text-white py-4 sm:py-6 rounded-2xl sm:rounded-3xl font-black uppercase shadow-xl text-xs sm:text-sm">🗑️ ȘTERGE</button>
                 </div>
             </div>
         </div>
 
-        <!-- NAVIGARE (MOBIL FRIENDLY) -->
+        <!-- NAVIGARE -->
         <nav class="fixed bottom-0 w-full bg-white border-t border-gray-100 p-3 sm:p-5 flex justify-around shadow-[0_-20px_40px_-15px_rgba(0,0,0,0.15)] z-50 rounded-t-[2.5rem] sm:rounded-t-[3.5rem]">
             <button onclick="switchView('catalog')" class="nav-btn flex flex-col items-center text-dm-blue" id="nav-catalog"><span class="text-3xl sm:text-5xl font-bold">🏠</span><span class="text-[9px] sm:text-[10px] font-black uppercase mt-1">Catalog</span></button>
             <button onclick="switchView('cart')" class="nav-btn flex flex-col items-center text-gray-400 relative" id="nav-cart"><span class="text-3xl sm:text-5xl font-bold">🛒</span><div id="cartBadge" class="cart-badge hidden">0</div><span class="text-[9px] sm:text-[10px] font-black uppercase mt-1">Coș</span></button>
@@ -423,7 +420,7 @@
         const CLIENTS_FILE = 'LISTA_CLIENTI.xlsx';
         
         // FISIER UNIC DE SOLDURI DE LA USER
-        const SOLD_FILES = ['Facturi_Neincasate.xlsx'];
+        const SOLD_FILES = ['Centralizator_Facturi_Neincasate.xlsx'];
 
         let currentAgent = null;
         let allProductsRaw = []; 
@@ -466,15 +463,19 @@
             confirmActionCb = null;
         }
 
+        // ==========================================
+        // NORMALIZARE AGRESIVA PENTRU MATCH PERFECT
+        // ==========================================
         function normalizeName(name) {
             if (!name) return "";
             return name.toString().toUpperCase()
+                // Stergem orice forma de SRL / SA etc.
                 .replace(/\bS\.?R\.?L\.?\b/g, "")
                 .replace(/\bS\.?A\.?\b/g, "")
                 .replace(/\bS\.?C\.?\b/g, "")
                 .replace(/\bI\.?I\.?\b/g, "")
                 .replace(/\bP\.?F\.?A\.?\b/g, "")
-                .replace(/[^A-Z0-9]/g, "")
+                .replace(/[^A-Z0-9]/g, "") // Lasam EXCLUSIV litere si cifre lipite
                 .trim();
         }
 
@@ -843,6 +844,9 @@
             if (cached) { allClients = JSON.parse(cached); filterClients(); }
         }
 
+        // ==========================================
+        // CITIREA DATELOR DE SOLD PENTRU CENTRALIZATORUL UNIC
+        // ==========================================
         async function fetchSoldForRegionLive(fileList) {
             for (const file of fileList) {
                 try {
@@ -853,56 +857,67 @@
                         const sh = wb.Sheets[wb.SheetNames[0]];
                         const raw = XLSX.utils.sheet_to_json(sh, { header: 1 });
                         
+                        let restColIndex = -1;
+                        let factColIndex = 1;
+                        let dateColIndex = 2;
+
+                        for(let i = 0; i < Math.min(20, raw.length); i++) {
+                            let r = raw[i];
+                            if(!r) continue;
+                            for(let j = 0; j < r.length; j++) {
+                                let txt = (r[j] || '').toString().toUpperCase();
+                                if (txt.includes('REST') || txt.includes('NEINCASAT') || txt.includes('SOLD')) restColIndex = j;
+                                if (txt.includes('FACTUR') || txt.includes('DOC')) factColIndex = j;
+                                if (txt.includes('DATA')) dateColIndex = j;
+                            }
+                        }
+
+                        if (restColIndex === -1) restColIndex = 5; 
+                        
                         let currentClient = "";
                         raw.forEach((row, index) => {
-                            if (index === 0) return;
                             if (!row || row.length === 0) return;
 
                             let c0 = row[0] ? row[0].toString().trim().toUpperCase() : "";
                             let c1 = row[1] ? row[1].toString().trim().toUpperCase() : "";
 
-                            if (c0.includes("TOTAL") || c0.includes("UNITATEA") || c0.includes("REPORT")) {
-                                currentClient = ""; return;
-                            }
+                            if (c0.includes("TOTAL") || c0.includes("UNITATEA") || c0.includes("REPORT")) return;
 
+                            // In Centralizatorul tau, Numele este mereu prima chestie
                             if (c0 && (!c1 || c0.includes("SRL") || c0.includes("S.R.L") || c0.includes("SA") || c0.includes("PFA") || c0.includes("S.C.") || c0.includes("INTERTRANS"))) {
                                 if (!c0.includes("FACT") && !c0.includes("CHIT")) {
                                     currentClient = c0;
                                 }
                             }
 
-                            // Daca nu am gasit SRL, dar vedem o factura DMEG, clientul a fost probabil completat pe coloana A
+                            // Daca nu am gasit SRL etc, dar vedem o factura, inseamna ca in Centralizator clientul e pe coloana A oricum
                             if (c0 && c1.startsWith("DMEG")) currentClient = c0; 
 
-                            let factNr = c1;
-                            if (!factNr.startsWith("DMEG") && !factNr.match(/^\d+$/)) {
-                                for(let j=1; j<row.length; j++) {
-                                    if (row[j] && row[j].toString().trim().toUpperCase().startsWith("DMEG")) {
-                                        factNr = row[j].toString().trim();
-                                        break;
-                                    }
+                            let factNr = row[factColIndex] ? row[factColIndex].toString().trim() : c1;
+                            let dateStr = row[dateColIndex] ? row[dateColIndex].toString().trim() : (row[2] || "-");
+                            
+                            // Permitem si sumele negative pentru Facturi Storno/Credite
+                            let restVal = row[restColIndex];
+                            if (restVal !== undefined && restVal !== null) {
+                                restVal = formatPriceNum(restVal);
+                            } else {
+                                restVal = 0;
+                            }
+
+                            // Fallback extrem daca restColIndex nu e bun (cautam ultima cifra non-zero de pe rand)
+                            if (restVal === 0 && restColIndex === 5) {
+                                for (let k = row.length - 1; k >= 2; k--) {
+                                    let v = formatPriceNum(row[k]);
+                                    if (v !== 0) { restVal = v; break; }
                                 }
                             }
 
-                            // Extragem ultimul numar din rand ca fiind suma/restul (ignorand Alba/Hunedoara)
-                            let restVal = 0;
-                            for (let k = row.length - 1; k >= 2; k--) {
-                                let v = formatPriceNum(row[k]);
-                                if (v !== 0 && typeof row[k] !== 'string') {
-                                    restVal = v;
-                                    break;
-                                } else if (v !== 0 && typeof row[k] === 'string' && !isNaN(parseFloat(row[k].toString().replace(/,/g,'.')))) {
-                                    // Protectie extra pentru text convertibil
-                                    restVal = v;
-                                    break;
-                                }
-                            }
-
+                            // Salvam orice restVal diferit de 0 (pozitiv sau negativ)
                             if (currentClient && factNr && factNr !== currentClient && restVal !== 0) {
                                 allSoldData.push({
                                     clientNorm: normalizeName(currentClient),
                                     factura: factNr,
-                                    data: row[2] || "-",
+                                    data: dateStr,
                                     rest: restVal
                                 });
                             }
@@ -917,11 +932,15 @@
 
         async function syncSoldDataLive() {
             allSoldData = [];
+            // Folosim acum lista unică de SOLD_FILES în loc de cele 4 vechi
             await fetchSoldForRegionLive(SOLD_FILES);
         }
 
         async function syncSoldData() { }
 
+        // ==========================================
+        // SELECTIA CLIENTULUI
+        // ==========================================
         async function handleClientSelection(idx) {
             const c = window.renderedClientsList[idx];
             if (!c) return;
@@ -972,18 +991,22 @@
             let totalSold = 0;
             mySold.forEach(r => totalSold += r.rest);
 
+            // Daca are sold de platit
             if (totalSold > 0.01) {
                 containerSold.className = "bg-white rounded-[2rem] shadow-xl border-t-8 border-red-500 p-6 mb-6 sm:mb-8 text-center";
                 totalSoldText.className = "text-4xl sm:text-5xl font-black text-red-600 mb-3 sm:mb-4 tracking-tighter";
                 totalSoldText.innerText = totalSold.toLocaleString('ro-RO', {minimumFractionDigits: 2}) + ' RON';
                 btnIncasareMode.classList.remove('hidden');
-            } else if (totalSold < -0.01) {
-                // Clientul are credit (plus)
+            } 
+            // Daca are credit (este pe plus)
+            else if (totalSold < -0.01) {
                 containerSold.className = "bg-white rounded-[2rem] shadow-xl border-t-8 border-blue-500 p-6 mb-6 sm:mb-8 text-center";
                 totalSoldText.className = "text-4xl sm:text-5xl font-black text-blue-600 mb-3 sm:mb-4 tracking-tighter";
                 totalSoldText.innerText = totalSold.toLocaleString('ro-RO', {minimumFractionDigits: 2}) + ' RON (CREDIT)';
                 btnIncasareMode.classList.remove('hidden');
-            } else {
+            } 
+            // Daca este exact 0
+            else {
                 containerSold.className = "bg-green-50 rounded-[2rem] shadow-sm border border-green-200 p-6 mb-6 sm:mb-8 text-center";
                 totalSoldText.className = "text-2xl sm:text-3xl font-black text-green-600 tracking-tighter mb-0";
                 totalSoldText.innerText = "CLIENT LA ZI ✅";
@@ -1049,7 +1072,6 @@
             if (!n || !l) { showToast("INTRODU NUME ȘI LOCALITATE!"); return; }
             
             const newCli = { 
-                _id: 'manual_' + Date.now(), 
                 denumire: n, 
                 localitate: l, 
                 adresa: document.getElementById('new-client-adresa').value.trim().toUpperCase(),
@@ -1081,6 +1103,7 @@
             if (!newName) { showToast("NUME OBLIGATORIU!"); return; }
             
             const key = selectedClient.originalName; 
+            
             const updatedData = {
                 name: newName,
                 loc: document.getElementById('edit-client-loc').value.trim().toUpperCase(),
@@ -1093,8 +1116,7 @@
             editedClients[key] = updatedData;
             selectedClient = { ...selectedClient, ...updatedData }; 
             
-            saveAgentData(); showToast("DATE ACTUALIZATE!");
-            filterClients(); updateClientUI(); switchView('client-mode');
+            saveAgentData(); showToast("DATE ACTUALIZATE!"); filterClients(); updateClientUI(); switchView('client-mode');
         }
 
         function toggleClientFilter(mine) {
@@ -1114,6 +1136,7 @@
                 const kCIF = Object.keys(c).find(k => k.toLowerCase().includes("cod_fiscal"));
                 
                 const originalName = c[kName]?.toString() || "";
+                
                 const edit = editedClients[originalName];
                 const name = edit ? edit.name : originalName;
                 const loc = edit ? edit.loc : (c[kLoc]?.toString() || "");
@@ -1121,6 +1144,7 @@
                 const adresa = edit ? edit.adresa : "";
 
                 const match = name.toLowerCase().includes(q) || loc.toLowerCase().includes(q) || cif.toLowerCase().includes(q) || adresa.toLowerCase().includes(q);
+                
                 let agentMatch = true;
                 if (showOnlyMyClients && currentAgent) {
                     const kAgent = Object.keys(c).find(k => k.toLowerCase().includes("den_agent"));
@@ -1183,15 +1207,21 @@
             
             if (selectedClient) {
                 h.innerText = selectedClient.name; 
-                h.className = "text-xl font-black truncate text-dm-yellow text-left";
+                h.className = "text-lg sm:text-2xl font-black truncate leading-none text-dm-yellow text-left";
+                
                 c.innerText = `${selectedClient.name} (${selectedClient.loc})`; 
                 c.classList.remove('text-red-500');
-                if(a) a.innerText = `📍 Livrare: ${selectedClient.adresa || 'Nespecificat'}`;
+                
+                if(a) {
+                    a.innerText = `📍 Livrare: ${selectedClient.adresa || 'Nespecificat'}`;
+                }
             } else {
                 h.innerText = "Neselectat 👤"; 
-                h.className = "text-xl font-black truncate text-white text-left opacity-30";
+                h.className = "text-lg sm:text-2xl font-black truncate leading-none text-white text-left opacity-30";
+                
                 c.innerText = "ATENȚIE: NICIUN CLIENT SELECTAT!"; 
                 c.classList.add('text-red-500');
+                
                 if(a) a.innerText = "";
             }
         }
@@ -1207,14 +1237,7 @@
             const p = parseFloat(s); return isNaN(p) ? 0 : p;
         }
 
-        function triggerManualSync() { 
-            showToast("SE SINCRONIZEAZĂ BAZA DE DATE...");
-            syncMasterData(); 
-            syncClients(); 
-            syncSoldDataLive();
-            if(selectedCategory) selectCategory(selectedCategory); 
-        }
-        
+        function triggerManualSync() { showToast("SE SINCRONIZEAZĂ BAZA DE DATE..."); syncMasterData(); syncClients(); if(selectedCategory) selectCategory(selectedCategory); }
         function filterProducts() { const q = document.getElementById('searchInput').value.toLowerCase().trim(); renderProducts(currentCategoryData.filter(p => p.denumire.toLowerCase().includes(q))); }
         function resetSelection() { document.getElementById('searchInput').value = ''; selectedCategory = null; document.getElementById('product-section').classList.add('view-hidden'); document.getElementById('category-placeholder').classList.remove('view-hidden'); ['Ravenol', 'Banner', 'Cyclon', 'Cemsa', 'Inventar'].forEach(cat => { const card = document.getElementById(`card-${cat}`); if (card) card.classList.remove('selected-category'); }); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
