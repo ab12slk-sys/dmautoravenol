@@ -6,6 +6,7 @@
     <title>DM Auto - Portal Agent</title>
     
     <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="logo_dmauto.png">
     <meta name="theme-color" content="#003366">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -41,7 +42,7 @@
             border: 4px solid transparent;
         }
 
-        .category-card:active, .mode-btn:active, .nav-btn:active, .action-btn:active { 
+        .category-card:active, .mode-btn:active, .qty-btn:active, .nav-btn:active, .action-btn:active { 
             transform: scale(0.92); 
             filter: brightness(0.9);
         }
@@ -53,36 +54,35 @@
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
-            padding: 1rem;
+            padding: 1.5rem;
+        }
+
+        .qty-btn {
+            width: 54px;
+            height: 54px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 18px;
+            font-weight: 900;
         }
 
         .cart-badge {
             position: absolute;
-            top: -8px;
-            right: -8px;
+            top: -10px;
+            right: -10px;
             background: #ffcc00;
             color: #003366;
-            font-size: 11px;
+            font-size: 13px;
             font-weight: 900;
-            width: 24px;
-            height: 24px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 2px solid white;
+            border: 3px solid white;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        }
-        
-        @media (min-width: 640px) {
-            .cart-badge {
-                top: -10px;
-                right: -10px;
-                font-size: 13px;
-                width: 30px;
-                height: 30px;
-            }
-            .category-overlay { padding: 1.5rem; }
         }
 
         .view-hidden { display: none !important; }
@@ -90,6 +90,7 @@
         .selected-category {
             border-color: #ffcc00;
             transform: scale(1.03);
+            box-shadow: 0 25px 30px -10px rgba(0,0,0,0.2);
         }
 
         .login-gradient {
@@ -97,11 +98,9 @@
         }
 
         .client-card {
-            border-left: 8px solid #e2e8f0;
+            border-left: 12px solid #e2e8f0;
             transition: all 0.2s;
         }
-        @media (min-width: 640px) { .client-card { border-left-width: 12px; } }
-        
         .client-card.active-client {
             border-left-color: #ffcc00;
             background-color: #fffbeb;
@@ -113,10 +112,9 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            border-radius: 2rem;
-            box-shadow: 0 10px 20px -5px rgba(0,0,0,0.15);
+            border-radius: 2.5rem;
+            box-shadow: 0 15px 30px -5px rgba(0,0,0,0.15);
         }
-        @media (min-width: 640px) { .mode-btn { border-radius: 2.5rem; box-shadow: 0 15px 30px -5px rgba(0,0,0,0.15); } }
 
         #custom-toast {
             position: fixed;
@@ -125,61 +123,45 @@
             transform: translateX(-50%) translateY(-150px);
             background: #1e293b;
             color: white;
-            padding: 14px 28px;
-            border-radius: 20px;
+            padding: 18px 36px;
+            border-radius: 24px;
             font-weight: 800;
             z-index: 200;
             box-shadow: 0 20px 50px rgba(0,0,0,0.4);
             transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             text-transform: uppercase;
-            font-size: 12px;
+            font-size: 14px;
             border: 2px solid #ffcc00;
             text-align: center;
-            width: 90%;
-            max-width: 400px;
         }
-        @media (min-width: 640px) { #custom-toast { padding: 18px 36px; font-size: 14px; border-radius: 24px; width: auto; } }
-        
         #custom-toast.show { transform: translateX(-50%) translateY(0); }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="pb-32 sm:pb-44">
+<body class="pb-40">
 
-    <!-- Notificări -->
     <div id="custom-toast">Mesaj Notificare</div>
-
-    <!-- Modal Confirmare -->
-    <div id="confirm-modal" class="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm hidden flex-col items-center justify-center p-6">
-        <div class="bg-white rounded-[2.5rem] p-8 max-w-sm w-full shadow-2xl text-center">
-            <h3 id="confirm-msg" class="text-xl font-black text-dm-blue mb-8 leading-tight">Ești sigur?</h3>
-            <div class="grid grid-cols-2 gap-4">
-                <button onclick="closeConfirm(false)" class="bg-gray-100 text-gray-500 py-4 rounded-2xl font-black uppercase text-sm shadow-inner active:scale-95 transition-all">Renunță</button>
-                <button onclick="closeConfirm(true)" class="bg-dm-yellow text-dm-blue py-4 rounded-2xl font-black uppercase text-sm shadow-xl active:scale-95 transition-all">Confirmă</button>
-            </div>
-        </div>
-    </div>
 
     <!-- ECRAN LOGIN -->
     <div id="view-login" class="fixed inset-0 z-[100] login-gradient flex flex-col items-center justify-center p-6 text-center">
         <div class="w-full max-w-sm">
-            <div class="flex flex-col items-center mb-8 sm:mb-12">
-                <img src="logo_dmauto.png" alt="DM Auto Logo" class="h-24 sm:h-32 mb-4 sm:mb-6 object-contain" onerror="this.src='https://via.placeholder.com/150x150/003366/ffcc00?text=DM+AUTO'">
-                <h2 class="text-dm-yellow font-black text-xl sm:text-2xl tracking-widest italic uppercase">Portal Agenți</h2>
+            <div class="flex flex-col items-center mb-12">
+                <img src="logo_dmauto.png" alt="DM Auto Logo" class="h-32 mb-6 object-contain" onerror="this.src='https://via.placeholder.com/150?text=DM+AUTO'">
+                <h2 class="text-dm-yellow font-black text-2xl tracking-widest italic uppercase">Portal Agenți</h2>
             </div>
-            <div class="bg-white/10 backdrop-blur-xl p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] border border-white/20 shadow-2xl">
-                <div class="mb-5 sm:mb-6 text-left">
-                    <label class="block text-white/50 text-[10px] font-black uppercase mb-1 sm:mb-2 ml-1">Utilizator</label>
-                    <input type="text" id="login-user" placeholder="nume agent" class="w-full bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-5 text-white text-base sm:text-lg focus:outline-none focus:border-dm-yellow transition-all uppercase">
+            <div class="bg-white/10 backdrop-blur-xl p-8 rounded-[3rem] border border-white/20 shadow-2xl">
+                <div class="mb-6 text-left">
+                    <label class="block text-white/50 text-[10px] font-black uppercase mb-2 ml-1">Utilizator</label>
+                    <input type="text" id="login-user" placeholder="nume agent" class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white text-lg focus:outline-none focus:border-dm-yellow transition-all uppercase">
                 </div>
-                <div class="mb-8 sm:mb-10 text-left">
-                    <label class="block text-white/50 text-[10px] font-black uppercase mb-1 sm:mb-2 ml-1">Parolă</label>
-                    <input type="password" id="login-pass" placeholder="••••••••" class="w-full bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-5 text-white text-base sm:text-lg focus:outline-none focus:border-dm-yellow transition-all">
+                <div class="mb-10 text-left">
+                    <label class="block text-white/50 text-[10px] font-black uppercase mb-2 ml-1">Parolă</label>
+                    <input type="password" id="login-pass" placeholder="••••••••" class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white text-lg focus:outline-none focus:border-dm-yellow transition-all">
                 </div>
-                <button onclick="handleLogin()" class="w-full bg-dm-yellow text-dm-blue py-4 sm:py-6 rounded-xl sm:rounded-2xl font-black uppercase shadow-xl active:scale-95 transition-all text-lg sm:text-xl tracking-tighter">Autentificare 🚀</button>
-                <div id="login-error" class="mt-4 sm:mt-5 text-red-400 text-xs font-black hidden uppercase tracking-tighter text-center">Date incorecte!</div>
+                <button onclick="handleLogin()" class="w-full bg-dm-yellow text-dm-blue py-6 rounded-2xl font-black uppercase shadow-xl active:scale-95 transition-all text-xl tracking-tighter">Autentificare 🚀</button>
+                <div id="login-error" class="mt-5 text-red-400 text-xs font-black hidden uppercase tracking-tighter text-center">Date incorecte!</div>
             </div>
         </div>
     </div>
@@ -187,170 +169,183 @@
     <!-- APP CONTENT -->
     <div id="app-content" class="view-hidden">
         <!-- HEADER -->
-        <header class="bg-dm-blue text-white p-4 pb-8 sm:p-5 sm:pb-10 shadow-2xl rounded-b-[2.5rem] sm:rounded-b-[3.5rem] sticky top-0 z-40">
-            <div class="flex items-center gap-3 sm:gap-5 mb-6 sm:mb-8">
-                <button id="header-back-btn" onclick="goBack()" class="bg-white/10 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-white/20 active:scale-90 transition-all shadow-lg view-hidden">
-                    <span class="text-xl sm:text-2xl font-black">⬅️</span>
+        <header class="bg-dm-blue text-white p-5 pb-10 shadow-2xl rounded-b-[3.5rem] sticky top-0 z-40">
+            <div class="flex items-center gap-5 mb-8">
+                <button id="header-back-btn" onclick="goBack()" class="bg-white/10 p-4 rounded-2xl border border-white/20 active:scale-90 transition-all shadow-lg view-hidden">
+                    <span class="text-2xl font-black">⬅️</span>
                 </button>
                 <div class="flex-1">
-                    <h1 class="text-xs sm:text-sm font-medium opacity-70 leading-none mb-1">Salut, <span id="agent-display-name" class="font-black text-white">Agent!</span></h1>
-                    <button onclick="openClientsViewLive()" class="mt-1 sm:mt-2 w-full bg-black/40 border border-white/20 p-3 sm:p-4 rounded-xl sm:rounded-2xl flex flex-col items-start gap-1 active:scale-95 transition-all shadow-inner">
-                        <span class="text-[8px] sm:text-[9px] font-black text-dm-yellow uppercase tracking-[0.2em] opacity-80">Client Actual:</span>
+                    <h1 class="text-sm font-medium opacity-70 leading-none mb-1">Salut, <span id="agent-display-name" class="font-black text-white">Agent!</span></h1>
+                    <button onclick="switchView('clients')" class="mt-2 w-full bg-black/40 border border-white/20 p-4 rounded-2xl flex flex-col items-start gap-1 active:scale-95 transition-all shadow-inner">
+                        <span class="text-[9px] font-black text-dm-yellow uppercase tracking-[0.2em] opacity-80">Client Actual:</span>
                         <div class="flex items-center justify-between w-full">
-                            <span id="header-client-name" class="text-lg sm:text-2xl font-black truncate leading-none text-left">Neselectat 👤</span>
-                            <span class="text-dm-yellow text-lg sm:text-xl">➔</span>
+                            <span id="header-client-name" class="text-2xl font-black truncate leading-none text-left">Neselectat 👤</span>
+                            <span class="text-dm-yellow text-xl">➔</span>
                         </div>
                     </button>
                 </div>
-                <button onclick="triggerManualSync()" class="bg-white/10 p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-white/20 active:scale-90 transition-all shadow-lg flex-shrink-0">
-                    <span class="text-2xl sm:text-3xl">🔄</span>
+                <button onclick="triggerManualSync()" class="bg-white/10 p-5 rounded-2xl border border-white/20 active:scale-90 transition-all shadow-lg flex-shrink-0">
+                    <span class="text-3xl">🔄</span>
                 </button>
             </div>
 
             <div id="search-container" class="relative">
-                <input type="text" id="searchInput" onkeyup="if(event.key === 'Enter') filterProducts()" placeholder="Caută..." 
-                       class="w-full p-4 sm:p-6 pr-16 sm:pr-20 rounded-2xl sm:rounded-3xl text-gray-800 text-base sm:text-xl focus:outline-none shadow-2xl border-none font-semibold uppercase">
-                <div onclick="filterProducts()" class="absolute right-4 sm:right-6 top-3 sm:top-5 text-gray-300 cursor-pointer active:scale-90 active:text-dm-blue transition-all">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 sm:h-10 sm:w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <input type="text" id="searchInput" onkeyup="if(event.key === 'Enter') filterProducts()" placeholder="Caută marfă în listă..." 
+                       class="w-full p-6 pr-20 rounded-3xl text-gray-800 text-xl focus:outline-none shadow-2xl border-none font-semibold uppercase">
+                <div onclick="filterProducts()" class="absolute right-6 top-5 text-gray-300 cursor-pointer active:scale-90 active:text-dm-blue transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                 </div>
             </div>
         </header>
 
-        <!-- CATALOG -->
+        <!-- CATALOG CATEGORII -->
         <div id="view-catalog" class="active-view">
-            <div class="p-3 sm:p-4 grid grid-cols-2 gap-3 sm:gap-5">
-                <div id="card-Inventar" onclick="selectCategory('Inventar')" class="category-card col-span-2 !aspect-[25/9] sm:!aspect-[30/9]" style="background-color: #1e293b;">
+            <div class="p-4 grid grid-cols-2 gap-5">
+                <div id="card-Inventar" onclick="selectCategory('Inventar')" class="category-card col-span-2 !aspect-[28/9]" style="background-color: #1e293b;">
                     <div class="category-overlay">
-                        <h3 class="text-dm-yellow font-black text-xl sm:text-2xl uppercase italic tracking-widest leading-none">📦 TOATE PRODUSELE</h3>
-                        <p class="text-white/50 text-[10px] sm:text-xs uppercase font-bold tracking-tighter mt-1">Stoc + Oferte Actualizate</p>
+                        <h3 class="text-dm-yellow font-black text-2xl uppercase italic tracking-widest leading-none">📦 TOATE PRODUSELE</h3>
+                        <p class="text-white/50 text-xs uppercase font-bold tracking-tighter mt-1">Stoc Real & Inventar Complet</p>
                     </div>
                 </div>
-                <div id="card-Ravenol" onclick="selectCategory('Ravenol')" class="category-card" style="background-color: #334155;">
-                    <div class="category-overlay"><h3 class="text-white font-black text-sm sm:text-base uppercase italic tracking-tighter">RAVENOL</h3></div>
+                <!-- IMAGINILE DE FUNDAL RESTAURATE -->
+                <div id="card-Ravenol" onclick="selectCategory('Ravenol')" class="category-card" style="background-image: url('ravenol.jpg'); background-color: #334155;">
+                    <div class="category-overlay"><h3 class="text-white font-black text-base uppercase italic tracking-tighter">RAVENOL</h3></div>
                 </div>
-                <div id="card-Banner" onclick="selectCategory('Banner')" class="category-card" style="background-color: #475569;">
-                    <div class="category-overlay"><h3 class="text-white font-black text-sm sm:text-base uppercase italic tracking-tighter">BANNER</h3></div>
+                <div id="card-Banner" onclick="selectCategory('Banner')" class="category-card" style="background-image: url('banner.jpg'); background-color: #475569;">
+                    <div class="category-overlay"><h3 class="text-white font-black text-base uppercase italic tracking-tighter">BANNER</h3></div>
                 </div>
-                <div id="card-Cyclon" onclick="selectCategory('Cyclon')" class="category-card" style="background-color: #64748b;">
-                    <div class="category-overlay"><h3 class="text-white font-black text-sm sm:text-base uppercase italic tracking-tighter">CYCLON</h3></div>
+                <div id="card-Cyclon" onclick="selectCategory('Cyclon')" class="category-card" style="background-image: url('cyclon.jpg'); background-color: #64748b;">
+                    <div class="category-overlay"><h3 class="text-white font-black text-base uppercase italic tracking-tighter">CYCLON</h3></div>
                 </div>
-                <div id="card-Cemsa" onclick="selectCategory('Cemsa')" class="category-card" style="background-color: #94a3b8;">
-                    <div class="category-overlay"><h3 class="text-white font-black text-xs sm:text-sm uppercase italic tracking-tighter">ALTELE</h3></div>
+                <div id="card-Cemsa" onclick="selectCategory('Cemsa')" class="category-card" style="background-image: url('cemsa.jpg'); background-color: #94a3b8;">
+                    <div class="category-overlay"><h3 class="text-white font-black text-sm uppercase italic tracking-tighter">CEMSA / ALTELE</h3></div>
                 </div>
             </div>
 
-            <div id="product-section" class="px-2 sm:px-4 view-hidden">
-                <div class="flex justify-between items-center mb-3 sm:mb-5 px-1 pt-2 sm:pt-4">
-                    <div class="flex items-center gap-3 sm:gap-4">
-                        <h3 id="selected-category-title" class="text-lg sm:text-xl font-black uppercase tracking-widest text-dm-blue italic">Produse</h3>
-                        <button onclick="resetSelection()" class="text-[10px] sm:text-xs bg-gray-200 px-4 sm:px-5 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl text-gray-600 font-black uppercase shadow-sm">Închide</button>
+            <!-- TABEL PRODUSE -->
+            <div id="product-section" class="px-4 view-hidden">
+                <div class="flex justify-between items-center mb-5 px-1 pt-4">
+                    <div class="flex items-center gap-4">
+                        <h3 id="selected-category-title" class="text-lg font-black uppercase tracking-widest text-dm-blue italic">Produse</h3>
+                        <button onclick="resetSelection()" class="text-xs bg-gray-200 px-5 py-2 rounded-2xl text-gray-600 font-black uppercase active:bg-gray-300 shadow-sm">Închide</button>
                     </div>
+                    <span id="productCount" class="text-xs text-gray-400 font-bold uppercase italic tracking-tighter">...</span>
                 </div>
-                <div class="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100 mb-8 sm:mb-12">
-                    <div class="overflow-x-auto max-h-[65vh]">
+                <div class="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100 mb-12">
+                    <div class="overflow-x-auto max-h-[60vh]">
                         <table class="w-full text-left">
-                            <thead class="bg-gray-50 border-b border-gray-100 uppercase text-[9px] sm:text-[10px] font-black text-gray-400">
-                                <tr><th class="pl-4 sm:pl-6 py-3 sm:py-4">Reper / Stoc / Preț Net</th><th class="text-center">Cant.</th><th class="pr-4 sm:pr-6 text-right">Total</th></tr>
+                            <thead class="bg-gray-50 border-b border-gray-100 uppercase text-[10px] font-black text-gray-400">
+                                <tr><th class="pl-6 py-4">Reper / Stoc / Preț Net</th><th class="text-center">Cant.</th><th class="pr-6 text-right">Total Net</th></tr>
                             </thead>
-                            <tbody id="productTableBody" class="divide-y divide-gray-100"></tbody>
+                            <tbody id="productTableBody" class="divide-y divide-gray-100 text-sm"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
             
-            <div id="category-placeholder" class="p-8 sm:p-12 text-center">
-                <div class="bg-gray-50 border-2 border-dashed border-gray-200 rounded-[2rem] sm:rounded-[3rem] p-8 sm:p-12 shadow-inner">
-                    <span class="text-5xl sm:text-7xl block mb-4 sm:mb-6 animate-bounce">👇</span>
-                    <p class="text-gray-400 font-black uppercase text-sm sm:text-base tracking-widest">Selectează categoria</p>
+            <div id="category-placeholder" class="p-12 text-center">
+                <div class="bg-gray-50 border-2 border-dashed border-gray-200 rounded-[3rem] p-12 shadow-inner">
+                    <span class="text-7xl block mb-6 animate-bounce">👇</span>
+                    <p class="text-gray-400 font-black uppercase text-base tracking-widest text-balance leading-relaxed">Alege o gamă de produse</p>
                 </div>
             </div>
         </div>
 
         <!-- LISTA CLIENTI -->
-        <div id="view-clients" class="view-hidden p-4 sm:p-5">
-            <div class="flex justify-between items-center mb-6 sm:mb-8">
-                <h2 class="text-2xl sm:text-3xl font-black text-dm-blue uppercase italic leading-none">👤 Baza Clienți</h2>
-                <button onclick="switchView('add-client')" class="bg-dm-yellow text-dm-blue px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black text-[10px] sm:text-xs uppercase shadow-xl">+ Client Nou</button>
+        <div id="view-clients" class="view-hidden p-5">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-3xl font-black text-dm-blue uppercase italic leading-none">👤 Baza Clienți</h2>
+                <button onclick="switchView('add-client')" class="bg-dm-yellow text-dm-blue px-6 py-4 rounded-2xl font-black text-xs uppercase shadow-xl active:scale-95 transition-all">+ Client Nou</button>
             </div>
-            <div class="relative mb-6 sm:mb-8">
-                <input type="text" id="clientSearch" onkeyup="filterClients()" placeholder="Nume, Oraș, CIF..." class="w-full p-4 sm:p-6 rounded-2xl sm:rounded-3xl text-gray-800 text-base sm:text-xl focus:outline-none shadow-xl border border-gray-100 font-semibold uppercase">
+            
+            <!-- BUTON NOU: RESTANTIERI -->
+            <button onclick="renderRestantieriList()" class="w-full bg-red-600 text-white p-5 rounded-[2rem] font-black uppercase shadow-xl mb-6 active:scale-95 transition-all text-sm flex justify-center items-center gap-3">
+                <span class="text-3xl">🚨</span> VEZI TOȚI RESTANȚIERII
+            </button>
+
+            <div class="relative mb-6">
+                <input type="text" id="clientSearch" onkeyup="filterClients()" placeholder="Nume firmă, Oraș sau CIF..." 
+                       class="w-full p-6 pr-14 rounded-3xl text-gray-800 text-xl focus:outline-none shadow-xl border border-gray-100 font-semibold uppercase">
+                <div class="absolute right-6 top-6 text-gray-300 text-2xl">🔍</div>
             </div>
-            <div class="flex gap-2 sm:gap-3 mb-6 sm:mb-8 overflow-x-auto pb-2 no-scrollbar">
-                <button onclick="toggleClientFilter(true)" id="btnFilterMyClients" class="sheet-tab sheet-tab-inactive shadow-md">Zona Mea ⭐</button>
-                <button onclick="toggleClientFilter(false)" id="btnFilterAllClients" class="sheet-tab sheet-tab-active shadow-lg">Toți Clienții</button>
+            
+            <div class="flex gap-3 mb-6 overflow-x-auto pb-2 no-scrollbar">
+                <button onclick="toggleClientFilter(true)" id="btnFilterMyClients" class="sheet-tab sheet-tab-active shadow-lg">Zona Mea ⭐</button>
+                <button onclick="toggleClientFilter(false)" id="btnFilterAllClients" class="sheet-tab sheet-tab-inactive shadow-md">Toți Clienții</button>
             </div>
-            <div id="clients-list" class="space-y-3 sm:space-y-5 overflow-y-auto max-h-[60vh] pr-1 sm:pr-2"></div>
+
+            <div id="clients-list" class="space-y-4 overflow-y-auto max-h-[55vh] pr-1"></div>
         </div>
 
-        <!-- FORMULAR CLIENT NOU -->
-        <div id="view-add-client" class="view-hidden p-4 sm:p-5">
-            <h2 class="text-2xl sm:text-3xl font-black text-dm-blue uppercase italic mb-6 sm:mb-8">➕ Client Nou</h2>
-            <div class="bg-white p-5 sm:p-8 rounded-[2rem] sm:rounded-[3rem] shadow-2xl border border-gray-100 space-y-4 sm:space-y-6">
-                <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Denumire</label><input type="text" id="new-client-name" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
-                <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Oraș</label><input type="text" id="new-client-loc" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
-                <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Adresă Livrare</label><input type="text" id="new-client-adresa" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
-                <div class="grid grid-cols-2 gap-3 sm:gap-4">
-                    <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">CIF</label><input type="text" id="new-client-cif" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
-                    <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Reg. Com.</label><input type="text" id="new-client-rc" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
+        <!-- ADAUGARE CLIENT -->
+        <div id="view-add-client" class="view-hidden p-5">
+            <button onclick="switchView('clients')" class="mb-8 text-dm-blue font-black uppercase text-sm flex items-center gap-3 tracking-widest"><span>←</span> ÎNAPOI LA LISTĂ</button>
+            <h2 class="text-3xl font-black text-dm-blue uppercase italic mb-8 italic">➕ Creează Client Nou</h2>
+            <div class="bg-white p-8 rounded-[3rem] shadow-2xl border border-gray-100 space-y-6">
+                <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Denumire Firmă</label><input type="text" id="new-client-name" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
+                <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Localitate / Oraș</label><input type="text" id="new-client-loc" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
+                <div class="col-span-2"><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Adresă Livrare Completă</label><input type="text" id="new-client-adresa" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase" placeholder="Strada, Numărul, Detalii..."></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">CIF</label><input type="text" id="new-client-cif" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
+                    <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Reg. Com.</label><input type="text" id="new-client-rc" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
                 </div>
-                <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Telefon</label><input type="tel" id="new-client-tel" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all"></div>
-                <button onclick="handleCreateClient()" class="w-full bg-dm-blue text-dm-yellow py-4 sm:py-6 rounded-xl sm:rounded-[2rem] font-black uppercase text-base sm:text-xl shadow-2xl active:scale-95 transition-all mt-2 sm:mt-4">Salvează ✅</button>
+                <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Nr. Telefon</label><input type="tel" id="new-client-tel" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all"></div>
+                <button onclick="handleCreateClient()" class="w-full bg-dm-blue text-dm-yellow py-6 rounded-[2rem] font-black uppercase text-xl shadow-2xl active:scale-95 transition-all mt-4">Salvează Clientul ✅</button>
             </div>
         </div>
 
         <!-- FORMULAR EDITARE CLIENT -->
-        <div id="view-edit-client" class="view-hidden p-4 sm:p-5">
-            <h2 class="text-2xl sm:text-3xl font-black text-dm-blue uppercase italic mb-6 sm:mb-8">✏️ Editează Client</h2>
-            <div class="bg-white p-5 sm:p-8 rounded-[2rem] sm:rounded-[3rem] shadow-2xl border border-gray-100 space-y-4 sm:space-y-6">
-                <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Denumire</label><input type="text" id="edit-client-name" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
-                <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Oraș</label><input type="text" id="edit-client-loc" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
-                <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Adresă Livrare</label><input type="text" id="edit-client-adresa" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
-                <div class="grid grid-cols-2 gap-3 sm:gap-4">
-                    <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">CIF</label><input type="text" id="edit-client-cif" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
-                    <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Reg. Com.</label><input type="text" id="edit-client-rc" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
+        <div id="view-edit-client" class="view-hidden p-5">
+            <h2 class="text-3xl font-black text-dm-blue uppercase italic mb-8 italic">✏️ Editează Client</h2>
+            <div class="bg-white p-8 rounded-[3rem] shadow-2xl border border-gray-100 space-y-6">
+                <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Denumire Firmă</label><input type="text" id="edit-client-name" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
+                <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Localitate / Oraș</label><input type="text" id="edit-client-loc" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
+                <div class="col-span-2"><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Adresă Livrare Completă</label><input type="text" id="edit-client-adresa" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">CIF</label><input type="text" id="edit-client-cif" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
+                    <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Reg. Com.</label><input type="text" id="edit-client-rc" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
                 </div>
-                <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Telefon</label><input type="tel" id="edit-client-tel" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all"></div>
-                <button onclick="handleEditClientSave()" class="w-full bg-green-600 text-white py-4 sm:py-6 rounded-xl sm:rounded-[2rem] font-black uppercase text-base sm:text-xl shadow-2xl active:scale-95 transition-all mt-2 sm:mt-4">Salvează 💾</button>
+                <div><label class="block text-[10px] font-black uppercase text-gray-400 mb-2 ml-1">Nr. Telefon</label><input type="tel" id="edit-client-tel" class="w-full p-5 bg-gray-50 border-none rounded-2xl text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all"></div>
+                <button onclick="handleEditClientSave()" class="w-full bg-green-600 text-white py-6 rounded-[2rem] font-black uppercase text-xl shadow-2xl active:scale-95 transition-all mt-4">Salvează Modificările 💾</button>
             </div>
         </div>
 
-        <!-- SELECTOR MOD (Apare IMEDIAT dupa ce apesi pe client) -->
-        <div id="view-client-mode" class="view-hidden p-5 sm:p-6 flex flex-col justify-start pt-8 sm:pt-10 min-h-[60vh] sm:min-h-[70vh]">
-            <div id="client-mode-sold-container" class="bg-gray-50 rounded-[2rem] shadow-sm border border-gray-200 p-6 mb-6 sm:mb-8 text-center transition-all duration-300">
-                <p class="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 sm:mb-2">Situație Sold / Restanțe</p>
-                <p id="client-mode-sold-total" class="text-xl sm:text-2xl font-black text-gray-500 tracking-tighter mb-0">Se verifică... ⏳</p>
-                <button id="btn-mode-incasare" onclick="selectMode('incasare')" class="hidden bg-green-100 text-green-700 px-6 py-3 rounded-xl font-black text-xs sm:text-sm uppercase shadow-sm active:scale-95 transition-all w-full mt-4">Vezi Facturile 🧾</button>
+        <!-- SELECTOR MOD -->
+        <div id="view-client-mode" class="view-hidden p-6 flex flex-col justify-start pt-10 min-h-[70vh]">
+            <div id="client-mode-sold-container" class="bg-gray-50 rounded-[2rem] shadow-sm border border-gray-200 p-6 mb-8 text-center transition-all duration-300">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Situație Sold / Restanțe</p>
+                <p id="client-mode-sold-total" class="text-2xl font-black text-gray-500 tracking-tighter mb-0">Se verifică... ⏳</p>
+                <button id="btn-mode-incasare" onclick="selectMode('incasare')" class="hidden bg-green-100 text-green-700 px-6 py-3 rounded-xl font-black text-sm uppercase shadow-sm active:scale-95 transition-all w-full mt-4">Vezi Facturile 🧾</button>
             </div>
 
-            <h3 class="text-center text-gray-400 font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] mb-4 sm:mb-5 text-sm sm:text-base">Alte Acțiuni</h3>
+            <h3 class="text-center text-gray-400 font-black uppercase tracking-[0.3em] mb-5 text-base">Alte Acțiuni</h3>
             
-            <div class="grid grid-cols-1 gap-4 sm:gap-5 mb-4 sm:mb-5">
-                <button onclick="selectMode('vanzare')" class="bg-dm-blue text-white shadow-2xl rounded-2xl sm:rounded-[2.5rem] py-6 sm:py-8 flex items-center justify-center gap-4 active:scale-95 transition-all">
-                    <span class="text-4xl sm:text-5xl">🛒</span>
-                    <span class="font-black uppercase tracking-widest text-lg sm:text-xl">Comandă Nouă</span>
+            <div class="grid grid-cols-1 gap-5 mb-5">
+                <button onclick="selectMode('vanzare')" class="bg-dm-blue text-white shadow-2xl rounded-[2.5rem] py-8 flex items-center justify-center gap-4 active:scale-95 transition-all">
+                    <span class="text-5xl">🛒</span><span class="font-black uppercase tracking-widest text-xl">Comandă Nouă</span>
                 </button>
             </div>
             
-            <button onclick="openEditClient()" class="w-full bg-gray-100 text-gray-600 shadow-md rounded-2xl sm:rounded-3xl py-4 sm:py-6 active:scale-95 transition-all mb-6 sm:mb-8">
-                <span class="font-black uppercase tracking-widest text-xs sm:text-sm flex items-center justify-center gap-2 sm:gap-3"><span class="text-xl sm:text-2xl">✏️</span> Editează Date Client</span>
+            <button onclick="openEditClient()" class="w-full bg-gray-100 text-gray-600 shadow-md rounded-3xl py-6 active:scale-95 transition-all mb-8">
+                <span class="font-black uppercase tracking-widest text-sm flex items-center justify-center gap-3"><span class="text-2xl">✏️</span> Editează Date Client</span>
             </button>
-            <button onclick="openClientsViewLive()" class="text-center text-dm-blue font-black uppercase tracking-widest text-xs sm:text-sm opacity-50 underline w-full">Schimbă Clientul</button>
+            <button onclick="switchView('clients')" class="text-center text-dm-blue font-black uppercase tracking-widest text-sm opacity-50 underline w-full">Schimbă Clientul</button>
         </div>
 
         <!-- VEDERE ÎNCASARE -->
-        <div id="view-incasare" class="view-hidden p-4 sm:p-6">
-            <h2 class="text-2xl sm:text-3xl font-black text-green-700 uppercase italic mb-4 sm:mb-6 leading-none italic">💰 Neîncasate</h2>
-            <div class="bg-white p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] shadow-xl mb-6 sm:mb-8 text-center">
-                <p class="text-gray-400 font-black uppercase text-[10px] sm:text-xs mb-1 sm:mb-2">Rest Total de Încasat:</p>
-                <p id="display-sold" class="text-4xl sm:text-5xl font-black text-red-600 tracking-tighter">0.00 RON</p>
+        <div id="view-incasare" class="view-hidden p-6">
+            <h2 class="text-3xl font-black text-green-700 uppercase italic mb-6 leading-none italic">💰 Situație Neîncasate</h2>
+            <div class="bg-white p-8 rounded-[3rem] shadow-xl mb-8 text-center">
+                <p class="text-gray-400 font-black uppercase text-xs mb-2">Rest Total de Încasat:</p>
+                <p id="display-sold" class="text-5xl font-black text-red-600 tracking-tighter">0.00 RON</p>
             </div>
-            <div class="bg-white rounded-[1.5rem] sm:rounded-[2rem] shadow-2xl overflow-hidden border border-gray-100">
+            <div class="bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-gray-100">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">
-                        <thead class="bg-gray-50 border-b border-gray-100 font-black uppercase text-[9px] sm:text-[10px] text-gray-400">
-                            <tr><th class="pl-4 sm:pl-6 py-4 sm:py-5">Factură / Data</th><th class="pr-4 sm:pr-6 text-right">Sumă Rest</th></tr>
+                        <thead class="bg-gray-50 border-b border-gray-100 font-black uppercase text-[10px] text-gray-400">
+                            <tr><th class="pl-6 py-5">Factură / Data</th><th class="pr-6 text-right">Sumă Rest</th></tr>
                         </thead>
                         <tbody id="sold-items-table" class="divide-y divide-gray-100"></tbody>
                     </table>
@@ -359,53 +354,76 @@
         </div>
 
         <!-- COȘ -->
-        <div id="view-cart" class="view-hidden p-4 sm:p-5">
-            <h2 class="text-2xl sm:text-3xl font-black text-dm-blue uppercase italic mb-6 sm:mb-8">🛒 Finalizare Coș</h2>
-            <div id="cart-client-banner" class="bg-dm-yellow/20 border border-dm-yellow/30 p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] mb-6 sm:mb-8 flex justify-between items-center shadow-sm">
-                <div class="flex-1 min-w-0 pr-4 sm:pr-8">
-                    <p class="text-[9px] sm:text-[10px] font-black uppercase text-dm-blue/60 tracking-widest leading-none">Către:</p>
-                    <p id="cart-client-name" class="text-base sm:text-xl font-black text-dm-blue uppercase mt-1 sm:mt-2 truncate">Neselectat!</p>
-                    <p id="cart-client-address" class="text-[10px] sm:text-xs font-bold text-dm-blue/60 mt-1 truncate">Adresă: Nespecificat</p>
+        <div id="view-cart" class="view-hidden p-5">
+            <h2 class="text-3xl font-black text-dm-blue uppercase italic mb-8">🛒 Finalizare Coș</h2>
+            
+            <div id="cart-client-banner" class="bg-dm-yellow/20 border border-dm-yellow/30 p-6 rounded-[2rem] mb-8 flex justify-between items-center shadow-sm">
+                <div class="flex-1 min-w-0 pr-8">
+                    <p class="text-[10px] font-black uppercase text-dm-blue/60 tracking-[0.2em] leading-none">Către:</p>
+                    <p id="cart-client-name" class="text-xl font-black text-dm-blue uppercase tracking-tighter mt-2 truncate">Neselectat!</p>
                 </div>
-                <button onclick="openClientsViewLive()" class="text-[10px] sm:text-xs font-black bg-dm-blue text-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl uppercase shadow-xl flex-shrink-0">Schimbă</button>
+                <button onclick="switchView('clients')" class="text-xs font-black bg-dm-blue text-white px-6 py-4 rounded-2xl uppercase shadow-xl flex-shrink-0">Schimbă</button>
             </div>
-            <div class="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden mb-8 sm:mb-10">
-                <div class="overflow-x-auto"><table class="w-full text-left"><thead class="bg-gray-50 border-b border-gray-100 font-black uppercase text-[9px] sm:text-[10px]"><tr><th class="pl-4 sm:pl-6 py-3 sm:py-4 text-xs sm:text-sm">Produs</th><th class="text-center text-xs sm:text-sm">Cant.</th><th class="pr-4 sm:pr-6 text-right text-xs sm:text-sm">Net</th></tr></thead><tbody id="cart-content-table" class="divide-y divide-gray-100"></tbody></table></div>
-                <div id="cart-empty-msg" class="p-12 sm:p-20 text-center text-gray-400 uppercase font-black text-base sm:text-lg italic view-hidden">Coș gol</div>
+
+            <div class="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden mb-10">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 border-b border-gray-100 font-black uppercase text-[10px] text-gray-400">
+                            <tr><th class="pl-6 py-4 text-sm">Produs</th><th class="text-center text-sm">Cant.</th><th class="pr-6 text-right text-sm">Net</th></tr>
+                        </thead>
+                        <tbody id="cart-content-table" class="divide-y divide-gray-100 text-base"></tbody>
+                    </table>
+                </div>
+                <div id="cart-empty-msg" class="p-20 text-center text-gray-400 uppercase font-black text-lg italic view-hidden tracking-widest">Coșul este gol</div>
             </div>
-            <div id="cart-summary-box" class="bg-dm-blue text-white rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 shadow-2xl">
-                <div class="flex justify-between items-end border-b border-white/10 pb-4 sm:pb-6 mb-4 sm:mb-6"><span class="text-[10px] sm:text-xs font-black text-dm-yellow uppercase tracking-widest">Total Net</span><span id="totalNoVat" class="text-3xl sm:text-5xl font-black italic tracking-tighter">0.00 RON</span></div>
-                <div class="grid grid-cols-2 gap-4 sm:gap-6">
-                    <button onclick="salveazaComanda(true)" class="bg-blue-600 text-white py-4 sm:py-7 rounded-[1.5rem] sm:rounded-[2rem] font-black uppercase shadow-2xl flex flex-col items-center gap-1 sm:gap-2 text-xs sm:text-base"><span class="text-xl sm:text-2xl">💾</span> SALVEAZĂ</button>
-                    <button onclick="salveazaComanda(false)" class="bg-dm-yellow text-dm-blue py-4 sm:py-7 rounded-[1.5rem] sm:rounded-[2rem] font-black uppercase shadow-2xl flex flex-col items-center gap-1 sm:gap-2 text-xs sm:text-base"><span class="text-xl sm:text-2xl">🚀</span> TRIMITE</button>
+
+            <div id="cart-summary-box" class="bg-dm-blue text-white rounded-[3rem] p-10 shadow-2xl">
+                <div class="flex justify-between items-end border-b border-white/10 pb-6 mb-6">
+                    <span class="text-xs uppercase font-black text-dm-yellow tracking-[0.3em]">Total Comandă (Net)</span>
+                    <span id="totalNoVat" class="text-5xl font-black italic text-white tracking-tighter">0.00 RON</span>
+                </div>
+                <div class="flex justify-between items-center opacity-70 mb-10">
+                    <span class="text-sm uppercase font-bold tracking-widest">Estimare cu TVA (21%)</span>
+                    <span id="totalWithVat" class="text-2xl font-bold text-white tracking-tighter">0.00 RON</span>
+                </div>
+                <div class="grid grid-cols-2 gap-6">
+                    <button onclick="salveazaComanda(true)" class="bg-blue-600 text-white py-7 rounded-[2rem] font-black uppercase shadow-2xl active:scale-95 transition-all text-base flex flex-col items-center gap-2">
+                        <span class="text-4xl">💾</span> SALVEAZĂ
+                    </button>
+                    <button id="btnFinalizeWhatsApp" onclick="salveazaComanda(false)" class="bg-dm-yellow text-dm-blue py-7 rounded-[2rem] font-black uppercase shadow-2xl active:scale-95 transition-all text-base flex flex-col items-center gap-2">
+                        <span class="text-4xl">🚀</span> TRIMITE
+                    </button>
                 </div>
             </div>
         </div>
 
         <!-- ISTORIC -->
-        <div id="view-history" class="view-hidden p-4 sm:p-5">
-            <h2 class="text-2xl sm:text-3xl font-black text-dm-blue uppercase italic mb-6 sm:mb-8">📋 Istoric Zilnic</h2>
-            <div id="history-content" class="space-y-4 sm:space-y-6"></div>
+        <div id="view-history" class="view-hidden p-5">
+            <h2 class="text-3xl font-black text-dm-blue uppercase italic mb-8">📋 Istoric Zilnic</h2>
+            <div id="history-content" class="space-y-6"></div>
         </div>
 
         <!-- DETALII ISTORIC -->
-        <div id="view-order-details" class="view-hidden p-4 sm:p-5">
-            <div class="bg-white rounded-[2rem] sm:rounded-[3rem] shadow-2xl border border-gray-100 p-6 sm:p-10 mb-8 sm:mb-10">
-                <div id="order-details-header" class="border-b border-gray-100 pb-5 sm:pb-8 mb-5 sm:mb-8"></div>
-                <div id="order-details-items" class="space-y-4 sm:space-y-6 mb-8 sm:mb-12"></div>
-                <div class="flex flex-col gap-3 sm:gap-4">
-                    <div class="grid grid-cols-2 gap-3 sm:gap-5"><button onclick="incarcaComandaInCos()" class="bg-dm-blue text-white py-4 sm:py-6 rounded-2xl sm:rounded-3xl font-black uppercase shadow-xl text-xs sm:text-sm">🔄 MODIFICĂ</button><button onclick="retrimiteComandaDirect()" class="bg-dm-yellow text-dm-blue py-4 sm:py-6 rounded-2xl sm:rounded-3xl font-black uppercase shadow-xl text-xs sm:text-sm">🚀 TRIMITE</button></div>
-                    <button onclick="stergeComandaCurenta()" class="w-full bg-red-500 text-white py-4 sm:py-6 rounded-2xl sm:rounded-3xl font-black uppercase shadow-xl text-xs sm:text-sm">🗑️ ȘTERGE</button>
+        <div id="view-order-details" class="view-hidden p-5">
+            <button onclick="switchView('history')" class="mb-8 text-dm-blue font-black uppercase text-sm flex items-center gap-3 tracking-widest">
+                <span>←</span> ÎNAPOI LA LISTĂ
+            </button>
+            <div class="bg-white rounded-[3rem] shadow-2xl border border-gray-100 p-10 mb-10">
+                <div id="order-details-header" class="border-b border-gray-100 pb-8 mb-8"></div>
+                <div id="order-details-items" class="space-y-6 mb-12"></div>
+                <div class="flex flex-col gap-4">
+                    <div class="grid grid-cols-2 gap-5"><button onclick="incarcaComandaInCos()" class="bg-dm-blue text-white py-6 rounded-3xl font-black uppercase shadow-xl active:scale-95 transition-all text-sm">🔄 MODIFICĂ</button><button onclick="retrimiteComandaDirect()" class="bg-dm-yellow text-dm-blue py-6 rounded-3xl font-black uppercase shadow-xl active:scale-95 transition-all text-sm">🚀 TRIMITE</button></div>
+                    <button onclick="stergeComandaCurenta()" class="w-full bg-red-500 text-white py-6 rounded-3xl font-black uppercase shadow-xl active:scale-95 transition-all text-sm">🗑️ ȘTERGE</button>
                 </div>
             </div>
         </div>
 
         <!-- NAVIGARE -->
-        <nav class="fixed bottom-0 w-full bg-white border-t border-gray-100 p-3 sm:p-5 flex justify-around shadow-[0_-20px_40px_-15px_rgba(0,0,0,0.15)] z-50 rounded-t-[2.5rem] sm:rounded-t-[3.5rem]">
-            <button onclick="switchView('catalog')" class="nav-btn flex flex-col items-center text-dm-blue" id="nav-catalog"><span class="text-3xl sm:text-5xl font-bold">🏠</span><span class="text-[9px] sm:text-[10px] font-black uppercase mt-1">Catalog</span></button>
-            <button onclick="switchView('cart')" class="nav-btn flex flex-col items-center text-gray-400 relative" id="nav-cart"><span class="text-3xl sm:text-5xl font-bold">🛒</span><div id="cartBadge" class="cart-badge hidden">0</div><span class="text-[9px] sm:text-[10px] font-black uppercase mt-1">Coș</span></button>
-            <button onclick="switchView('history')" class="nav-btn flex flex-col items-center text-gray-400" id="nav-history"><span class="text-3xl sm:text-5xl font-bold">📋</span><span class="text-[9px] sm:text-[10px] font-black uppercase mt-1">Istoric</span></button>
-            <button onclick="handleLogout()" class="flex flex-col items-center text-gray-300"><span class="text-3xl sm:text-5xl font-bold">🚪</span><span class="text-[9px] sm:text-[10px] font-black uppercase mt-1">Ieșire</span></button>
+        <nav class="fixed bottom-0 w-full bg-white border-t border-gray-100 p-4 flex justify-around shadow-[0_-15px_30px_-10px_rgba(0,0,0,0.1)] z-50 rounded-t-[3.5rem]">
+            <button onclick="switchView('catalog')" class="nav-btn flex flex-col items-center text-dm-blue" id="nav-catalog"><span class="text-4xl font-bold">🏠</span><span class="text-[10px] font-black uppercase mt-1">Catalog</span></button>
+            <button onclick="switchView('cart')" class="nav-btn flex flex-col items-center text-gray-400 relative" id="nav-cart"><span class="text-4xl font-bold">🛒</span><div id="cartBadge" class="cart-badge hidden">0</div><span class="text-[10px] font-black uppercase mt-1">Coș</span></button>
+            <button onclick="switchView('history')" class="nav-btn flex flex-col items-center text-gray-400" id="nav-history"><span class="text-4xl font-bold">📋</span><span class="text-[10px] font-black uppercase mt-1">Istoric</span></button>
+            <button onclick="handleLogout()" class="flex flex-col items-center text-gray-300"><span class="text-4xl font-bold">🚪</span><span class="text-[10px] font-black uppercase mt-1">Ieșire</span></button>
         </nav>
     </div>
 
@@ -416,11 +434,9 @@
             'ovidiu': { pass: 'rahovean', name: 'Ovidiu Rahovean', filter: 'RAHOVEAN' }
         };
 
-        const MASTER_FILES = ['STOCEGIUNIE.xlsx', 'STOCEG29NOUNOU.xlsx', 'STOCEG.xls', 'STOCEG.xlsx'];
+        const MASTER_FILES = ['STOCEGIUNIE.xlsx', 'STOCEG.xlsx', 'STOCEG.xls'];
         const CLIENTS_FILE = 'LISTA_CLIENTI.xlsx';
-        
-        // FISIER UNIC DE SOLDURI DE LA USER
-        const SOLD_FILES = ['Centralizator_Facturi_Neincasate.xlsx'];
+        const SOLD_FILES = ['Facturi_Neincasate.xlsx']; // SURSA UNICĂ DE SOLDURI
 
         let currentAgent = null;
         let allProductsRaw = []; 
@@ -430,9 +446,7 @@
         let manuallyCreatedClients = []; 
         let editedClients = {};
         let savedClientNames = []; 
-        let showOnlyMyClients = false; 
-        
-        window.renderedClientsList = [];
+        let showOnlyMyClients = true; 
         
         let selectedClient = null;
         let cart = {};
@@ -441,35 +455,16 @@
         let currentActiveView = 'catalog';
         let navigationHistory = [];
         window.orderHistory = [];
-        
-        let confirmActionCb = null;
 
         function showToast(msg) {
             const t = document.getElementById('custom-toast'); t.innerText = msg; t.classList.add('show');
             setTimeout(() => t.classList.remove('show'), 3000);
         }
 
-        function showConfirm(msg, callback) {
-            document.getElementById('confirm-msg').innerText = msg;
-            confirmActionCb = callback;
-            document.getElementById('confirm-modal').classList.remove('hidden');
-            document.getElementById('confirm-modal').classList.add('flex');
-        }
-
-        function closeConfirm(isConfirmed) {
-            document.getElementById('confirm-modal').classList.add('hidden');
-            document.getElementById('confirm-modal').classList.remove('flex');
-            if (isConfirmed && confirmActionCb) confirmActionCb();
-            confirmActionCb = null;
-        }
-
-        // ==========================================
-        // NORMALIZARE AGRESIVA PENTRU MATCH PERFECT
-        // ==========================================
+        // --- NORMALIZE NAME AVANSAT (PENTRU FUZZY MATCHING SOLDURI) ---
         function normalizeName(name) {
             if (!name) return "";
             return name.toString().toUpperCase()
-                // Stergem orice forma de SRL / SA etc.
                 .replace(/\bS\.?R\.?L\.?\b/g, "")
                 .replace(/\bS\.?A\.?\b/g, "")
                 .replace(/\bS\.?C\.?\b/g, "")
@@ -501,7 +496,9 @@
             if (viewName === 'order-details') activeNav = 'history';
             const currentNav = document.getElementById(`nav-${activeNav}`); if (currentNav) { currentNav.classList.remove('text-gray-400'); currentNav.classList.add('text-dm-blue'); } 
             
-            if (viewName === 'catalog') document.getElementById('search-container').classList.remove('view-hidden'); else document.getElementById('search-container').classList.add('view-hidden'); 
+            if (viewName === 'catalog' || viewName === 'client-mode') document.getElementById('search-container').classList.remove('view-hidden'); 
+            else document.getElementById('search-container').classList.add('view-hidden'); 
+            
             if (viewName === 'cart') renderCart(); if (viewName === 'history') renderHistory(); 
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -541,9 +538,7 @@
             document.getElementById('view-login').classList.add('view-hidden');
             document.getElementById('app-content').classList.remove('view-hidden');
             document.getElementById('agent-display-name').innerText = currentAgent.name;
-            loadAgentData(); 
-            syncMasterData(); 
-            syncClients(); 
+            loadAgentData(); syncMasterData(); syncClients(); syncSoldData();
         }
 
         function loadAgentData() {
@@ -552,7 +547,10 @@
             cart = JSON.parse(localStorage.getItem(`dma_cart_${id}`) || '{}');
             selectedClient = JSON.parse(localStorage.getItem(`dma_cli_${id}`) || 'null');
             savedClientNames = JSON.parse(localStorage.getItem(`dma_sv_cli_${id}`) || '[]');
+            
             manuallyCreatedClients = JSON.parse(localStorage.getItem(`dma_man_cli_${id}`) || '[]');
+            manuallyCreatedClients.forEach((c, i) => { if(!c._id) c._id = 'manual_' + i; });
+            
             editedClients = JSON.parse(localStorage.getItem(`dma_edit_cli_${id}`) || '{}');
             updateBadge(); updateClientUI();
         }
@@ -578,6 +576,271 @@
             return await fetch(path);
         }
 
+        // --- PROCESARE PRETURI SIGURA (inclusiv negative) ---
+        function formatPriceNum(val) {
+            if (val === undefined || val === null || val === "") return 0;
+            if (typeof val === 'number') return val;
+            let s = val.toString().trim();
+            
+            let isNegative = s.startsWith('-');
+            if (isNegative) s = s.substring(1);
+            
+            if (s.includes(',') && s.includes('.')) {
+                if (s.lastIndexOf('.') > s.lastIndexOf(',')) s = s.replace(/,/g, ''); 
+                else s = s.replace(/\./g, '').replace(',', '.');
+            } else if (s.includes(',')) {
+                s = s.replace(',', '.');
+            }
+            const p = parseFloat(s); 
+            let res = isNaN(p) ? 0 : p;
+            return isNegative ? -res : res;
+        }
+
+        // --- CITIRE NOUUL FISIER DE SOLD (Facturi_Neincasate.xlsx) ---
+        async function syncSoldData() {
+            allSoldData = [];
+            for (const file of SOLD_FILES) {
+                try {
+                    // Fortam citirea noului fisier prin cache busting
+                    const response = await fetchExcelLive(file);
+                    if (response.ok) {
+                        const data = await response.arrayBuffer();
+                        const wb = XLSX.read(data, {type: 'array'});
+                        const sh = wb.Sheets[wb.SheetNames[0]];
+                        const raw = XLSX.utils.sheet_to_json(sh, { header: 1 });
+                        
+                        let currentClient = "";
+                        raw.forEach((row, index) => {
+                            if (index === 0) return; // Skip Header
+                            
+                            // A: Denumire Client (0)
+                            if (row[0] && row[0].toString().trim()) {
+                                const val = row[0].toString().trim().toUpperCase();
+                                if (!val.includes("TOTAL") && !val.includes("UNITATEA") && !val.includes("REPORT")) {
+                                    currentClient = val;
+                                } else {
+                                    currentClient = ""; 
+                                }
+                            }
+                            
+                            // B: Numar Factura (1)
+                            const factNr = row[1] ? row[1].toString().trim() : "";
+                            
+                            // F: Rest Plata (5) - ACUM PERMITEM SI NEGATIVE
+                            const restVal = formatPriceNum(row[5]);
+
+                            // Daca exista client, factura valida (nu cuvantul CLIENT) si rest != 0
+                            if (currentClient && factNr && restVal !== 0 && !factNr.includes("CLIENTI")) {
+                                allSoldData.push({
+                                    client: currentClient,
+                                    clientNorm: normalizeName(currentClient),
+                                    factura: factNr,
+                                    data: row[2] || "-",
+                                    scadenta: row[3] || "-",
+                                    totalFact: formatPriceNum(row[4]),
+                                    rest: restVal
+                                });
+                            }
+                        });
+                        console.log(`Solduri unificate din ${file}`);
+                    }
+                } catch (e) { console.warn(`Eroare la citirea soldurilor din ${file}`); }
+            }
+        }
+
+        // --- GESTIUNE CLIENT CLICK & CALCUL SOLD ---
+        function handleClientClick(clientId) {
+            let baseClient = manuallyCreatedClients.find(c => c._id === clientId) || allClients.find(c => c._id === clientId);
+            
+            if (!baseClient) {
+                showToast("Eroare la încărcarea clientului!");
+                return;
+            }
+
+            const kName = Object.keys(baseClient).find(k => k.toLowerCase().includes("denumire"));
+            const kLoc = Object.keys(baseClient).find(k => k.toLowerCase().includes("localitate")) || 'localitate';
+            const kCIF = Object.keys(baseClient).find(k => k.toLowerCase().includes("cod_fiscal")) || 'cod_fiscal';
+            const kRC = Object.keys(baseClient).find(k => k.toLowerCase().includes("reg_com")) || 'reg_com';
+            const kTel = Object.keys(baseClient).find(k => k.toLowerCase().includes("tel")) || 'tel';
+            const kAdresa = Object.keys(baseClient).find(k => k.toLowerCase().includes("adres")) || 'adresa';
+
+            const originalName = baseClient[kName] ? baseClient[kName].toString().trim() : "NECUNOSCUT";
+
+            let clientData = {
+                _id: clientId,
+                originalName: originalName,
+                name: originalName,
+                loc: baseClient[kLoc] || '',
+                cif: baseClient[kCIF] || '',
+                rc: baseClient[kRC] || '',
+                tel: baseClient[kTel] || '',
+                adresa: baseClient[kAdresa] || ''
+            };
+
+            if (editedClients[originalName]) {
+                clientData = { ...clientData, ...editedClients[originalName] };
+            }
+
+            selectedClient = clientData;
+            saveAgentData();
+            updateClientUI();
+
+            switchView('client-mode');
+            calculateAndShowSoldSafe();
+        }
+
+        function calculateAndShowSoldSafe() {
+            const containerSold = document.getElementById('client-mode-sold-container');
+            const totalSoldText = document.getElementById('client-mode-sold-total');
+            const btnIncasareMode = document.getElementById('btn-mode-incasare');
+            
+            containerSold.className = "bg-gray-50 rounded-[2rem] shadow-sm border border-gray-200 p-6 mb-6 sm:mb-8 text-center transition-all duration-300";
+            totalSoldText.className = "text-xl sm:text-2xl font-black text-gray-500 tracking-tighter mb-0 animate-pulse";
+            totalSoldText.innerText = "Se verifică... ⏳";
+            btnIncasareMode.classList.add('hidden');
+
+            setTimeout(() => {
+                try {
+                    const targetNorm = normalizeName(selectedClient.name);
+                    // Cautam inregistrari de sold unde nucleul numelui se potriveste
+                    const mySold = allSoldData.filter(row => row.clientNorm.includes(targetNorm) || targetNorm.includes(row.clientNorm));
+                    
+                    let totalSold = 0;
+                    mySold.forEach(r => totalSold += r.rest);
+
+                    if (totalSold > 0.1) {
+                        containerSold.className = "bg-white rounded-[2rem] shadow-xl border-t-8 border-red-500 p-6 mb-6 sm:mb-8 text-center";
+                        totalSoldText.className = "text-4xl sm:text-5xl font-black text-red-600 mb-3 sm:mb-4 tracking-tighter";
+                        totalSoldText.innerText = totalSold.toLocaleString('ro-RO', {minimumFractionDigits: 2}) + ' RON';
+                        btnIncasareMode.classList.remove('hidden');
+                    } else if (totalSold < -0.1) {
+                        // DACA E PE MINUS (CREDIT)
+                        containerSold.className = "bg-white rounded-[2rem] shadow-xl border-t-8 border-blue-500 p-6 mb-6 sm:mb-8 text-center";
+                        totalSoldText.className = "text-4xl sm:text-5xl font-black text-blue-600 mb-3 sm:mb-4 tracking-tighter";
+                        totalSoldText.innerText = Math.abs(totalSold).toLocaleString('ro-RO', {minimumFractionDigits: 2}) + ' RON (CREDIT)';
+                        btnIncasareMode.classList.remove('hidden');
+                    } else {
+                        // LA ZI
+                        containerSold.className = "bg-green-50 rounded-[2rem] shadow-sm border border-green-200 p-6 mb-6 sm:mb-8 text-center";
+                        totalSoldText.className = "text-2xl sm:text-3xl font-black text-green-600 tracking-tighter mb-0";
+                        totalSoldText.innerText = "CLIENT LA ZI ✅";
+                        btnIncasareMode.classList.add('hidden');
+                    }
+                } catch(e) {
+                    containerSold.className = "bg-gray-100 rounded-[2rem] border border-gray-300 p-6 mb-6 sm:mb-8 text-center";
+                    totalSoldText.className = "text-lg font-black text-gray-500 tracking-tighter mb-0";
+                    totalSoldText.innerText = "EROARE CITIRE EXCEL";
+                }
+            }, 150);
+        }
+
+        function renderSoldItems() {
+            const table = document.getElementById('sold-items-table'), disp = document.getElementById('display-sold');
+            if (!selectedClient || !allSoldData.length) { 
+                table.innerHTML = '<tr><td colspan="2" class="p-8 sm:p-10 text-center font-bold text-gray-400 italic text-sm sm:text-base">Nu am găsit date. Sincronizează (🔄).</td></tr>'; 
+                disp.className = "text-4xl sm:text-5xl font-black text-red-600 tracking-tighter";
+                disp.innerText = "0.00 RON"; return; 
+            }
+
+            const targetNorm = normalizeName(selectedClient.name);
+            const mySold = allSoldData.filter(row => row.clientNorm.includes(targetNorm) || targetNorm.includes(row.clientNorm));
+
+            if (mySold.length === 0) { 
+                table.innerHTML = '<tr><td colspan="2" class="p-8 sm:p-10 text-center font-bold text-gray-400 italic text-sm sm:text-base">CLIENT LA ZI. ZERO RESTANȚE.</td></tr>'; 
+                disp.className = "text-4xl sm:text-5xl font-black text-green-600 tracking-tighter";
+                disp.innerText = "0.00 RON"; return; 
+            }
+
+            let total = 0;
+            table.innerHTML = mySold.map(row => {
+                total += row.rest;
+                const formattedSum = Math.abs(row.rest).toLocaleString('ro-RO', {minimumFractionDigits: 2});
+                const sign = row.rest < 0 ? '-' : '';
+                const colorClass = row.rest < 0 ? 'text-blue-600' : 'text-red-600';
+                
+                return `<tr class="border-b border-gray-100">
+                    <td class="pl-4 sm:pl-6 py-4 sm:py-6 font-black text-dm-blue text-sm sm:text-xl leading-tight">
+                        FACT: ${row.factura}<br><span class="text-[10px] sm:text-base text-gray-400 font-bold">${row.data}</span>
+                    </td>
+                    <td class="pr-4 sm:pr-6 text-right">
+                        <div class="flex flex-col items-end gap-2 sm:gap-3">
+                            <span class="font-black ${colorClass} text-xl sm:text-3xl">${sign}${formattedSum}</span>
+                            <button onclick="handleIncasareFactura('${row.factura}', ${row.rest})" class="bg-green-600 text-white px-4 sm:px-5 py-2 sm:py-3 rounded-lg sm:rounded-xl font-black text-[9px] sm:text-xs uppercase shadow-lg active:scale-90 transition-all">Încasează ✅</button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+            
+            const totalColorClass = total < 0 ? 'text-blue-600' : (total > 0 ? 'text-red-600' : 'text-green-600');
+            disp.className = `text-4xl sm:text-5xl font-black ${totalColorClass} tracking-tighter`;
+            disp.innerText = total.toLocaleString('ro-RO', {minimumFractionDigits: 2}) + " RON";
+        }
+
+        // --- SISTEM RESTANTIERI GLOBAL ---
+        function renderRestantieriList() {
+            showToast("Se încarcă lista de restanțieri...");
+            
+            setTimeout(() => {
+                let grouped = {};
+                allSoldData.forEach(row => {
+                    if(!grouped[row.clientNorm]) {
+                        grouped[row.clientNorm] = { name: row.client, sum: 0 };
+                    }
+                    grouped[row.clientNorm].sum += row.rest;
+                });
+
+                let debtors = [];
+                const merged = [...manuallyCreatedClients, ...allClients];
+                
+                merged.forEach(c => {
+                    const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire"));
+                    const kLoc = Object.keys(c).find(k => k.toLowerCase().includes("localitate"));
+                    const name = c[kName] ? c[kName].toString() : '';
+                    const loc = c[kLoc] ? c[kLoc].toString() : '';
+                    const norm = normalizeName(name);
+                    
+                    let clientSold = 0;
+                    for (let normKey in grouped) {
+                        if (normKey.includes(norm) || norm.includes(normKey)) {
+                            clientSold += grouped[normKey].sum;
+                        }
+                    }
+                    
+                    if (Math.abs(clientSold) > 0.1) {
+                        debtors.push({ id: c._id, name: name, loc: loc, sold: clientSold });
+                    }
+                });
+
+                debtors.sort((a, b) => b.sold - a.sold); // Sortam descrescator dupa datorie
+
+                const container = document.getElementById('clients-list');
+                if(debtors.length === 0) {
+                    container.innerHTML = '<p class="p-10 text-center text-gray-400 font-bold italic">Niciun restanțier găsit.</p>';
+                    return;
+                }
+
+                // Resetam tab-urile vizual
+                document.getElementById('btnFilterMyClients').className = 'sheet-tab sheet-tab-inactive shadow-md';
+                document.getElementById('btnFilterAllClients').className = 'sheet-tab sheet-tab-inactive shadow-md';
+
+                container.innerHTML = debtors.map(d => {
+                    const color = d.sold > 0 ? 'text-red-600' : 'text-blue-600';
+                    const sign = d.sold < 0 ? '-' : '';
+                    const sumFmt = Math.abs(d.sold).toLocaleString('ro-RO', {minimumFractionDigits: 2});
+                    
+                    return `<div onclick="handleClientClick('${d.id}')" 
+                         class="client-card bg-white p-5 sm:p-7 rounded-2xl sm:rounded-[2.5rem] shadow-xl active:scale-[0.98] transition-all cursor-pointer flex justify-between items-center border-l-[12px] border-red-500">
+                        <div class="flex-1 min-w-0 pr-3 sm:pr-4 pointer-events-none">
+                            <p class="text-base sm:text-2xl font-black text-dm-blue uppercase truncate leading-tight">${d.name}</p>
+                            <p class="text-[10px] sm:text-lg font-bold text-gray-400 mt-1 mb-2">📍 ${d.loc}</p>
+                            <span class="font-black text-xl sm:text-3xl ${color}">${sign}${sumFmt} RON</span>
+                        </div>
+                    </div>`;
+                }).join('');
+            }, 100);
+        }
+
+        // --- IMBINARE INVENTAR + OFERTA RAVENOL ---
         async function syncMasterData() {
             const cached = localStorage.getItem(`dma_mast_cache`);
             if (cached) allProductsRaw = JSON.parse(cached);
@@ -588,59 +851,36 @@
             let successCount = 0;
 
             try {
-                let resInv = null;
-                for (const file of MASTER_FILES) {
-                    const res = await fetchExcel(file);
-                    if (res.ok) { resInv = res; break; }
-                }
-                
-                if (resInv) {
+                const resInv = await fetchExcel('STOCEGIUNIE.xlsx');
+                if (resInv.ok) {
                     const data = await resInv.arrayBuffer();
                     const wb = XLSX.read(data, {type: 'array'});
                     const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
-                    let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().includes("denumire") || c.toString().toLowerCase().includes("articol")));
-                    if(idx === -1) idx = 0; 
+                    let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().includes("denumire")));
                     
-                    const items = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { range: idx, defval: "" });
-
-                    items.forEach(p => {
-                        const keys = Object.keys(p);
-                        const kD = keys.find(k => k.toLowerCase().includes("denumire") || k.toLowerCase().includes("articol") || k.toLowerCase().includes("produs"));
-                        const kStoc = keys.find(k => k.toLowerCase().includes("stoc") || k.toLowerCase().includes("cantitate"));
-                        const kPretNet = keys.find(k => k.toLowerCase().includes("pret fara tva") || k.toLowerCase().includes("net"));
-                        const kPretBrut = keys.find(k => k.toLowerCase() === "pret" || k.toLowerCase().includes("valoare") || k.toLowerCase().includes("vanzare"));
-                        
-                        if(!kD || !p[kD]) return;
-                        
-                        const name = p[kD].toString().trim();
-                        if (name === "" || name.toUpperCase().includes("TOTAL") || name.toUpperCase().includes("REPORT")) return;
-
-                        let stoc = (kStoc && p[kStoc] !== "") ? parseFloat(p[kStoc]) : 0;
-                        if (isNaN(stoc)) stoc = 0;
-
-                        let pretNet = 0;
-                        if (kPretNet && p[kPretNet] !== "") {
-                            pretNet = formatPriceNum(p[kPretNet]);
-                        } else if (kPretBrut && p[kPretBrut] !== "") {
-                            pretNet = formatPriceNum(p[kPretBrut]) / TVA_RATE;
-                        }
-                        
-                        const matchKey = getProductMatchKey(name);
-                        inventarMap.set(matchKey, { denumire: name, pret: pretNet, stoc: stoc });
-                    });
-                    successCount++;
+                    if(idx !== -1) {
+                        const items = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { range: idx, defval: "" });
+                        items.forEach(p => {
+                            const kD = Object.keys(p).find(k => k.toLowerCase().includes("denumire"));
+                            const kP = Object.keys(p).find(k => k.toLowerCase().includes("pret") || k.toLowerCase().includes("valoare"));
+                            const kS = Object.keys(p).find(k => k.toLowerCase().includes("stoc"));
+                            
+                            if(!kD || !p[kD]) return;
+                            
+                            const name = p[kD].toString().trim();
+                            const matchKey = getProductMatchKey(name);
+                            const pretNet = formatPriceNum(p[kP]) / TVA_RATE; // Extragere automata TVA 21%
+                            
+                            inventarMap.set(matchKey, { denumire: name, pret: pretNet, stoc: p[kS] !== undefined ? p[kS] : "" });
+                        });
+                        successCount++;
+                    }
                 }
-            } catch (e) { console.warn("Eroare la Inventar."); }
+            } catch (e) { console.warn("Eroare la INVENTAR"); }
 
             try {
-                const ravenolFiles = ['Oferta_Ravenol_Aranjata.xlsx', 'OFERTA_RAVENOL.xlsx', 'OFERTA PRET RAVENOL 23.04.26.xlsx'];
-                let resOf = null;
-                for(let file of ravenolFiles) {
-                    const res = await fetchExcel(file);
-                    if (res.ok) { resOf = res; break; }
-                }
-
-                if (resOf) {
+                const resOf = await fetchExcel('Oferta_Ravenol_Aranjata.xlsx');
+                if (resOf.ok) {
                     const data = await resOf.arrayBuffer();
                     const wb = XLSX.read(data, {type: 'array'});
                     const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
@@ -651,16 +891,16 @@
                     items.forEach(p => {
                         const kD = Object.keys(p).find(k => k.toLowerCase().includes("denumire"));
                         const kP = Object.keys(p).find(k => k.toLowerCase().includes("pret fara tva") || k.toLowerCase().includes("pret"));
+                        
                         if(!kD || !p[kD] || !kP || !p[kP]) return;
                         
                         const nameRaw = p[kD].toString().trim();
                         const matchKey = getProductMatchKey(nameRaw);
-                        const newPrice = formatPriceNum(p[kP]);
-                        ofertaMap.set(matchKey, { denumire: nameRaw, pret: newPrice });
+                        ofertaMap.set(matchKey, { denumire: nameRaw, pret: formatPriceNum(p[kP]) });
                     });
                     successCount++;
                 }
-            } catch (e) { console.warn("Eroare la Oferta Ravenol."); }
+            } catch (e) { console.warn("Eroare la Oferta Ravenol"); }
 
             if(successCount > 0) {
                 let finalProducts = [];
@@ -669,7 +909,6 @@
                     if (isRavenol && ofertaMap.has(key)) return; 
                     finalProducts.push(data);
                 });
-                
                 ofertaMap.forEach((data, key) => {
                     let stocGasit = "";
                     if (inventarMap.has(key)) stocGasit = inventarMap.get(key).stoc;
@@ -714,21 +953,21 @@
                 const encodedName = encodeURIComponent(name);
                 
                 return `<tr class="${qty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100">
-                    <td class="px-3 sm:px-6 py-4 sm:py-5 font-black text-dm-blue uppercase leading-tight tracking-tighter">
-                        <span class="text-[11px] sm:text-lg block mb-1 sm:mb-2 leading-tight">${name}</span>
-                        <div class="flex items-center gap-2 sm:gap-3">
-                            <span class="text-xs sm:text-base font-black text-blue-600/80">${pretNet.toFixed(2)} RON</span>
-                            ${stocVal !== null ? `<span class="text-[9px] sm:text-[10px] font-black ${stocVal>0?'text-green-600 bg-green-50':'text-red-500 bg-red-50'} px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl border">STOC: ${stocVal.toFixed(0)}</span>` : ''}
+                    <td class="px-6 py-5 font-black text-dm-blue uppercase leading-tight tracking-tighter">
+                        <span class="text-lg block mb-2 leading-tight">${name}</span>
+                        <div class="flex items-center gap-3">
+                            <span class="text-base font-black text-blue-600/80">${pretNet.toFixed(2)} RON</span>
+                            ${stocVal !== null ? `<span class="text-[10px] font-black ${stocVal>0?'text-green-600 bg-green-50':'text-red-500 bg-red-50'} px-3 py-1 rounded-xl border">STOC: ${stocVal.toFixed(0)}</span>` : ''}
                         </div>
                     </td>
-                    <td class="py-4 sm:py-5">
-                        <div class="flex items-center justify-center gap-1 sm:gap-3 bg-gray-50 rounded-xl sm:rounded-[1.8rem] p-1 sm:p-1.5 border border-gray-100 shadow-inner">
-                            <button onclick="updateCart('${encodedName}', -1)" class="flex items-center justify-center bg-white text-gray-400 shadow-sm border border-gray-100 text-lg sm:text-2xl rounded-lg sm:rounded-xl w-7 h-7 sm:w-12 sm:h-12">-</button>
-                            <span class="font-black text-sm sm:text-2xl w-5 sm:w-10 text-center text-dm-blue">${qty}</span>
-                            <button onclick="updateCart('${encodedName}', 1)" class="flex items-center justify-center bg-dm-blue text-white shadow-md sm:shadow-xl text-lg sm:text-2xl rounded-lg sm:rounded-xl w-7 h-7 sm:w-12 sm:h-12">+</button>
+                    <td class="py-5">
+                        <div class="flex items-center justify-center gap-3 bg-gray-50 rounded-[1.8rem] p-1.5 border border-gray-100 shadow-inner">
+                            <button onclick="updateCart('${encodedName}', -1)" class="flex items-center justify-center bg-white text-gray-400 shadow-sm border border-gray-100 text-2xl rounded-xl w-10 h-10 sm:w-12 sm:h-12">-</button>
+                            <span class="font-black text-2xl w-8 sm:w-10 text-center text-dm-blue">${qty}</span>
+                            <button onclick="updateCart('${encodedName}', 1)" class="flex items-center justify-center bg-dm-blue text-white shadow-md sm:shadow-xl text-2xl rounded-xl w-10 h-10 sm:w-12 sm:h-12">+</button>
                         </div>
                     </td>
-                    <td class="text-right pr-3 sm:pr-6 py-4 sm:py-5 font-black text-dm-blue text-sm sm:text-xl">${(qty*pretNet).toFixed(2)}</td>
+                    <td class="text-right pr-6 py-5 font-black text-dm-blue text-xl">${(qty*pretNet).toFixed(2)}</td>
                 </tr>`;
             }).join('');
         }
@@ -756,31 +995,25 @@
                 totalNet += i.quantity * pF_net;
                 const encodedName = encodeURIComponent(name);
                 
-                return `<tr class="border-b border-gray-100"><td class="px-4 sm:px-6 py-4 sm:py-5 font-black text-dm-blue uppercase text-[10px] sm:text-sm leading-tight">${name}<br><span class="text-[9px] sm:text-xs font-bold text-blue-600/60 mt-1 block">${pF_net.toFixed(2)} RON</span></td><td class="py-4 sm:py-5"><div class="flex items-center justify-center gap-1 sm:gap-3 bg-gray-50 rounded-xl sm:rounded-2xl p-1 sm:p-2 border border-gray-100"><button onclick="updateCart('${encodedName}', -1)" class="flex items-center justify-center bg-white text-gray-400 shadow-sm border border-gray-100 text-lg sm:text-xl rounded-lg w-7 h-7 sm:w-10 sm:h-10">-</button><span class="font-black text-sm sm:text-xl w-5 sm:w-8 text-center text-dm-blue">${i.quantity}</span><button onclick="updateCart('${encodedName}', 1)" class="flex items-center justify-center bg-dm-blue text-white shadow-md text-lg sm:text-xl rounded-lg w-7 h-7 sm:w-10 sm:h-10">+</button></div></td><td class="text-right pr-4 sm:pr-6 py-4 sm:py-5 font-black text-dm-blue text-sm sm:text-lg">${(i.quantity*pF_net).toFixed(2)}</td></tr>`;
+                return `<tr class="border-b border-gray-100"><td class="px-6 py-5 font-black text-dm-blue uppercase text-sm leading-tight">${name}<br><span class="text-xs font-bold text-blue-600/60 mt-1 block">${pF_net.toFixed(2)} RON</span></td><td class="py-5"><div class="flex items-center justify-center gap-3 bg-gray-50 rounded-2xl p-2 border border-gray-100"><button onclick="updateCart('${encodedName}', -1)" class="flex items-center justify-center bg-white text-gray-400 shadow-sm border border-gray-100 text-xl rounded-lg w-10 h-10">-</button><span class="font-black text-xl w-8 text-center text-dm-blue">${i.quantity}</span><button onclick="updateCart('${encodedName}', 1)" class="flex items-center justify-center bg-dm-blue text-white shadow-md text-xl rounded-lg w-10 h-10">+</button></div></td><td class="text-right pr-6 py-5 font-black text-dm-blue text-lg">${(i.quantity*pF_net).toFixed(2)}</td></tr>`;
             }).join('');
             document.getElementById('totalNoVat').innerText = totalNet.toFixed(2) + ' RON';
         }
 
-        function golesteCos() { showConfirm("Golești tot coșul?", () => { cart = {}; saveAgentData(); updateBadge(); renderCart(); filterProducts(); }); }
-        
+        function golesteCos() { if(confirm("Golești tot coșul?")) { cart = {}; saveAgentData(); updateBadge(); renderCart(); filterProducts(); } }
         function salveazaComanda(isDraft) {
-            if (!selectedClient && !isDraft) { showToast("SELECTEAZĂ CLIENTUL!"); openClientsViewLive(); return; }
+            if (!selectedClient && !isDraft) { showToast("SELECTEAZĂ CLIENTUL!"); switchView('clients'); return; }
             if (Object.keys(cart).length === 0) return;
             const ts = new Date().toLocaleString('ro-RO'); let total = 0;
             Object.values(cart).forEach(i => total += i.quantity * i.data.pret);
             window.orderHistory.unshift({ timestamp: ts, total: total.toFixed(2), items: Object.keys(cart).length, cartData: JSON.parse(JSON.stringify(cart)), status: isDraft ? 'Ciornă' : 'Trimisă', client: selectedClient });
-            saveAgentData(); 
-            if (!isDraft) { 
-                trimiteWhatsApp(ts, cart); 
-                cart = {}; selectedClient = null; saveAgentData(); updateBadge(); updateClientUI(); switchView('history'); 
-            } else { 
-                showToast("SALVAT!"); switchView('history'); 
-            }
+            saveAgentData(); if (!isDraft) { trimiteWhatsApp(ts, cart); cart = {}; selectedClient = null; saveAgentData(); updateBadge(); updateClientUI(); switchView('history'); } else { showToast("SALVAT!"); switchView('history'); }
         }
 
         function trimiteWhatsApp(ts, data) {
             const clientName = selectedClient ? selectedClient.name : "N/A";
             const clientAdresa = (selectedClient && selectedClient.adresa) ? selectedClient.adresa : ((selectedClient && selectedClient.loc) ? selectedClient.loc : "Nespecificat");
+            
             let msg = `Salut! Comandă DM Auto Sebeș\nAGENT: ${currentAgent.name}\nCLIENT: ${clientName}\n📍 ADRESĂ: ${clientAdresa}\nData: ${ts}\n\n`;
             Object.values(data).forEach(i => msg += `• ${i.quantity} x ${i.data.denumire}\n`);
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
@@ -802,23 +1035,18 @@
 
         function incarcaComandaInCos() { if (currentViewingOrderIndex === null) return; const o = window.orderHistory[currentViewingOrderIndex]; cart = JSON.parse(JSON.stringify(o.cartData)); selectedClient = o.client; saveAgentData(); updateClientUI(); switchView('cart'); }
         function retrimiteComandaDirect() { if (currentViewingOrderIndex === null) return; const o = window.orderHistory[currentViewingOrderIndex]; selectedClient = o.client; trimiteWhatsApp(o.timestamp, o.cartData); if (o.status === 'Ciornă') { window.orderHistory[currentViewingOrderIndex].status = 'Trimisă'; saveAgentData(); renderHistory(); } }
-        function stergeComandaCurenta() { if (currentViewingOrderIndex === null) return; showConfirm("Ștergi definitiv?", () => { window.orderHistory.splice(currentViewingOrderIndex, 1); saveAgentData(); switchView('history'); }); }
-
-        async function openClientsViewLive() {
-            switchView('clients');
-            const container = document.getElementById('clients-list');
-            container.innerHTML = '<div class="p-10 text-center"><p class="text-4xl mb-4 animate-spin">📡</p><p class="text-dm-blue font-black uppercase text-sm sm:text-base animate-pulse">Se descarcă clienții...</p></div>';
-            await syncClientsLive();
-        }
-
-        async function syncClientsLive() {
-            if (window.location.protocol === 'blob:') {
-                const cached = localStorage.getItem(`dma_cache_cli`);
-                if (cached) { allClients = JSON.parse(cached); filterClients(); }
-                return;
+        function stergeComandaCurenta() { if (currentViewingOrderIndex === null) return; if (confirm("Ștergi definitiv?")) { window.orderHistory.splice(currentViewingOrderIndex, 1); saveAgentData(); switchView('history'); } }
+        
+        async function syncClients() {
+            const cached = localStorage.getItem(`dma_cache_cli`);
+            if (cached) { 
+                allClients = JSON.parse(cached); 
+                allClients.forEach((c, i) => { if(!c._id) c._id = 'excel_' + i; });
+                filterClients(); 
             }
+            if (window.location.protocol === 'blob:') return;
             try {
-                const response = await fetchExcelLive(CLIENTS_FILE);
+                const response = await fetchExcel(CLIENTS_FILE);
                 if (response.ok) {
                     const data = await response.arrayBuffer();
                     const wb = XLSX.read(data, {type: 'array'});
@@ -827,264 +1055,12 @@
                     let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().trim().includes("denumire")));
                     
                     allClients = XLSX.utils.sheet_to_json(sh, { range: idx === -1 ? 0 : idx, defval: "" }).filter(c => c[Object.keys(c).find(k => k.trim().toLowerCase().includes("denumire"))]);
+                    allClients.forEach((c, i) => c._id = 'excel_' + i);
+                    
                     localStorage.setItem(`dma_cache_cli`, JSON.stringify(allClients));
                     filterClients();
-                } else {
-                    const cached = localStorage.getItem(`dma_cache_cli`);
-                    if (cached) { allClients = JSON.parse(cached); filterClients(); }
                 }
-            } catch (e) {
-                const cached = localStorage.getItem(`dma_cache_cli`);
-                if (cached) { allClients = JSON.parse(cached); filterClients(); }
-            }
-        }
-
-        async function syncClients() {
-            const cached = localStorage.getItem(`dma_cache_cli`);
-            if (cached) { allClients = JSON.parse(cached); filterClients(); }
-        }
-
-        // ==========================================
-        // CITIREA DATELOR DE SOLD PENTRU CENTRALIZATORUL UNIC
-        // ==========================================
-        async function fetchSoldForRegionLive(fileList) {
-            for (const file of fileList) {
-                try {
-                    const response = await fetchExcelLive(file);
-                    if (response.ok) {
-                        const data = await response.arrayBuffer();
-                        const wb = XLSX.read(data, {type: 'array'});
-                        const sh = wb.Sheets[wb.SheetNames[0]];
-                        const raw = XLSX.utils.sheet_to_json(sh, { header: 1 });
-                        
-                        let restColIndex = -1;
-                        let factColIndex = 1;
-                        let dateColIndex = 2;
-
-                        for(let i = 0; i < Math.min(20, raw.length); i++) {
-                            let r = raw[i];
-                            if(!r) continue;
-                            for(let j = 0; j < r.length; j++) {
-                                let txt = (r[j] || '').toString().toUpperCase();
-                                if (txt.includes('REST') || txt.includes('NEINCASAT') || txt.includes('SOLD')) restColIndex = j;
-                                if (txt.includes('FACTUR') || txt.includes('DOC')) factColIndex = j;
-                                if (txt.includes('DATA')) dateColIndex = j;
-                            }
-                        }
-
-                        if (restColIndex === -1) restColIndex = 5; 
-                        
-                        let currentClient = "";
-                        raw.forEach((row, index) => {
-                            if (!row || row.length === 0) return;
-
-                            let c0 = row[0] ? row[0].toString().trim().toUpperCase() : "";
-                            let c1 = row[1] ? row[1].toString().trim().toUpperCase() : "";
-
-                            if (c0.includes("TOTAL") || c0.includes("UNITATEA") || c0.includes("REPORT")) return;
-
-                            // In Centralizatorul tau, Numele este mereu prima chestie
-                            if (c0 && (!c1 || c0.includes("SRL") || c0.includes("S.R.L") || c0.includes("SA") || c0.includes("PFA") || c0.includes("S.C.") || c0.includes("INTERTRANS"))) {
-                                if (!c0.includes("FACT") && !c0.includes("CHIT")) {
-                                    currentClient = c0;
-                                }
-                            }
-
-                            // Daca nu am gasit SRL etc, dar vedem o factura, inseamna ca in Centralizator clientul e pe coloana A oricum
-                            if (c0 && c1.startsWith("DMEG")) currentClient = c0; 
-
-                            let factNr = row[factColIndex] ? row[factColIndex].toString().trim() : c1;
-                            let dateStr = row[dateColIndex] ? row[dateColIndex].toString().trim() : (row[2] || "-");
-                            
-                            // Permitem si sumele negative pentru Facturi Storno/Credite
-                            let restVal = row[restColIndex];
-                            if (restVal !== undefined && restVal !== null) {
-                                restVal = formatPriceNum(restVal);
-                            } else {
-                                restVal = 0;
-                            }
-
-                            // Fallback extrem daca restColIndex nu e bun (cautam ultima cifra non-zero de pe rand)
-                            if (restVal === 0 && restColIndex === 5) {
-                                for (let k = row.length - 1; k >= 2; k--) {
-                                    let v = formatPriceNum(row[k]);
-                                    if (v !== 0) { restVal = v; break; }
-                                }
-                            }
-
-                            // Salvam orice restVal diferit de 0 (pozitiv sau negativ)
-                            if (currentClient && factNr && factNr !== currentClient && restVal !== 0) {
-                                allSoldData.push({
-                                    clientNorm: normalizeName(currentClient),
-                                    factura: factNr,
-                                    data: dateStr,
-                                    rest: restVal
-                                });
-                            }
-                        });
-                        return; 
-                    }
-                } catch (e) {
-                    console.warn(`Caut fișierul următor...`);
-                }
-            }
-        }
-
-        async function syncSoldDataLive() {
-            allSoldData = [];
-            // Folosim acum lista unică de SOLD_FILES în loc de cele 4 vechi
-            await fetchSoldForRegionLive(SOLD_FILES);
-        }
-
-        async function syncSoldData() { }
-
-        // ==========================================
-        // SELECTIA CLIENTULUI
-        // ==========================================
-        async function handleClientSelection(idx) {
-            const c = window.renderedClientsList[idx];
-            if (!c) return;
-
-            const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire"));
-            const kLoc = Object.keys(c).find(k => k.toLowerCase().includes("localitate")) || 'localitate';
-            const kCIF = Object.keys(c).find(k => k.toLowerCase().includes("cod_fiscal")) || 'cod_fiscal';
-            const kRC = Object.keys(c).find(k => k.toLowerCase().includes("reg_com")) || 'reg_com';
-            const kTel = Object.keys(c).find(k => k.toLowerCase().includes("tel")) || 'tel';
-            const kAdresa = Object.keys(c).find(k => k.toLowerCase().includes("adres")) || 'adresa';
-
-            const originalName = c[kName] ? c[kName].toString().trim() : "NECUNOSCUT";
-
-            let clientData = {
-                originalName: originalName,
-                name: originalName,
-                loc: c[kLoc] ? c[kLoc].toString().trim() : '',
-                cif: c[kCIF] ? c[kCIF].toString().trim() : '',
-                rc: c[kRC] ? c[kRC].toString().trim() : '',
-                tel: c[kTel] ? c[kTel].toString().trim() : '',
-                adresa: c[kAdresa] ? c[kAdresa].toString().trim() : ''
-            };
-
-            if (editedClients[originalName]) {
-                clientData = { ...clientData, ...editedClients[originalName] };
-            }
-
-            selectedClient = clientData;
-            saveAgentData();
-            updateClientUI();
-
-            switchView('client-mode');
-
-            const containerSold = document.getElementById('client-mode-sold-container');
-            const totalSoldText = document.getElementById('client-mode-sold-total');
-            const btnIncasareMode = document.getElementById('btn-mode-incasare');
-            
-            containerSold.className = "bg-gray-50 rounded-[2rem] shadow-sm border border-gray-200 p-6 mb-6 sm:mb-8 text-center transition-all duration-300";
-            totalSoldText.className = "text-xl sm:text-2xl font-black text-gray-500 tracking-tighter mb-0 animate-pulse";
-            totalSoldText.innerText = "⏳ Se verifică soldul...";
-            btnIncasareMode.classList.add('hidden');
-
-            await syncSoldDataLive();
-
-            const targetNorm = normalizeName(selectedClient.name);
-            const mySold = allSoldData.filter(row => row.clientNorm.includes(targetNorm) || targetNorm.includes(row.clientNorm));
-            
-            let totalSold = 0;
-            mySold.forEach(r => totalSold += r.rest);
-
-            // Daca are sold de platit
-            if (totalSold > 0.01) {
-                containerSold.className = "bg-white rounded-[2rem] shadow-xl border-t-8 border-red-500 p-6 mb-6 sm:mb-8 text-center";
-                totalSoldText.className = "text-4xl sm:text-5xl font-black text-red-600 mb-3 sm:mb-4 tracking-tighter";
-                totalSoldText.innerText = totalSold.toLocaleString('ro-RO', {minimumFractionDigits: 2}) + ' RON';
-                btnIncasareMode.classList.remove('hidden');
-            } 
-            // Daca are credit (este pe plus)
-            else if (totalSold < -0.01) {
-                containerSold.className = "bg-white rounded-[2rem] shadow-xl border-t-8 border-blue-500 p-6 mb-6 sm:mb-8 text-center";
-                totalSoldText.className = "text-4xl sm:text-5xl font-black text-blue-600 mb-3 sm:mb-4 tracking-tighter";
-                totalSoldText.innerText = totalSold.toLocaleString('ro-RO', {minimumFractionDigits: 2}) + ' RON (CREDIT)';
-                btnIncasareMode.classList.remove('hidden');
-            } 
-            // Daca este exact 0
-            else {
-                containerSold.className = "bg-green-50 rounded-[2rem] shadow-sm border border-green-200 p-6 mb-6 sm:mb-8 text-center";
-                totalSoldText.className = "text-2xl sm:text-3xl font-black text-green-600 tracking-tighter mb-0";
-                totalSoldText.innerText = "CLIENT LA ZI ✅";
-                btnIncasareMode.classList.add('hidden');
-            }
-        }
-
-        function selectMode(m) { if (m === 'vanzare') switchView('catalog'); else { renderSoldItems(); switchView('incasare'); } }
-
-        function renderSoldItems() {
-            const table = document.getElementById('sold-items-table'), disp = document.getElementById('display-sold');
-            if (!selectedClient || !allSoldData.length) { 
-                table.innerHTML = '<tr><td colspan="2" class="p-8 sm:p-10 text-center font-bold text-gray-400 italic text-sm sm:text-base">Nu am găsit date. Sincronizează (🔄).</td></tr>'; 
-                disp.className = "text-4xl sm:text-5xl font-black text-red-600 tracking-tighter";
-                disp.innerText = "0.00 RON"; return; 
-            }
-
-            const targetNorm = normalizeName(selectedClient.name);
-            const mySold = allSoldData.filter(row => row.clientNorm.includes(targetNorm) || targetNorm.includes(row.clientNorm));
-
-            if (mySold.length === 0) { 
-                table.innerHTML = '<tr><td colspan="2" class="p-8 sm:p-10 text-center font-bold text-gray-400 italic text-sm sm:text-base">CLIENT LA ZI. ZERO RESTANȚE.</td></tr>'; 
-                disp.className = "text-4xl sm:text-5xl font-black text-green-600 tracking-tighter";
-                disp.innerText = "0.00 RON"; return; 
-            }
-
-            let total = 0;
-            table.innerHTML = mySold.map(row => {
-                total += row.rest;
-                const formattedSum = Math.abs(row.rest).toLocaleString('ro-RO', {minimumFractionDigits: 2});
-                const sign = row.rest < 0 ? '-' : '';
-                const sumColor = row.rest < 0 ? 'text-blue-600' : 'text-red-600';
-
-                return `<tr class="border-b border-gray-100">
-                    <td class="pl-4 sm:pl-6 py-4 sm:py-6 font-black text-dm-blue text-sm sm:text-xl leading-tight">
-                        FACT: ${row.factura}<br><span class="text-[10px] sm:text-base text-gray-400 font-bold">${row.data}</span>
-                    </td>
-                    <td class="pr-4 sm:pr-6 text-right">
-                        <div class="flex flex-col items-end gap-2 sm:gap-3">
-                            <span class="font-black ${sumColor} text-xl sm:text-3xl">${sign}${formattedSum}</span>
-                            <button onclick="handleIncasareFactura('${row.factura}', ${row.rest})" class="bg-green-600 text-white px-4 sm:px-5 py-2 sm:py-3 rounded-lg sm:rounded-xl font-black text-[9px] sm:text-xs uppercase shadow-lg active:scale-90 transition-all">Încasează ✅</button>
-                        </div>
-                    </td>
-                </tr>`;
-            }).join('');
-
-            const totalColor = total < -0.01 ? 'text-blue-600' : (total > 0.01 ? 'text-red-600' : 'text-green-600');
-            disp.className = `text-4xl sm:text-5xl font-black ${totalColor} tracking-tighter`;
-            disp.innerText = total.toLocaleString('ro-RO', {minimumFractionDigits: 2}) + " RON";
-        }
-
-        function handleIncasareFactura(facturaNr, suma) {
-            showConfirm(`Confirmi încasarea facturii ${facturaNr} în valoare de ${suma.toFixed(2)} RON?`, () => {
-                const msg = `💰 ÎNCASARE DM AUTO\nAgent: ${currentAgent.name}\nClient: ${selectedClient.name}\nFactură: ${facturaNr}\nSumă: ${suma.toFixed(2)} RON\nData: ${new Date().toLocaleDateString('ro-RO')}`;
-                window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
-                showToast("Încasare raportată!");
-            });
-        }
-
-        function handleCreateClient() {
-            const n = document.getElementById('new-client-name').value.trim().toUpperCase();
-            const l = document.getElementById('new-client-loc').value.trim().toUpperCase();
-            if (!n || !l) { showToast("INTRODU NUME ȘI LOCALITATE!"); return; }
-            
-            const newCli = { 
-                denumire: n, 
-                localitate: l, 
-                adresa: document.getElementById('new-client-adresa').value.trim().toUpperCase(),
-                cod_fiscal: document.getElementById('new-client-cif').value.trim().toUpperCase(), 
-                reg_com: document.getElementById('new-client-rc').value.trim().toUpperCase(), 
-                tel: document.getElementById('new-client-tel').value.trim(), 
-                den_agent: currentAgent.filter, 
-                isManual: true 
-            };
-            
-            manuallyCreatedClients.push(newCli); saveAgentData();
-            ['new-client-name','new-client-loc','new-client-cif','new-client-rc','new-client-tel','new-client-adresa'].forEach(id => document.getElementById(id).value = '');
-            showToast("CLIENT CREAT CU SUCCES!"); filterClients(); switchView('clients');
+            } catch (e) { console.error(e); }
         }
 
         function openEditClient() {
@@ -1102,7 +1078,7 @@
             const newName = document.getElementById('edit-client-name').value.trim().toUpperCase();
             if (!newName) { showToast("NUME OBLIGATORIU!"); return; }
             
-            const key = selectedClient.originalName; 
+            const originalName = selectedClient.originalName; 
             
             const updatedData = {
                 name: newName,
@@ -1113,10 +1089,14 @@
                 adresa: document.getElementById('edit-client-adresa').value.trim().toUpperCase()
             };
 
-            editedClients[key] = updatedData;
+            editedClients[originalName] = updatedData;
             selectedClient = { ...selectedClient, ...updatedData }; 
             
-            saveAgentData(); showToast("DATE ACTUALIZATE!"); filterClients(); updateClientUI(); switchView('client-mode');
+            saveAgentData();
+            showToast("DATE ACTUALIZATE!");
+            filterClients(); 
+            updateClientUI();
+            switchView('client-mode');
         }
 
         function toggleClientFilter(mine) {
@@ -1156,88 +1136,60 @@
             renderClients(filtered);
         }
 
-        function toggleSavedClient(index) {
-            const c = window.renderedClientsList[index];
-            if (!c) return;
-            const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire"));
-            const originalName = c[kName] ? c[kName].toString().trim() : '';
-            if (!originalName) return;
+        function toggleSavedClient(clientId) {
+            let baseClient = manuallyCreatedClients.find(c => c._id === clientId) || allClients.find(c => c._id === clientId);
+            if (!baseClient) return;
+            
+            const kName = Object.keys(baseClient).find(k => k.toLowerCase().includes("denumire"));
+            const originalName = baseClient[kName] ? baseClient[kName].toString() : '';
 
             const idx = savedClientNames.indexOf(originalName);
             if (idx > -1) savedClientNames.splice(idx, 1); 
             else savedClientNames.push(originalName); 
-            saveAgentData(); filterClients();
+            saveAgentData(); 
+            filterClients();
         }
 
         function renderClients(clients) {
             const container = document.getElementById('clients-list'); 
-            window.renderedClientsList = clients;
-
+            
             if (clients.length === 0) { 
                 container.innerHTML = '<p class="p-8 sm:p-10 text-center text-gray-400 italic font-bold text-sm sm:text-base">Niciun client găsit.</p>'; 
                 return; 
             }
             
-            container.innerHTML = clients.map((c, index) => {
+            container.innerHTML = clients.map(c => {
                 const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire"));
                 const kLoc = Object.keys(c).find(k => k.toLowerCase().includes("localitate"));
                 
-                const originalName = c[kName] ? c[kName].toString() : ''; 
+                const originalName = c[kName] ? c[kName].toString().trim() : ''; 
+                const loc = c[kLoc] ? c[kLoc].toString().trim() : '';
+
                 const isSaved = savedClientNames.includes(originalName);
                 
                 const edit = editedClients[originalName];
                 const displayName = edit ? edit.name : originalName;
-                const displayLoc = edit ? edit.loc : (c[kLoc] || '-');
+                const displayLoc = edit ? edit.loc : (loc || '-');
 
-                return `<div onclick="handleClientSelection(${index})" 
-                     class="client-card bg-white p-5 sm:p-7 rounded-2xl sm:rounded-[2.5rem] shadow-xl active:scale-[0.98] transition-all cursor-pointer flex justify-between items-center ${selectedClient && (selectedClient.name === displayName || selectedClient.name === originalName) ? 'active-client' : ''}">
+                return `<div onclick="handleClientClick('${c._id}')" 
+                     class="client-card bg-white p-5 sm:p-7 rounded-2xl sm:rounded-[2.5rem] shadow-xl active:scale-[0.98] transition-all cursor-pointer flex justify-between items-center ${selectedClient && (selectedClient.originalName === originalName) ? 'active-client' : ''}">
                     <div class="flex-1 min-w-0 pr-3 sm:pr-4 pointer-events-none">
                         <p class="text-base sm:text-2xl font-black text-dm-blue uppercase truncate leading-tight">${displayName}</p>
                         <p class="text-[10px] sm:text-lg font-bold text-gray-400 mt-1">📍 ${displayLoc}</p>
                     </div>
-                    <button onclick="event.stopPropagation(); toggleSavedClient(${index})" class="btn-save-client flex-shrink-0 pointer-events-auto ${isSaved ? 'bg-dm-yellow text-dm-blue' : 'bg-gray-100 text-gray-400'}"><span class="text-2xl sm:text-4xl">${isSaved ? '⭐' : '☆'}</span></button>
+                    <button onclick="event.stopPropagation(); toggleSavedClient('${c._id}')" class="btn-save-client flex-shrink-0 pointer-events-auto ${isSaved ? 'bg-dm-yellow text-dm-blue' : 'bg-gray-100 text-gray-400'}"><span class="text-2xl sm:text-4xl">${isSaved ? '⭐' : '☆'}</span></button>
                 </div>`;
             }).join('');
         }
 
-        function updateClientUI() {
-            const h = document.getElementById('header-client-name');
-            const c = document.getElementById('cart-client-name');
-            const a = document.getElementById('cart-client-address');
-            
-            if (selectedClient) {
-                h.innerText = selectedClient.name; 
-                h.className = "text-lg sm:text-2xl font-black truncate leading-none text-dm-yellow text-left";
-                
-                c.innerText = `${selectedClient.name} (${selectedClient.loc})`; 
-                c.classList.remove('text-red-500');
-                
-                if(a) {
-                    a.innerText = `📍 Livrare: ${selectedClient.adresa || 'Nespecificat'}`;
-                }
-            } else {
-                h.innerText = "Neselectat 👤"; 
-                h.className = "text-lg sm:text-2xl font-black truncate leading-none text-white text-left opacity-30";
-                
-                c.innerText = "ATENȚIE: NICIUN CLIENT SELECTAT!"; 
-                c.classList.add('text-red-500');
-                
-                if(a) a.innerText = "";
-            }
+        function triggerManualSync() { 
+            showToast("SE SINCRONIZEAZĂ BAZA DE DATE...");
+            syncMasterData(); 
+            syncClients(); 
+            syncSoldData();
+            if(selectedCategory) selectCategory(selectedCategory); 
         }
-
-        function formatPriceNum(val) {
-            if (val === undefined || val === null || val === "") return 0;
-            if (typeof val === 'number') return val;
-            let s = val.toString().trim();
-            if (s.includes(',') && s.includes('.')) {
-                if (s.lastIndexOf('.') > s.lastIndexOf(',')) s = s.replace(/,/g, ''); 
-                else s = s.replace(/\./g, '').replace(',', '.');
-            } else if (s.includes(',')) s = s.replace(',', '.');
-            const p = parseFloat(s); return isNaN(p) ? 0 : p;
-        }
-
-        function triggerManualSync() { showToast("SE SINCRONIZEAZĂ BAZA DE DATE..."); syncMasterData(); syncClients(); if(selectedCategory) selectCategory(selectedCategory); }
+        
         function filterProducts() { const q = document.getElementById('searchInput').value.toLowerCase().trim(); renderProducts(currentCategoryData.filter(p => p.denumire.toLowerCase().includes(q))); }
         function resetSelection() { document.getElementById('searchInput').value = ''; selectedCategory = null; document.getElementById('product-section').classList.add('view-hidden'); document.getElementById('category-placeholder').classList.remove('view-hidden'); ['Ravenol', 'Banner', 'Cyclon', 'Cemsa', 'Inventar'].forEach(cat => { const card = document.getElementById(`card-${cat}`); if (card) card.classList.remove('selected-category'); }); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
