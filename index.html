@@ -483,6 +483,7 @@
             setTimeout(() => t.classList.remove('show'), 3000);
         }
 
+        // Curata numele de litere si puncte extra pt o potrivire lina
         function normalizeName(name) {
             if (!name) return "";
             return name.toString().toUpperCase()
@@ -591,16 +592,10 @@
             return await fetch(path);
         }
 
-        async function fetchExcel(filename) {
-            const path = window.location.pathname.includes('DM-Auto-App') ? `./${filename}` : filename;
-            return await fetch(path);
-        }
-
-        // Sincronizare Curata Solduri (O Singura Sursa)
+        // Citire Solduri EXCLUSIV din Facturi_Neincasate.xlsx
         async function syncSoldData() {
             allSoldData = [];
             try {
-                // Fortam citirea de pe server pentru a ocoli memoria telefonului
                 const response = await fetchExcelLive(SOLD_FILE);
                 if (response.ok) {
                     const data = await response.arrayBuffer();
@@ -612,7 +607,7 @@
                     raw.forEach((row, index) => {
                         if (index === 0) return; // Skip Header
                         
-                        // A: Denumire Client
+                        // A (0): Denumire Client
                         if (row[0] && row[0].toString().trim()) {
                             const val = row[0].toString().trim().toUpperCase();
                             if (val.startsWith("SOLD ANALITIC") || val.includes("UNITATEA:")) {
@@ -622,10 +617,10 @@
                             }
                         }
                         
-                        // B: Numar Factura
+                        // B (1): Numar Factura
                         const factNr = row[1] ? row[1].toString().trim() : "";
                         
-                        // F: Rest Plata (Sold) - cu support pt numere negative
+                        // F (5): Rest Plata
                         const restVal = formatPriceNum(row[5]);
 
                         if (currentClient && factNr && restVal !== 0 && !factNr.includes("CLIENTI")) {
@@ -635,7 +630,6 @@
                                 factura: factNr,
                                 data: row[2] || "-",
                                 scadenta: row[3] || "-",
-                                totalFact: formatPriceNum(row[4]),
                                 rest: restVal
                             });
                         }
@@ -645,7 +639,7 @@
             } catch (e) { console.warn(`Eroare la citirea soldurilor din ${SOLD_FILE}`); }
         }
 
-        // FUNCȚIE ROBUSTĂ DE SELECȚIE (PENTRU CLICK TELEFON)
+        // FUNCȚIE ROBUSTĂ DE SELECȚIE PE BAZĂ DE ID (NU MAI CRAPĂ PE TELEFON)
         function handleClientClick(clientId) {
             let baseClient = manuallyCreatedClients.find(c => c._id === clientId) || allClients.find(c => c._id === clientId);
             
@@ -683,7 +677,7 @@
             saveAgentData();
             updateClientUI();
 
-            // Trecem in meniul clientului INSTANT
+            // SĂRIM IMEDIAT LA ECRANUL CLIENTULUI!
             switchView('client-mode');
 
             // Calculare automata SOLD
@@ -769,7 +763,7 @@
 
         // FUNCȚIE PENTRU LISTA DE RESTANȚIERI
         function renderRestantieriList() {
-            showToast("Se încarcă lista de restanțieri...");
+            showToast("Se calculează datoriile...");
             
             setTimeout(() => {
                 // Grupăm soldurile pe clienți
@@ -781,7 +775,7 @@
                     grouped[row.clientNorm].sum += row.rest;
                 });
 
-                // Asociem cu baza de date
+                // Asociem cu baza de clienți pentru a avea ID-ul
                 let debtors = [];
                 const merged = [...manuallyCreatedClients, ...allClients];
                 
@@ -799,12 +793,13 @@
                         }
                     }
                     
+                    // Afișăm pe oricine nu e pe 0 (deci și pe cei cu minus / credit)
                     if (Math.abs(clientSold) > 0.1) {
                         debtors.push({ id: c._id, name: name, loc: loc, sold: clientSold });
                     }
                 });
 
-                // Sortam dupa suma (Cei mai mari primii)
+                // Sortam dupa suma
                 debtors.sort((a, b) => b.sold - a.sold);
 
                 const container = document.getElementById('clients-list');
@@ -996,7 +991,7 @@
                 const displayName = edit ? edit.name : originalName;
                 const displayLoc = edit ? edit.loc : (c[kLoc] || '-');
 
-                // FARA ENCODARE, DOAR ID UNIC - CLICK SIGUR
+                // FOLOSIM UN ID UNIC PENTRU A EVITA ORICE EROARE DE BROWSER (CRATIME/GHILIMELE ETC)
                 return `<div onclick="handleClientClick('${c._id}')" 
                      class="client-card bg-white p-5 sm:p-7 rounded-2xl sm:rounded-[2.5rem] shadow-xl active:scale-[0.98] transition-all cursor-pointer flex justify-between items-center ${selectedClient && (selectedClient.name === displayName || selectedClient.name === originalName) ? 'active-client' : ''}">
                     <div class="flex-1 min-w-0 pr-3 sm:pr-4 pointer-events-none">
@@ -1017,7 +1012,7 @@
             
             if (selectedClient) {
                 h.innerText = selectedClient.name; 
-                h.className = "text-xl sm:text-2xl font-black truncate text-dm-yellow text-left";
+                h.className = "text-lg sm:text-2xl font-black truncate text-dm-yellow text-left";
                 
                 c.innerText = `${selectedClient.name} (${selectedClient.loc})`; 
                 c.classList.remove('text-red-500');
@@ -1027,7 +1022,7 @@
                 }
             } else {
                 h.innerText = "Neselectat 👤"; 
-                h.className = "text-xl sm:text-2xl font-black truncate text-white text-left opacity-30";
+                h.className = "text-lg sm:text-2xl font-black truncate text-white text-left opacity-30";
                 
                 c.innerText = "ATENȚIE: NICIUN CLIENT SELECTAT!"; 
                 c.classList.add('text-red-500');
@@ -1036,6 +1031,7 @@
             }
         }
 
+        // --- MASTER PRODUSE: STOCEGIUNIE.xlsx ---
         async function syncMasterData() {
             const cached = localStorage.getItem(`dma_mast_cache`);
             if (cached) allProductsRaw = JSON.parse(cached);
@@ -1047,32 +1043,27 @@
                     const wb = XLSX.read(data, {type: 'array'});
                     const sh = wb.Sheets[wb.SheetNames[0]];
                     const raw = XLSX.utils.sheet_to_json(sh, { header: 1 });
-                    let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().trim().includes("denumire") || c.toString().toLowerCase().trim().includes("articol")));
+                    let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().trim().includes("denumire")));
                     if(idx === -1) idx = 0; 
                     
                     const items = XLSX.utils.sheet_to_json(sh, { range: idx, defval: "" });
                     let newProducts = [];
 
                     items.forEach(p => {
-                        const kD = Object.keys(p).find(k => k.toLowerCase().includes("denumire") || k.toLowerCase().includes("articol") || k.toLowerCase().includes("produs"));
+                        const kD = Object.keys(p).find(k => k.toLowerCase().includes("denumire") || k.toLowerCase().includes("articol"));
                         const kP = Object.keys(p).find(k => k.toLowerCase().includes("pret") || k.toLowerCase().includes("valoare"));
                         const kS = Object.keys(p).find(k => k.toLowerCase().includes("stoc") || k.toLowerCase().includes("cantitate"));
                         
                         if(!kD || !p[kD]) return;
                         
                         const name = p[kD].toString().trim();
-                        if (name === "" || name.toUpperCase().includes("TOTAL") || name.toUpperCase().includes("REPORT")) return;
-
-                        let stoc = (kS && p[kS] !== "") ? parseFloat(p[kS]) : 0;
-                        if (isNaN(stoc)) stoc = 0;
-
-                        const pretBrutTVA = formatPriceNum(p[kP]);
-                        const pretNet = pretBrutTVA / TVA_RATE;
+                        // PRETUL RAMANE CEL DIN FISIER (FARA NICIUN CALCUL - PREIA EXACT CE E IN CELULA)
+                        const pretNet = formatPriceNum(p[kP]);
                         
                         newProducts.push({ 
                             denumire: name, 
                             pret: pretNet, 
-                            stoc: stoc
+                            stoc: (kS && p[kS] !== undefined && p[kS] !== "") ? p[kS] : ""
                         });
                     });
                     
@@ -1081,7 +1072,7 @@
                         localStorage.setItem(`dma_mast_cache`, JSON.stringify(allProductsRaw));
                     }
                 }
-            } catch (e) { console.warn("Eroare la", MASTER_FILE); }
+            } catch (e) { console.warn("Eroare la STOCEGIUNIE", e); }
         }
 
         function selectCategory(category) {
@@ -1112,29 +1103,29 @@
             tbody.innerHTML = products.map(p => {
                 const name = p.denumire;
                 const pretNet = p.pret;
-                const stocVal = p.stoc;
+                const stocVal = (p.stoc !== undefined && p.stoc !== "") ? parseFloat(p.stoc.toString().replace(/\./g, '').replace(',', '.')) : null;
                 const qty = cart[name] ? cart[name].quantity : 0;
+                
                 const encodedName = encodeURIComponent(name);
                 
                 return `<tr class="${qty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100">
-                    <td class="px-4 sm:px-6 py-4 font-black text-dm-blue uppercase leading-tight tracking-tighter">
-                        <span class="text-[11px] sm:text-sm block mb-1 leading-tight">${name}</span>
-                        <div class="flex items-center gap-2">
+                    <td class="px-2 sm:px-6 py-3 sm:py-5 font-black text-dm-blue uppercase leading-tight tracking-tighter">
+                        <span class="text-[11px] sm:text-sm block mb-1 sm:mb-2 leading-tight">${name}</span>
+                        <div class="flex items-center gap-2 sm:gap-3">
                             <span class="text-xs sm:text-sm font-black text-blue-600/80">${pretNet.toFixed(2)} RON</span>
                             ${stocVal !== null ? `<span class="text-[9px] font-black ${stocVal>0?'text-green-600 bg-green-50':'text-red-500 bg-red-50'} px-2 py-0.5 rounded-lg border">STOC: ${stocVal.toFixed(0)}</span>` : ''}
                         </div>
                     </td>
-                    <td class="py-4">
+                    <td class="py-3 sm:py-5">
                         <div class="flex items-center justify-center gap-1 sm:gap-2 bg-gray-50 rounded-xl sm:rounded-2xl p-1 border border-gray-100 shadow-inner">
                             <button onclick="updateCart('${encodedName}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button>
                             <span class="font-black text-sm sm:text-xl w-6 sm:w-8 text-center text-dm-blue">${qty}</span>
                             <button onclick="updateCart('${encodedName}', 1)" class="qty-btn bg-dm-blue text-white shadow-md sm:shadow-xl">+</button>
                         </div>
                     </td>
-                    <td class="text-right pr-4 sm:pr-6 py-4 font-black text-dm-blue text-sm sm:text-lg">${(qty*pretNet).toFixed(2)}</td>
+                    <td class="text-right pr-3 sm:pr-6 py-3 sm:py-5 font-black text-dm-blue text-sm sm:text-lg">${(qty*pretNet).toFixed(2)}</td>
                 </tr>`;
             }).join('');
-            document.getElementById('productCount').innerText = products.length + " POZITII";
         }
 
         function updateCart(encodedName, d) {
@@ -1160,7 +1151,7 @@
                 totalNet += i.quantity * pF_net;
                 const encodedName = encodeURIComponent(name);
                 
-                return `<tr class="border-b border-gray-100"><td class="px-4 sm:px-6 py-4 font-black text-dm-blue uppercase text-[10px] sm:text-xs leading-tight">${name}<br><span class="text-[9px] sm:text-[10px] font-bold text-blue-600/60 mt-1 block">${pF_net.toFixed(2)} RON</span></td><td class="py-4"><div class="flex items-center justify-center gap-1 sm:gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100"><button onclick="updateCart('${encodedName}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100 text-lg">-</button><span class="font-black text-sm sm:text-base w-5 sm:w-6 text-center text-dm-blue">${i.quantity}</span><button onclick="updateCart('${encodedName}', 1)" class="qty-btn bg-dm-blue text-white shadow-md text-lg">+</button></div></td><td class="text-right pr-4 sm:pr-6 py-4 font-black text-dm-blue text-sm sm:text-base">${(i.quantity*pF_net).toFixed(2)}</td></tr>`;
+                return `<tr class="border-b border-gray-100"><td class="px-4 sm:px-6 py-4 font-black text-dm-blue uppercase text-[10px] sm:text-xs leading-tight">${name}<br><span class="text-[9px] sm:text-[10px] font-bold text-blue-600/60 mt-1 block">${pF_net.toFixed(2)} RON</span></td><td class="py-4"><div class="flex items-center justify-center gap-1 sm:gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100"><button onclick="updateCart('${encodedName}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100" style="width:38px;height:38px;font-size:1.2rem;">-</button><span class="font-black text-sm sm:text-base w-5 sm:w-6 text-center text-dm-blue">${i.quantity}</span><button onclick="updateCart('${encodedName}', 1)" class="qty-btn bg-dm-blue text-white shadow-md" style="width:38px;height:38px;font-size:1.2rem;">+</button></div></td><td class="text-right pr-4 sm:pr-6 py-4 font-black text-dm-blue text-sm sm:text-base">${(i.quantity*pF_net).toFixed(2)}</td></tr>`;
             }).join('');
             document.getElementById('totalNoVat').innerText = totalNet.toFixed(2) + ' RON';
             document.getElementById('totalWithVat').innerText = (totalNet * TVA_RATE).toFixed(2) + ' RON';
