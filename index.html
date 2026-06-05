@@ -834,7 +834,11 @@
         async function syncSoldData() {
             allSoldData = [];
             try {
-                const response = await fetchExcel(SOLD_FILE);
+                // Adăugăm un cache-buster temporar pentru a forța descărcarea celei mai noi versiuni
+                const cacheBuster = '?t=' + new Date().getTime();
+                const path = window.location.pathname.includes('DM-Auto-App') ? `./${SOLD_FILE}${cacheBuster}` : SOLD_FILE + cacheBuster;
+                
+                const response = await fetch(path);
                 if (response.ok) {
                     const data = await response.arrayBuffer();
                     const wb = XLSX.read(data, {type: 'array'});
@@ -847,12 +851,22 @@
                     raw.forEach((row, index) => {
                         if (index === 0) return; // Sărim peste antetul tabelului
 
-                        // Extragem valorile bazându-ne strict pe poziția coloanelor cerute de tine
-                        // A: Denumire, B: Factura, C: Data, F(index 5): Rest de plata
+                        // Extragem valorile bazându-ne strict pe poziția coloanelor
+                        // A(0): Denumire, B(1): Factura, C(2): Data, F(5) sau G(6) sau similar: Rest de plata
+                        
                         let colA_Client = row[0] ? row[0].toString().trim().toUpperCase() : "";
                         let colB_Factura = row[1] ? row[1].toString().trim().toUpperCase() : "";
                         let colC_Data = row[2] ? row[2].toString().trim() : "-";
-                        let colF_Rest = row[5] ? row[5].toString().trim() : "";
+                        
+                        // Căutare dinamică a sumei pe rând (în caz că sunt decalaje în fișier)
+                        let restVal = 0;
+                        for(let k = 3; k < row.length; k++) {
+                            let potentialVal = formatPriceNum(row[k]);
+                            // Luăm ultima valoare pozitivă semnificativă găsită pe rând (de obicei aia e soldul final / restul de plată)
+                            if(potentialVal > 0) {
+                                restVal = potentialVal;
+                            }
+                        }
 
                         // Evităm rândurile de totaluri
                         if (colA_Client.startsWith("TOTAL") || colA_Client.includes("UNITATEA") || colA_Client.includes("REPORT")) {
@@ -863,14 +877,6 @@
                         // Dacă pe coloana A este un text valid, acela devine clientul curent
                         if (colA_Client !== "") {
                             currentClient = colA_Client;
-                        }
-
-                        // Curățăm valoarea sumei
-                        let restVal = formatPriceNum(colF_Rest);
-
-                        // Fallback în caz că ai folosit un fișier vechi (cu restul pe col 8 sau 9)
-                        if (restVal === 0 && (row[8] || row[9])) {
-                            restVal = formatPriceNum(row[8]) || formatPriceNum(row[9]);
                         }
 
                         // Dacă avem client, avem număr de factură și suma e peste 0, salvăm datoria!
@@ -885,7 +891,9 @@
                         }
                     });
                     
-                    console.log("Fișierul de facturi neîncasate a fost descărcat și procesat cu succes.");
+                    console.log("Fișierul de facturi neîncasate a fost procesat cu succes.");
+                } else {
+                     console.warn("Fișierul nu a putut fi descărcat din GitHub.");
                 }
             } catch (e) {
                 console.warn("Eroare: Nu s-a putut citi fișierul " + SOLD_FILE, e);
