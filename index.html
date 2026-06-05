@@ -574,6 +574,7 @@
         async function syncSoldData() {
             allSoldData = [];
             try {
+                // MODIFICARE: Folosim fetchExcelLive pentru a forța descărcarea versiunii noi de pe GitHub, ignorând cache-ul local.
                 const response = await fetchExcelLive(SOLD_FILE);
                 if (response.ok) {
                     const data = await response.arrayBuffer();
@@ -1050,7 +1051,7 @@
             }).join('');
             document.getElementById('totalNoVat').innerText = totalNet.toFixed(2) + ' RON';
         }
-
+        // --- ISTORIC SI COS ---
         function golesteCos() { if(confirm("Golești tot coșul?")) { cart = {}; saveAgentData(); updateBadge(); renderCart(); filterProducts(); } }
         function salveazaComanda(isDraft) {
             if (!selectedClient && !isDraft) { showToast("SELECTEAZĂ CLIENTUL!"); switchView('clients'); return; }
