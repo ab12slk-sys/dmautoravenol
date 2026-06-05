@@ -448,6 +448,7 @@
         const MASTER_FILE = 'STOCEGIUNIE.xlsx';
         const CLIENTS_FILE = 'LISTA_CLIENTI.xlsx';
         
+        // FIȘIER UNIC DE SOLDURI AȘA CUM AI CERUT
         const SOLD_FILE = 'Facturi_Neincasate.xlsx';
 
         let currentAgent = null;
@@ -473,6 +474,7 @@
             setTimeout(() => t.classList.remove('show'), 3000);
         }
 
+        // FUNCȚIE CURĂȚARE NUME BLINDATĂ (Evită problemele la GOW TOTAL SERVICE)
         function normalizeName(name) {
             if (!name) return "";
             return name.toString().toUpperCase()
@@ -481,7 +483,7 @@
                 .replace(/\bS\.?C\.?\b/g, "")
                 .replace(/\bI\.?I\.?\b/g, "")
                 .replace(/\bP\.?F\.?A\.?\b/g, "")
-                .replace(/[^A-Z0-9]/g, "") // Lasam EXCLUSIV litere si cifre lipite
+                .replace(/[^A-Z0-9]/g, "") // Lasam EXCLUSIV litere si cifre lipite pentru a face un "match" absolut perfect
                 .trim();
         }
 
@@ -586,6 +588,7 @@
             return await fetch(path);
         }
 
+        // --- CITIRE SURSĂ UNICĂ: Facturi_Neincasate.xlsx ---
         async function syncSoldData() {
             allSoldData = [];
             try {
@@ -604,6 +607,8 @@
                         // A: Denumire Client (Coloana 0)
                         if (row[0] && row[0].toString().trim()) {
                             const val = row[0].toString().trim().toUpperCase();
+                            // Am scos excluderea cuvântului TOTAL pentru ca "GOW TOTAL SERVICE" să poată fi citit!
+                            // Excludem doar rândul "SOLD ANALITIC" sau alte texte irelevante dacă mai sunt
                             if (val.startsWith("SOLD ANALITIC") || val.includes("UNITATEA:") || val.includes("REPORT")) {
                                 currentClient = ""; 
                             } else {
@@ -615,10 +620,7 @@
                         const factNr = row[1] ? row[1].toString().trim() : "";
                         
                         // F: Rest Plata (Coloana 5) - Acum cu formatPriceNum care intelege si numere cu minus
-                        let restRaw = row[5];
-                        if (restRaw === undefined || restRaw === "") restRaw = row[4]; // Fallback in caz de format gresit
-                        
-                        const restVal = formatPriceNum(restRaw);
+                        const restVal = formatPriceNum(row[5]);
 
                         if (currentClient && factNr && restVal !== 0 && !factNr.includes("CLIENTI")) {
                             allSoldData.push({
@@ -637,6 +639,7 @@
             } catch (e) { console.warn(`Eroare la citirea soldurilor din ${SOLD_FILE}`); }
         }
 
+        // FUNCȚIE ROBUSTĂ DE SELECȚIE (PENTRU CLICK TELEFON)
         function handleClientClick(clientId) {
             let baseClient = manuallyCreatedClients.find(c => c._id === clientId) || allClients.find(c => c._id === clientId);
             
@@ -665,6 +668,7 @@
                 adresa: baseClient[kAdresa] || ''
             };
 
+            // Aplicam modificarile salvate de agent
             if (editedClients[originalName]) {
                 clientData = { ...clientData, ...editedClients[originalName] };
             }
@@ -673,7 +677,10 @@
             saveAgentData();
             updateClientUI();
 
+            // Trecem in meniul clientului
             switchView('client-mode');
+
+            // Calculare automata SOLD (Protejata)
             calculateAndShowSoldSafe();
         }
 
@@ -682,11 +689,13 @@
             const totalSoldText = document.getElementById('client-mode-sold-total');
             const btnIncasareMode = document.getElementById('btn-mode-incasare');
             
+            // Setăm starea de "Se verifică"
             containerSold.className = "bg-gray-50 rounded-[1.5rem] shadow-sm border border-gray-200 p-5 mb-6 text-center transition-all duration-300";
             totalSoldText.className = "text-xl font-black text-gray-500 tracking-tighter mb-0 animate-pulse";
             totalSoldText.innerText = "Se verifică... ⏳";
             btnIncasareMode.classList.add('hidden');
 
+            // Așteptăm o zecime de secundă pentru a lăsa telefonul să afișeze meniul, apoi calculăm:
             setTimeout(() => {
                 try {
                     const targetNorm = normalizeName(selectedClient.name);
@@ -724,7 +733,7 @@
             const table = document.getElementById('sold-items-table'), disp = document.getElementById('display-sold');
             if (!selectedClient || !allSoldData.length) { 
                 table.innerHTML = '<tr><td colspan="2" class="p-8 text-center font-bold text-gray-400 italic text-sm">Nu am găsit date. Sincronizează (🔄).</td></tr>'; 
-                disp.className = "text-4xl font-black text-red-600 tracking-tighter";
+                disp.className = "text-3xl font-black text-red-600 tracking-tighter";
                 disp.innerText = "0.00 RON"; return; 
             }
 
@@ -733,7 +742,7 @@
 
             if (mySold.length === 0) { 
                 table.innerHTML = '<tr><td colspan="2" class="p-8 text-center font-bold text-gray-400 italic text-sm">CLIENT LA ZI. ZERO RESTANȚE.</td></tr>'; 
-                disp.className = "text-4xl font-black text-green-600 tracking-tighter";
+                disp.className = "text-3xl font-black text-green-600 tracking-tighter";
                 disp.innerText = "0.00 RON"; return; 
             }
 
@@ -758,7 +767,7 @@
             }).join('');
             
             const totalColorClass = total < 0 ? 'text-blue-600' : (total > 0 ? 'text-red-600' : 'text-green-600');
-            disp.className = `text-4xl font-black ${totalColorClass} tracking-tighter`;
+            disp.className = `text-3xl font-black ${totalColorClass} tracking-tighter`;
             disp.innerText = total.toLocaleString('ro-RO', {minimumFractionDigits: 2}) + " RON";
         }
 
@@ -771,10 +780,12 @@
             }
         }
 
+        // --- ADAUGAT: FUNCTIE VIZUALIZARE RESTANTIERI ---
         function renderRestantieriList() {
             showToast("Se încarcă lista de restanțieri...");
             
             setTimeout(() => {
+                // 1. Grupăm soldurile pe clienți (ca să adunăm facturile unui singur client)
                 let grouped = {};
                 allSoldData.forEach(row => {
                     if(!grouped[row.clientNorm]) {
@@ -783,6 +794,7 @@
                     grouped[row.clientNorm].sum += row.rest;
                 });
 
+                // 2. Asociem suma calculată cu clienții din baza de date a agentului
                 let debtors = [];
                 const merged = [...manuallyCreatedClients, ...allClients];
                 
@@ -805,15 +817,17 @@
                     }
                 });
 
-                // Sortam dupa cine are de dat mai mult (descrescator)
+                // 3. Sortăm descrescător (cei mai mari datornici primii)
                 debtors.sort((a, b) => b.sold - a.sold);
 
+                // 4. Randăm rezultatul în containerul de clienți
                 const container = document.getElementById('clients-list');
                 if(debtors.length === 0) {
-                    container.innerHTML = '<p class="p-10 text-center text-gray-400 font-bold italic">Niciun restanțier găsit. Asigurați-vă că ați dat Sincronizare 🔄.</p>';
+                    container.innerHTML = '<p class="p-10 text-center text-gray-400 font-bold italic">Niciun restanțier găsit în zona ta. Asigură-te că ai sincronizat datele (🔄).</p>';
                     return;
                 }
 
+                // Debifăm butoanele de sus ca să arătăm că suntem într-un filtru special
                 document.getElementById('btnFilterMyClients').className = 'sheet-tab sheet-tab-inactive shadow-md';
                 document.getElementById('btnFilterAllClients').className = 'sheet-tab sheet-tab-inactive shadow-md';
 
@@ -831,6 +845,7 @@
                         </div>
                     </div>`;
                 }).join('');
+
             }, 100);
         }
 
@@ -844,7 +859,6 @@
             }
             if (window.location.protocol === 'blob:') return;
             try {
-                // Live fetch
                 const response = await fetchExcelLive(CLIENTS_FILE);
                 if (response.ok) {
                     const data = await response.arrayBuffer();
@@ -1039,17 +1053,14 @@
         async function syncMasterData() {
             const cached = localStorage.getItem(`dma_mast_cache`);
             if (cached) allProductsRaw = JSON.parse(cached);
-            
             if (window.location.protocol === 'blob:') return;
-            
             try {
-                const resInv = await fetchExcelLive(MASTER_FILE);
-                if (resInv.ok) {
-                    const data = await resInv.arrayBuffer();
+                const response = await fetchExcelLive(MASTER_FILE);
+                if (response.ok) {
+                    const data = await response.arrayBuffer();
                     const wb = XLSX.read(data, {type: 'array'});
                     const sh = wb.Sheets[wb.SheetNames[0]];
                     const raw = XLSX.utils.sheet_to_json(sh, { header: 1 });
-                    
                     let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().includes("denumire")));
                     if(idx === -1) idx = 0; 
                     
@@ -1057,11 +1068,10 @@
                     let newProducts = [];
 
                     items.forEach(p => {
-                        const keys = Object.keys(p);
-                        const kD = keys.find(k => k.toLowerCase().includes("denumire") || k.toLowerCase().includes("articol") || k.toLowerCase().includes("produs"));
+                        const kD = Object.keys(p).find(k => k.toLowerCase().includes("denumire") || k.toLowerCase().includes("articol") || k.toLowerCase().includes("produs"));
                         const kPretNet = keys.find(k => k.toLowerCase().includes("fara tva") || k.toLowerCase().includes("net"));
                         const kPretBrut = keys.find(k => k.toUpperCase() === "PRET" || k.toLowerCase().includes("valoare") || k.toLowerCase().includes("vanzare"));
-                        const kS = keys.find(k => k.toLowerCase().includes("stoc") || k.toLowerCase().includes("cantitate"));
+                        const kS = Object.keys(p).find(k => k.toLowerCase().includes("stoc") || k.toLowerCase().includes("cantitate"));
                         
                         if(!kD || !p[kD]) return;
                         
@@ -1075,7 +1085,7 @@
                         if (kPretNet && p[kPretNet] !== "") {
                             finalPrice = formatPriceNum(p[kPretNet]);
                         } else if (kPretBrut && p[kPretBrut] !== "") {
-                            finalPrice = formatPriceNum(p[kPretBrut]) / 1.21;
+                            finalPrice = formatPriceNum(p[kPretBrut]) / TVA_RATE;
                         }
                         
                         newProducts.push({ denumire: name, pret: finalPrice, stoc: stoc });
@@ -1225,10 +1235,9 @@
         }
 
         function triggerManualSync() { 
-            // Curățare agresivă a cache-ului local ca să forțăm descărcarea proaspătă
+            // Fortam descarcarea
             localStorage.removeItem(`dma_mast_cache`);
             localStorage.removeItem(`dma_cache_cli`);
-            
             syncMasterData(); 
             syncClients(); 
             syncSoldData(); 
