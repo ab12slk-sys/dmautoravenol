@@ -447,6 +447,7 @@
 
         const MASTER_FILE = 'STOCEGIUNIE.xlsx';
         const CLIENTS_FILE = 'LISTA_CLIENTI.xlsx';
+        
         const SOLD_FILE = 'Facturi_Neincasate.xlsx';
 
         let currentAgent = null;
@@ -472,7 +473,6 @@
             setTimeout(() => t.classList.remove('show'), 3000);
         }
 
-        // FUNCTIE CARE CURATA NUMELE DE ORICE MIZERIE (S.C., S.R.L. etc) PENTRU MATCHING PERFECT
         function normalizeName(name) {
             if (!name) return "";
             return name.toString().toUpperCase()
@@ -575,7 +575,6 @@
             localStorage.setItem(`dma_edit_cli_${id}`, JSON.stringify(editedClients));
         }
 
-        // FUNCȚIE PENTRU BYPASS CACHE PE TELEFON/TABLETĂ 100%
         async function fetchExcelLive(filename) {
             const cacheBuster = '?t=' + new Date().getTime();
             const path = window.location.pathname.includes('DM-Auto-App') ? `./${filename}${cacheBuster}` : filename + cacheBuster;
@@ -587,7 +586,6 @@
             return await fetch(path);
         }
 
-        // --- CITIRE NOUL FISIER DE SOLD (Facturi_Neincasate.xlsx) ---
         async function syncSoldData() {
             allSoldData = [];
             try {
@@ -606,7 +604,6 @@
                         // A: Denumire Client (Coloana 0)
                         if (row[0] && row[0].toString().trim()) {
                             const val = row[0].toString().trim().toUpperCase();
-                            // Am scos excluderea cuvantului "TOTAL" ca sa lase "TOTAL FOCUS TRADE"
                             if (val.startsWith("SOLD ANALITIC") || val.includes("UNITATEA:") || val.includes("REPORT")) {
                                 currentClient = ""; 
                             } else {
@@ -640,7 +637,6 @@
             } catch (e) { console.warn(`Eroare la citirea soldurilor din ${SOLD_FILE}`); }
         }
 
-        // Clic pe clientul din lista folosind ID, complet imun la ghilimele din Excel
         function handleClientClick(clientId) {
             let baseClient = manuallyCreatedClients.find(c => c._id === clientId) || allClients.find(c => c._id === clientId);
             
@@ -670,7 +666,7 @@
             };
 
             if (editedClients[originalName]) {
-                clientData = { ...clientData, ...editedClients[name] };
+                clientData = { ...clientData, ...editedClients[originalName] };
             }
 
             selectedClient = clientData;
@@ -681,7 +677,6 @@
             calculateAndShowSoldSafe();
         }
 
-        // Aceasta functie calculeaza soldul si il afiseaza dupa ce a schimbat ecranul ca sa nu dea freeze la telefon
         function calculateAndShowSoldSafe() {
             const containerSold = document.getElementById('client-mode-sold-container');
             const totalSoldText = document.getElementById('client-mode-sold-total');
@@ -767,7 +762,15 @@
             disp.innerText = total.toLocaleString('ro-RO', {minimumFractionDigits: 2}) + " RON";
         }
 
-        // --- SISTEM RESTANTIERI ---
+        function handleIncasareFactura(facturaNr, suma) {
+            const confirmed = confirm(`Confirmi încasarea facturii ${facturaNr} în valoare de ${suma.toFixed(2)} RON?`);
+            if (confirmed) {
+                const msg = `💰 ÎNCASARE DM AUTO\nAgent: ${currentAgent.name}\nClient: ${selectedClient.name}\nFactură: ${facturaNr}\nSumă: ${suma.toFixed(2)} RON\nData: ${new Date().toLocaleDateString('ro-RO')}`;
+                window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
+                showToast("Încasare raportată!");
+            }
+        }
+
         function renderRestantieriList() {
             showToast("Se încarcă lista de restanțieri...");
             
@@ -1033,7 +1036,6 @@
             }
         }
 
-        // --- MASTER PRODUSE ---
         async function syncMasterData() {
             const cached = localStorage.getItem(`dma_mast_cache`);
             if (cached) allProductsRaw = JSON.parse(cached);
