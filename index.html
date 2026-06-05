@@ -292,11 +292,6 @@
                 <button onclick="switchView('add-client')" class="bg-dm-yellow text-dm-blue px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black text-[10px] sm:text-xs uppercase shadow-xl">+ Client Nou</button>
             </div>
             
-            <!-- BUTON RESTANTIERI -->
-            <button onclick="renderRestantieriList()" class="w-full bg-red-600 text-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl font-black uppercase shadow-xl mb-6 sm:mb-8 active:scale-95 transition-all text-sm sm:text-lg flex justify-center items-center gap-3">
-                <span class="text-2xl sm:text-3xl">🚨</span> VEZI TOȚI RESTANȚIERII
-            </button>
-
             <div class="relative mb-6 sm:mb-8">
                 <input type="text" id="clientSearch" onkeyup="filterClients()" placeholder="Nume, Oraș sau CIF..." class="w-full p-4 sm:p-6 rounded-2xl sm:rounded-3xl text-gray-800 text-base sm:text-xl focus:outline-none shadow-xl border border-gray-100 font-semibold uppercase">
                 <div class="absolute right-4 sm:right-6 top-4 sm:top-5 text-gray-300 text-xl sm:text-2xl">🔍</div>
@@ -308,6 +303,27 @@
             </div>
 
             <div id="clients-list" class="space-y-3 sm:space-y-5 overflow-y-auto max-h-[75vh] pr-1 sm:pr-2"></div>
+        </div>
+
+        <!-- LISTA FACTURI NEINCASATE (SECTIUNE NOUA) -->
+        <div id="view-neincasate" class="view-hidden p-4 sm:p-5">
+            <h2 class="text-2xl sm:text-3xl font-black text-red-600 uppercase italic mb-6 sm:mb-8">🚨 Facturi Neîncasate</h2>
+            
+            <div class="relative mb-6 sm:mb-8">
+                <input type="text" id="neincasateSearch" onkeyup="filterNeincasate()" placeholder="Caută client sau factură..." class="w-full p-4 sm:p-6 rounded-2xl sm:rounded-3xl text-gray-800 text-base sm:text-xl focus:outline-none shadow-xl border border-red-100 font-semibold uppercase">
+                <div class="absolute right-4 sm:right-6 top-4 sm:top-5 text-red-300 text-xl sm:text-2xl">🔍</div>
+            </div>
+
+            <div class="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden border border-red-100 mb-8 sm:mb-12">
+                <div class="overflow-x-auto max-h-[75vh]">
+                    <table class="w-full text-left quick-order-table">
+                        <thead class="bg-red-50 border-b border-red-100 text-red-700">
+                            <tr><th class="pl-4 sm:pl-6">Client / Factură</th><th class="pr-4 sm:pr-6 text-right">Rest Plată</th></tr>
+                        </thead>
+                        <tbody id="neincasateTableBody" class="divide-y divide-red-50"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
         <!-- ADAUGARE CLIENT NOU -->
@@ -342,15 +358,8 @@
             </div>
         </div>
 
-        <!-- SELECTOR MOD (Meniul DUPĂ click pe client) -->
+        <!-- SELECTOR MOD -->
         <div id="view-client-mode" class="view-hidden p-5 sm:p-6 flex flex-col justify-start pt-8 sm:pt-10 min-h-[70vh]">
-            
-            <div id="client-mode-sold-container" class="bg-gray-50 rounded-[2rem] shadow-sm border border-gray-200 p-6 mb-6 sm:mb-8 text-center transition-all duration-300">
-                <p class="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 sm:mb-2">Situație Sold AB / HD</p>
-                <p id="client-mode-sold-total" class="text-xl sm:text-2xl font-black text-gray-500 tracking-tighter mb-0">Se verifică... ⏳</p>
-                <button id="btn-mode-incasare" onclick="selectMode('incasare')" class="hidden bg-green-100 text-green-700 px-6 py-3 rounded-xl font-black text-xs sm:text-sm uppercase shadow-sm active:scale-95 transition-all w-full mt-4">Vezi Facturile 🧾</button>
-            </div>
-
             <h3 class="text-center text-gray-400 font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] mb-4 sm:mb-5 text-sm sm:text-base">Acțiuni</h3>
             
             <div class="grid grid-cols-1 gap-4 sm:gap-5 mb-4 sm:mb-5">
@@ -366,25 +375,6 @@
             <button onclick="switchView('clients')" class="text-center text-dm-blue font-black uppercase tracking-widest text-xs sm:text-sm opacity-50 underline w-full">Schimbă Clientul</button>
         </div>
 
-        <!-- VEDERE ÎNCASARE -->
-        <div id="view-incasare" class="view-hidden p-4 sm:p-6">
-            <h2 class="text-2xl sm:text-3xl font-black text-green-700 uppercase italic mb-4 sm:mb-6 leading-none italic">💰 Neîncasate</h2>
-            <div class="bg-white p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] shadow-xl mb-6 sm:mb-8 text-center">
-                <p class="text-gray-400 font-black uppercase text-[10px] sm:text-xs mb-1 sm:mb-2">Sold Client:</p>
-                <p id="display-sold" class="text-4xl sm:text-5xl font-black text-red-600 tracking-tighter">0.00 RON</p>
-            </div>
-            <div class="bg-white rounded-[1.5rem] sm:rounded-[2rem] shadow-2xl overflow-hidden border border-gray-100">
-                <div class="overflow-x-auto max-h-[60vh]">
-                    <table class="w-full text-left">
-                        <thead class="bg-gray-50 border-b border-gray-100 font-black uppercase text-[9px] sm:text-[10px] text-gray-400 sticky top-0">
-                            <tr><th class="pl-4 sm:pl-6 py-4 sm:py-5">Factură / Data</th><th class="pr-4 sm:pr-6 text-right">Sumă Rest</th></tr>
-                        </thead>
-                        <tbody id="sold-items-table" class="divide-y divide-gray-100"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
         <!-- COȘ -->
         <div id="view-cart" class="view-hidden p-4 sm:p-5">
             <h2 class="text-2xl sm:text-3xl font-black text-dm-blue uppercase italic mb-6 sm:mb-8">🛒 Finalizare Coș</h2>
@@ -397,7 +387,7 @@
                 <button onclick="switchView('clients')" class="text-[10px] sm:text-xs font-black bg-dm-blue text-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl uppercase shadow-xl flex-shrink-0">Schimbă</button>
             </div>
             <div class="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden mb-8 sm:mb-10">
-                <div class="overflow-x-auto max-h-[50vh]">
+                <div class="overflow-x-auto">
                     <table class="w-full text-left quick-order-table">
                         <thead class="bg-gray-50 border-b border-gray-100 font-black uppercase text-[9px] sm:text-[10px]">
                             <tr><th class="pl-4 sm:pl-6 text-xs sm:text-sm">Produs</th><th class="text-center text-xs sm:text-sm">Cant.</th><th class="pr-4 sm:pr-6 text-right text-xs sm:text-sm">Net</th></tr>
@@ -437,6 +427,7 @@
         <!-- NAVIGARE -->
         <nav class="fixed bottom-0 w-full bg-white border-t border-gray-100 p-3 sm:p-5 flex justify-around shadow-[0_-20px_40px_-15px_rgba(0,0,0,0.15)] z-50 rounded-t-[2.5rem] sm:rounded-t-[3.5rem]">
             <button onclick="switchView('catalog')" class="nav-btn flex flex-col items-center text-dm-blue" id="nav-catalog"><span class="text-3xl sm:text-4xl font-bold">🏠</span><span class="text-[9px] sm:text-[10px] font-black uppercase mt-1">Catalog</span></button>
+            <button onclick="switchView('neincasate')" class="nav-btn flex flex-col items-center text-gray-400" id="nav-neincasate"><span class="text-3xl sm:text-4xl font-bold">🚨</span><span class="text-[9px] sm:text-[10px] font-black uppercase mt-1 text-red-500">Facturi</span></button>
             <button onclick="switchView('cart')" class="nav-btn flex flex-col items-center text-gray-400 relative" id="nav-cart"><span class="text-3xl sm:text-4xl font-bold">🛒</span><div id="cartBadge" class="cart-badge hidden">0</div><span class="text-[9px] sm:text-[10px] font-black uppercase mt-1">Coș</span></button>
             <button onclick="switchView('history')" class="nav-btn flex flex-col items-center text-gray-400" id="nav-history"><span class="text-3xl sm:text-4xl font-bold">📋</span><span class="text-[9px] sm:text-[10px] font-black uppercase mt-1">Istoric</span></button>
             <button onclick="handleLogout()" class="flex flex-col items-center text-gray-300"><span class="text-3xl sm:text-4xl font-bold">🚪</span><span class="text-[9px] sm:text-[10px] font-black uppercase mt-1">Ieșire</span></button>
@@ -444,7 +435,6 @@
     </div>
 
     <script>
-        const TVA_RATE = 1.21; 
         const AGENTS = {
             'calin': { pass: 'mocean', name: 'Călin Mocean', filter: 'MOCEAN' },
             'ovidiu': { pass: 'rahovean', name: 'Ovidiu Rahovean', filter: 'RAHOVEAN' }
@@ -483,7 +473,7 @@
             setTimeout(() => t.classList.remove('show'), 3000);
         }
 
-        // Curata numele de litere si puncte extra pt o potrivire lina
+        // Functie de normalizare curata
         function normalizeName(name) {
             if (!name) return "";
             return name.toString().toUpperCase()
@@ -496,30 +486,31 @@
                 .trim();
         }
 
-        function getProductMatchKey(name) {
-            if (!name) return "";
-            return name.toString().toUpperCase().replace(/[\s\-_]/g, '');
-        }
-
         function switchView(viewName, saveHistory = true) {
             if (saveHistory && currentActiveView !== viewName) navigationHistory.push(currentActiveView);
             currentActiveView = viewName;
-            const views = ['catalog', 'cart', 'history', 'order-details', 'clients', 'add-client', 'edit-client', 'client-mode', 'incasare']; 
+            const views = ['catalog', 'cart', 'history', 'order-details', 'clients', 'add-client', 'edit-client', 'client-mode', 'neincasate']; 
             views.forEach(v => { const el = document.getElementById(`view-${v}`); if (el) el.classList.add('view-hidden'); });
             document.getElementById(`view-${viewName}`).classList.remove('view-hidden');
             
             const backBtn = document.getElementById('header-back-btn');
             if (viewName === 'catalog') backBtn.classList.add('view-hidden'); else backBtn.classList.remove('view-hidden');
 
-            const navs = ['catalog', 'cart', 'history'];
+            const navs = ['catalog', 'cart', 'history', 'neincasate'];
             navs.forEach(n => { const el = document.getElementById(`nav-${n}`); if (el) { el.classList.remove('text-dm-blue'); el.classList.add('text-gray-400'); } });
+            
             let activeNav = viewName;
-            if (['add-client', 'edit-client', 'client-mode', 'incasare', 'clients'].includes(viewName)) activeNav = 'catalog';
+            if (['add-client', 'edit-client', 'client-mode', 'clients'].includes(viewName)) activeNav = 'catalog';
             if (viewName === 'order-details') activeNav = 'history';
-            const currentNav = document.getElementById(`nav-${activeNav}`); if (currentNav) { currentNav.classList.remove('text-gray-400'); currentNav.classList.add('text-dm-blue'); } 
+            
+            const currentNav = document.getElementById(`nav-${activeNav}`); 
+            if (currentNav) { currentNav.classList.remove('text-gray-400'); currentNav.classList.add('text-dm-blue'); } 
             
             if (viewName === 'catalog') document.getElementById('search-container').classList.remove('view-hidden'); else document.getElementById('search-container').classList.add('view-hidden'); 
-            if (viewName === 'cart') renderCart(); if (viewName === 'history') renderHistory(); 
+            
+            if (viewName === 'cart') renderCart(); 
+            if (viewName === 'history') renderHistory();
+            if (viewName === 'neincasate') renderNeincasateGlobal();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -527,19 +518,6 @@
             if (navigationHistory.length > 0) switchView(navigationHistory.pop(), false);
             else switchView('catalog');
         }
-
-        let tsX = 0; let tsY = 0; 
-        document.addEventListener('touchstart', e => { tsX = e.changedTouches[0].screenX; tsY = e.changedTouches[0].screenY; });
-        document.addEventListener('touchend', e => { 
-            const teX = e.changedTouches[0].screenX;
-            const teY = e.changedTouches[0].screenY;
-            if (Math.abs(teY - tsY) > 50) return; 
-            
-            const idx = ['catalog', 'cart', 'history'].indexOf(currentActiveView);
-            if (idx === -1) return;
-            if (teX < tsX - 70 && idx < 2) switchView(['catalog', 'cart', 'history'][idx + 1]);
-            if (teX > tsX + 70 && idx > 0) switchView(['catalog', 'cart', 'history'][idx - 1]);
-        });
 
         function handleLogin() {
             const u = document.getElementById('login-user').value.toLowerCase().trim();
@@ -569,8 +547,7 @@
             savedClientNames = JSON.parse(localStorage.getItem(`dma_sv_cli_${id}`) || '[]');
             
             manuallyCreatedClients = JSON.parse(localStorage.getItem(`dma_man_cli_${id}`) || '[]');
-            // Asiguram ID-uri unice pt clienți manuali
-            manuallyCreatedClients.forEach((c, i) => { if(!c._id) c._id = 'manual_' + i; });
+            manuallyCreatedClients.forEach((c, i) => { if(!c._id) c._id = 'manual_' + i; }); // Asigurare ID unic pt clientii vechi creati
             
             editedClients = JSON.parse(localStorage.getItem(`dma_edit_cli_${id}`) || '{}');
             updateBadge(); updateClientUI();
@@ -586,13 +563,14 @@
             localStorage.setItem(`dma_edit_cli_${id}`, JSON.stringify(editedClients));
         }
 
+        // --- FETCH GENERAL CU CACHE-BUSTING ---
         async function fetchExcelLive(filename) {
             const cacheBuster = '?t=' + new Date().getTime();
             const path = window.location.pathname.includes('DM-Auto-App') ? `./${filename}${cacheBuster}` : filename + cacheBuster;
             return await fetch(path);
         }
 
-        // Citire Solduri EXCLUSIV din Facturi_Neincasate.xlsx
+        // --- GESTIUNE FACTURI NEINCASATE ---
         async function syncSoldData() {
             allSoldData = [];
             try {
@@ -623,6 +601,7 @@
                         // F (5): Rest Plata
                         const restVal = formatPriceNum(row[5]);
 
+                        // Daca exista factNr si e diferit de cuvantul "Clienti"
                         if (currentClient && factNr && restVal !== 0 && !factNr.includes("CLIENTI")) {
                             allSoldData.push({
                                 client: currentClient,
@@ -639,7 +618,125 @@
             } catch (e) { console.warn(`Eroare la citirea soldurilor din ${SOLD_FILE}`); }
         }
 
-        // FUNCȚIE ROBUSTĂ DE SELECȚIE PE BAZĂ DE ID (NU MAI CRAPĂ PE TELEFON)
+        function renderNeincasateGlobal() {
+            const table = document.getElementById('neincasateTableBody');
+            
+            if (!allSoldData.length) { 
+                table.innerHTML = '<tr><td colspan="2" class="p-8 sm:p-10 text-center font-bold text-gray-400 italic text-sm sm:text-base">Nu am găsit date. Sincronizează (🔄).</td></tr>'; 
+                return; 
+            }
+
+            const q = document.getElementById('neincasateSearch') ? document.getElementById('neincasateSearch').value.toLowerCase().trim() : "";
+            
+            // Grupăm facturile per client pentru afișaj curat
+            let groupedSold = {};
+            
+            allSoldData.forEach(row => {
+                if(q && !row.client.toLowerCase().includes(q) && !row.factura.toLowerCase().includes(q)) return;
+                
+                if(!groupedSold[row.client]) groupedSold[row.client] = [];
+                groupedSold[row.client].push(row);
+            });
+
+            if (Object.keys(groupedSold).length === 0) { 
+                table.innerHTML = '<tr><td colspan="2" class="p-8 sm:p-10 text-center font-bold text-gray-400 italic text-sm sm:text-base">Nu s-au găsit facturi conform căutării.</td></tr>'; 
+                return; 
+            }
+
+            let html = '';
+            for (let clientName in groupedSold) {
+                const facturi = groupedSold[clientName];
+                let totalClient = 0;
+                let rowsHtml = '';
+                
+                facturi.forEach(row => {
+                    totalClient += row.rest;
+                    const colorClass = row.rest < 0 ? 'text-blue-600' : 'text-red-600';
+                    rowsHtml += `
+                        <tr class="border-b border-red-50 bg-white">
+                            <td class="pl-4 sm:pl-6 py-3 font-bold text-gray-600 text-xs sm:text-sm">
+                                F: ${row.factura} <span class="text-[9px] sm:text-[10px] text-gray-400 ml-2">${row.data}</span>
+                            </td>
+                            <td class="pr-4 sm:pr-6 text-right font-black ${colorClass} text-sm sm:text-base">
+                                ${row.rest.toLocaleString('ro-RO', {minimumFractionDigits: 2})}
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                // Header Client
+                const totalColorClass = totalClient < 0 ? 'text-blue-700' : 'text-red-700';
+                html += `
+                    <tr class="bg-red-50 border-t-4 border-red-100">
+                        <td colspan="2" class="pl-4 sm:pl-6 py-4 font-black text-dm-blue text-sm sm:text-lg uppercase">
+                            ${clientName}
+                            <div class="mt-1 font-black ${totalColorClass}">TOTAL: ${totalClient.toLocaleString('ro-RO', {minimumFractionDigits: 2})} RON</div>
+                        </td>
+                    </tr>
+                `;
+                html += rowsHtml;
+            }
+
+            table.innerHTML = html;
+        }
+
+        function filterNeincasate() {
+            renderNeincasateGlobal();
+        }
+
+        // --- GESTIUNE CLIENTI ---
+        async function syncClients() {
+            const cached = localStorage.getItem(`dma_cache_cli`);
+            if (cached) { 
+                allClients = JSON.parse(cached); 
+                allClients.forEach((c, i) => { if(!c._id) c._id = 'excel_' + i; });
+                filterClients(); 
+            }
+            if (window.location.protocol === 'blob:') return;
+            try {
+                const response = await fetchExcelLive(CLIENTS_FILE);
+                if (response.ok) {
+                    const data = await response.arrayBuffer();
+                    const wb = XLSX.read(data, {type: 'array'});
+                    const sh = wb.Sheets[wb.SheetNames[0]];
+                    const raw = XLSX.utils.sheet_to_json(sh, { header: 1 });
+                    let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().trim().includes("denumire")));
+                    
+                    allClients = XLSX.utils.sheet_to_json(sh, { range: idx === -1 ? 0 : idx, defval: "" }).filter(c => c[Object.keys(c).find(k => k.trim().toLowerCase().includes("denumire"))]);
+                    allClients.forEach((c, i) => c._id = 'excel_' + i); // ID unic
+                    
+                    localStorage.setItem(`dma_cache_cli`, JSON.stringify(allClients));
+                    filterClients();
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function handleCreateClient() {
+            const n = document.getElementById('new-client-name').value.trim().toUpperCase();
+            const l = document.getElementById('new-client-loc').value.trim().toUpperCase();
+            if (!n || !l) { showToast("INTRODU NUME ȘI LOCALITATE!"); return; }
+            
+            const newCli = { 
+                _id: 'manual_' + Date.now(), 
+                denumire: n, 
+                localitate: l, 
+                adresa: document.getElementById('new-client-adresa').value.trim().toUpperCase(),
+                cod_fiscal: document.getElementById('new-client-cif').value.trim().toUpperCase(), 
+                reg_com: document.getElementById('new-client-rc').value.trim().toUpperCase(), 
+                tel: document.getElementById('new-client-tel').value.trim(), 
+                den_agent: currentAgent.filter, 
+                isManual: true 
+            };
+            
+            manuallyCreatedClients.push(newCli); 
+            saveAgentData();
+            
+            ['new-client-name','new-client-loc','new-client-cif','new-client-rc','new-client-tel','new-client-adresa'].forEach(id => document.getElementById(id).value = '');
+            showToast("CLIENT CREAT CU SUCCES!"); 
+            filterClients(); 
+            switchView('clients');
+        }
+
         function handleClientClick(clientId) {
             let baseClient = manuallyCreatedClients.find(c => c._id === clientId) || allClients.find(c => c._id === clientId);
             
@@ -668,7 +765,6 @@
                 adresa: baseClient[kAdresa] || ''
             };
 
-            // Aplicam modificarile salvate de agent
             if (editedClients[originalName]) {
                 clientData = { ...clientData, ...editedClients[originalName] };
             }
@@ -677,212 +773,7 @@
             saveAgentData();
             updateClientUI();
 
-            // SĂRIM IMEDIAT LA ECRANUL CLIENTULUI!
             switchView('client-mode');
-
-            // Calculare automata SOLD
-            const targetNorm = normalizeName(selectedClient.name);
-            const mySold = allSoldData.filter(row => row.clientNorm.includes(targetNorm) || targetNorm.includes(row.clientNorm));
-            
-            let totalSold = 0;
-            mySold.forEach(r => totalSold += r.rest);
-
-            const containerSold = document.getElementById('client-mode-sold-container');
-            const totalSoldText = document.getElementById('client-mode-sold-total');
-            const btnIncasareMode = document.getElementById('btn-mode-incasare');
-
-            if (totalSold > 0.1) {
-                containerSold.className = "bg-white rounded-[2rem] shadow-xl border-t-8 border-red-500 p-6 mb-6 sm:mb-8 text-center";
-                totalSoldText.className = "text-4xl sm:text-5xl font-black text-red-600 mb-3 sm:mb-4 tracking-tighter";
-                totalSoldText.innerText = totalSold.toLocaleString('ro-RO', {minimumFractionDigits: 2}) + ' RON';
-                btnIncasareMode.classList.remove('hidden');
-            } else if (totalSold < -0.1) {
-                // DACA E PE MINUS (CREDIT)
-                containerSold.className = "bg-white rounded-[2rem] shadow-xl border-t-8 border-blue-500 p-6 mb-6 sm:mb-8 text-center";
-                totalSoldText.className = "text-4xl sm:text-5xl font-black text-blue-600 mb-3 sm:mb-4 tracking-tighter";
-                totalSoldText.innerText = Math.abs(totalSold).toLocaleString('ro-RO', {minimumFractionDigits: 2}) + ' RON (CREDIT)';
-                btnIncasareMode.classList.remove('hidden');
-            } else {
-                containerSold.className = "bg-green-50 rounded-[2rem] shadow-sm border border-green-200 p-6 mb-6 sm:mb-8 text-center";
-                totalSoldText.className = "text-2xl sm:text-3xl font-black text-green-600 tracking-tighter mb-0";
-                totalSoldText.innerText = "CLIENT LA ZI ✅";
-                btnIncasareMode.classList.add('hidden');
-            }
-        }
-
-        function renderSoldItems() {
-            const table = document.getElementById('sold-items-table'), disp = document.getElementById('display-sold');
-            if (!selectedClient || !allSoldData.length) { 
-                table.innerHTML = '<tr><td colspan="2" class="p-8 sm:p-10 text-center font-bold text-gray-400 italic text-sm sm:text-base">Nu am găsit date. Sincronizează (🔄).</td></tr>'; 
-                disp.className = "text-4xl sm:text-5xl font-black text-red-600 tracking-tighter";
-                disp.innerText = "0.00 RON"; return; 
-            }
-
-            const targetNorm = normalizeName(selectedClient.name);
-            const mySold = allSoldData.filter(row => row.clientNorm.includes(targetNorm) || targetNorm.includes(row.clientNorm));
-
-            if (mySold.length === 0) { 
-                table.innerHTML = '<tr><td colspan="2" class="p-8 sm:p-10 text-center font-bold text-gray-400 italic text-sm sm:text-base">CLIENT LA ZI. ZERO RESTANȚE.</td></tr>'; 
-                disp.className = "text-4xl sm:text-5xl font-black text-green-600 tracking-tighter";
-                disp.innerText = "0.00 RON"; return; 
-            }
-
-            let total = 0;
-            table.innerHTML = mySold.map(row => {
-                total += row.rest;
-                const formattedSum = Math.abs(row.rest).toLocaleString('ro-RO', {minimumFractionDigits: 2});
-                const sign = row.rest < 0 ? '-' : '';
-                const colorClass = row.rest < 0 ? 'text-blue-600' : 'text-red-600';
-                
-                return `<tr class="border-b border-gray-100">
-                    <td class="pl-4 sm:pl-6 py-4 sm:py-6 font-black text-dm-blue text-sm sm:text-xl leading-tight">
-                        FACT: ${row.factura}<br><span class="text-[10px] sm:text-base text-gray-400 font-bold">${row.data}</span>
-                    </td>
-                    <td class="pr-4 sm:pr-6 text-right">
-                        <div class="flex flex-col items-end gap-2 sm:gap-3">
-                            <span class="font-black ${colorClass} text-xl sm:text-3xl">${sign}${formattedSum}</span>
-                            <button onclick="handleIncasareFactura('${row.factura}', ${row.rest})" class="bg-green-600 text-white px-4 sm:px-5 py-2 sm:py-3 rounded-lg sm:rounded-xl font-black text-[9px] sm:text-xs uppercase shadow-lg active:scale-90 transition-all">Încasează ✅</button>
-                        </div>
-                    </td>
-                </tr>`;
-            }).join('');
-            
-            const totalColorClass = total < 0 ? 'text-blue-600' : (total > 0 ? 'text-red-600' : 'text-green-600');
-            disp.className = `text-4xl sm:text-5xl font-black ${totalColorClass} tracking-tighter`;
-            disp.innerText = total.toLocaleString('ro-RO', {minimumFractionDigits: 2}) + " RON";
-        }
-
-        function handleIncasareFactura(facturaNr, suma) {
-            const confirmed = confirm(`Confirmi încasarea facturii ${facturaNr} în valoare de ${suma.toFixed(2)} RON?`);
-            if (confirmed) {
-                const msg = `💰 ÎNCASARE DM AUTO\nAgent: ${currentAgent.name}\nClient: ${selectedClient.name}\nFactură: ${facturaNr}\nSumă: ${suma.toFixed(2)} RON\nData: ${new Date().toLocaleDateString('ro-RO')}`;
-                window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
-                showToast("Încasare raportată!");
-            }
-        }
-
-        // FUNCȚIE PENTRU LISTA DE RESTANȚIERI
-        function renderRestantieriList() {
-            showToast("Se calculează datoriile...");
-            
-            setTimeout(() => {
-                // Grupăm soldurile pe clienți
-                let grouped = {};
-                allSoldData.forEach(row => {
-                    if(!grouped[row.clientNorm]) {
-                        grouped[row.clientNorm] = { name: row.client, sum: 0 };
-                    }
-                    grouped[row.clientNorm].sum += row.rest;
-                });
-
-                // Asociem cu baza de clienți pentru a avea ID-ul
-                let debtors = [];
-                const merged = [...manuallyCreatedClients, ...allClients];
-                
-                merged.forEach(c => {
-                    const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire"));
-                    const kLoc = Object.keys(c).find(k => k.toLowerCase().includes("localitate"));
-                    const name = c[kName] ? c[kName].toString() : '';
-                    const loc = c[kLoc] ? c[kLoc].toString() : '';
-                    const norm = normalizeName(name);
-                    
-                    let clientSold = 0;
-                    for (let normKey in grouped) {
-                        if (normKey.includes(norm) || norm.includes(normKey)) {
-                            clientSold += grouped[normKey].sum;
-                        }
-                    }
-                    
-                    // Afișăm pe oricine nu e pe 0 (deci și pe cei cu minus / credit)
-                    if (Math.abs(clientSold) > 0.1) {
-                        debtors.push({ id: c._id, name: name, loc: loc, sold: clientSold });
-                    }
-                });
-
-                // Sortam dupa suma
-                debtors.sort((a, b) => b.sold - a.sold);
-
-                const container = document.getElementById('clients-list');
-                if(debtors.length === 0) {
-                    container.innerHTML = '<p class="p-10 text-center text-gray-400 font-bold italic">Niciun restanțier găsit.</p>';
-                    return;
-                }
-
-                // Debifăm butoanele
-                document.getElementById('btnFilterMyClients').className = 'sheet-tab sheet-tab-inactive shadow-md';
-                document.getElementById('btnFilterAllClients').className = 'sheet-tab sheet-tab-inactive shadow-md';
-
-                container.innerHTML = debtors.map(d => {
-                    const color = d.sold > 0 ? 'text-red-600' : 'text-blue-600';
-                    const sign = d.sold < 0 ? '-' : '';
-                    const sumFmt = Math.abs(d.sold).toLocaleString('ro-RO', {minimumFractionDigits: 2});
-                    
-                    return `<div onclick="handleClientClick('${d.id}')" 
-                         class="client-card bg-white p-5 sm:p-7 rounded-2xl sm:rounded-[2.5rem] shadow-xl active:scale-[0.98] transition-all cursor-pointer flex justify-between items-center border-l-[8px] border-red-500">
-                        <div class="flex-1 min-w-0 pr-3 sm:pr-4 pointer-events-none">
-                            <p class="text-base sm:text-2xl font-black text-dm-blue uppercase truncate leading-tight">${d.name}</p>
-                            <p class="text-[10px] sm:text-lg font-bold text-gray-400 mt-1 mb-2">📍 ${d.loc}</p>
-                            <span class="font-black text-lg sm:text-2xl ${color}">${sign}${sumFmt} RON</span>
-                        </div>
-                    </div>`;
-                }).join('');
-
-            }, 100);
-        }
-
-        async function syncClients() {
-            const cached = localStorage.getItem(`dma_cache_cli`);
-            if (cached) { 
-                allClients = JSON.parse(cached); 
-                // Asiguram ID-uri pt back-compatibility
-                allClients.forEach((c, i) => { if(!c._id) c._id = 'excel_' + i; });
-                filterClients(); 
-            }
-            if (window.location.protocol === 'blob:') return;
-            try {
-                const response = await fetchExcelLive(CLIENTS_FILE);
-                if (response.ok) {
-                    const data = await response.arrayBuffer();
-                    const wb = XLSX.read(data, {type: 'array'});
-                    const sh = wb.Sheets[wb.SheetNames[0]];
-                    const raw = XLSX.utils.sheet_to_json(sh, { header: 1 });
-                    let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().trim().includes("denumire")));
-                    
-                    allClients = XLSX.utils.sheet_to_json(sh, { range: idx === -1 ? 0 : idx, defval: "" }).filter(c => c[Object.keys(c).find(k => k.trim().toLowerCase().includes("denumire"))]);
-                    
-                    // INJECTAM ID-URI UNICE LA CITIRE PENTRU A EVITA PROBLEMA DE CLICK
-                    allClients.forEach((c, i) => c._id = 'excel_' + i);
-                    
-                    localStorage.setItem(`dma_cache_cli`, JSON.stringify(allClients));
-                    filterClients();
-                }
-            } catch (e) { console.error(e); }
-        }
-
-        function handleCreateClient() {
-            const n = document.getElementById('new-client-name').value.trim().toUpperCase();
-            const l = document.getElementById('new-client-loc').value.trim().toUpperCase();
-            if (!n || !l) { showToast("INTRODU NUME ȘI LOCALITATE!"); return; }
-            
-            const newCli = { 
-                _id: 'manual_' + Date.now(), // ID UNIC
-                denumire: n, 
-                localitate: l, 
-                adresa: document.getElementById('new-client-adresa').value.trim().toUpperCase(),
-                cod_fiscal: document.getElementById('new-client-cif').value.trim().toUpperCase(), 
-                reg_com: document.getElementById('new-client-rc').value.trim().toUpperCase(), 
-                tel: document.getElementById('new-client-tel').value.trim(), 
-                den_agent: currentAgent.filter, 
-                isManual: true 
-            };
-            
-            manuallyCreatedClients.push(newCli); 
-            saveAgentData();
-            
-            ['new-client-name','new-client-loc','new-client-cif','new-client-rc','new-client-tel','new-client-adresa'].forEach(id => document.getElementById(id).value = '');
-            showToast("CLIENT CREAT CU SUCCES!"); 
-            filterClients(); 
-            switchView('clients');
         }
 
         function openEditClient() {
@@ -900,7 +791,7 @@
             const newName = document.getElementById('edit-client-name').value.trim().toUpperCase();
             if (!newName) { showToast("NUME OBLIGATORIU!"); return; }
             
-            const key = selectedClient.originalName; 
+            const originalName = selectedClient.originalName; 
             
             const updatedData = {
                 name: newName,
@@ -911,7 +802,7 @@
                 adresa: document.getElementById('edit-client-adresa').value.trim().toUpperCase()
             };
 
-            editedClients[key] = updatedData;
+            editedClients[originalName] = updatedData;
             selectedClient = { ...selectedClient, ...updatedData }; 
             
             saveAgentData();
@@ -943,9 +834,8 @@
                 const name = edit ? edit.name : originalName;
                 const loc = edit ? edit.loc : (c[kLoc]?.toString() || "");
                 const cif = edit ? edit.cif : (c[kCIF]?.toString() || "");
-                const adresa = edit ? edit.adresa : "";
 
-                const match = name.toLowerCase().includes(q) || loc.toLowerCase().includes(q) || cif.toLowerCase().includes(q) || adresa.toLowerCase().includes(q);
+                const match = name.toLowerCase().includes(q) || loc.toLowerCase().includes(q) || cif.toLowerCase().includes(q);
                 
                 let agentMatch = true;
                 if (showOnlyMyClients && currentAgent) {
@@ -974,11 +864,7 @@
 
         function renderClients(clients) {
             const container = document.getElementById('clients-list'); 
-            
-            if (clients.length === 0) { 
-                container.innerHTML = '<p class="p-8 sm:p-10 text-center text-gray-400 italic font-bold text-sm sm:text-base">Niciun client găsit.</p>'; 
-                return; 
-            }
+            if (clients.length === 0) { container.innerHTML = '<p class="p-8 sm:p-10 text-center text-gray-400 italic font-bold text-sm sm:text-base">Niciun client găsit.</p>'; return; }
             
             container.innerHTML = clients.map(c => {
                 const kName = Object.keys(c).find(k => k.toLowerCase().includes("denumire"));
@@ -991,19 +877,18 @@
                 const displayName = edit ? edit.name : originalName;
                 const displayLoc = edit ? edit.loc : (c[kLoc] || '-');
 
-                // FOLOSIM UN ID UNIC PENTRU A EVITA ORICE EROARE DE BROWSER (CRATIME/GHILIMELE ETC)
                 return `<div onclick="handleClientClick('${c._id}')" 
                      class="client-card bg-white p-5 sm:p-7 rounded-2xl sm:rounded-[2.5rem] shadow-xl active:scale-[0.98] transition-all cursor-pointer flex justify-between items-center ${selectedClient && (selectedClient.name === displayName || selectedClient.name === originalName) ? 'active-client' : ''}">
                     <div class="flex-1 min-w-0 pr-3 sm:pr-4 pointer-events-none">
-                        <p class="text-base sm:text-2xl font-black text-dm-blue uppercase truncate leading-tight">${displayName}</p>
-                        <p class="text-[10px] sm:text-lg font-bold text-gray-400 mt-1">📍 ${displayLoc}</p>
+                        <p class="text-base sm:text-xl font-black text-dm-blue uppercase truncate leading-tight">${displayName}</p>
+                        <p class="text-[10px] sm:text-xs font-bold text-gray-400 mt-1">📍 ${displayLoc}</p>
                     </div>
-                    <button onclick="event.stopPropagation(); toggleSavedClient('${c._id}')" class="btn-save-client flex-shrink-0 pointer-events-auto ${isSaved ? 'bg-dm-yellow text-dm-blue' : 'bg-gray-100 text-gray-400'}"><span class="text-2xl sm:text-4xl">${isSaved ? '⭐' : '☆'}</span></button>
+                    <button onclick="event.stopPropagation(); toggleSavedClient('${c._id}')" class="btn-save-client flex-shrink-0 pointer-events-auto ${isSaved ? 'bg-dm-yellow text-dm-blue' : 'bg-gray-100 text-gray-400'}"><span class="text-2xl sm:text-3xl">${isSaved ? '⭐' : '☆'}</span></button>
                 </div>`;
             }).join('');
         }
 
-        function selectMode(m) { if (m === 'vanzare') switchView('catalog'); else { renderSoldItems(); switchView('incasare'); } }
+        function selectMode(m) { if (m === 'vanzare') switchView('catalog'); else switchView('neincasate'); }
         
         function updateClientUI() {
             const h = document.getElementById('header-client-name');
@@ -1031,7 +916,18 @@
             }
         }
 
-        // --- MASTER PRODUSE: STOCEGIUNIE.xlsx ---
+        function formatPriceNum(val) {
+            if (val === undefined || val === null || val === "") return 0;
+            if (typeof val === 'number') return val;
+            let s = val.toString().trim();
+            if (s.includes(',') && s.includes('.')) {
+                if (s.lastIndexOf('.') > s.lastIndexOf(',')) s = s.replace(/,/g, ''); 
+                else s = s.replace(/\./g, '').replace(',', '.');
+            } else if (s.includes(',')) s = s.replace(',', '.');
+            const p = parseFloat(s); return isNaN(p) ? 0 : p;
+        }
+
+        // --- MASTER PRODUSE ---
         async function syncMasterData() {
             const cached = localStorage.getItem(`dma_mast_cache`);
             if (cached) allProductsRaw = JSON.parse(cached);
@@ -1044,20 +940,19 @@
                     const sh = wb.Sheets[wb.SheetNames[0]];
                     const raw = XLSX.utils.sheet_to_json(sh, { header: 1 });
                     let idx = raw.findIndex(r => r && r.some(c => c && c.toString().toLowerCase().trim().includes("denumire")));
-                    if(idx === -1) idx = 0; 
                     
-                    const items = XLSX.utils.sheet_to_json(sh, { range: idx, defval: "" });
+                    const items = XLSX.utils.sheet_to_json(sh, { range: idx === -1 ? 0 : idx, defval: "" });
                     let newProducts = [];
 
                     items.forEach(p => {
-                        const kD = Object.keys(p).find(k => k.toLowerCase().includes("denumire") || k.toLowerCase().includes("articol"));
+                        const kD = Object.keys(p).find(k => k.toLowerCase().includes("denumire") || k.toLowerCase().includes("articol") || k.toLowerCase().includes("produs"));
                         const kP = Object.keys(p).find(k => k.toLowerCase().includes("pret") || k.toLowerCase().includes("valoare"));
                         const kS = Object.keys(p).find(k => k.toLowerCase().includes("stoc") || k.toLowerCase().includes("cantitate"));
                         
                         if(!kD || !p[kD]) return;
                         
                         const name = p[kD].toString().trim();
-                        // PRETUL RAMANE CEL DIN FISIER (FARA NICIUN CALCUL - PREIA EXACT CE E IN CELULA)
+                        // PRETUL RAMANE CEL DIN FISIER, FARA A MAI EXTRAGE TVA (Conform cerintei)
                         const pretNet = formatPriceNum(p[kP]);
                         
                         newProducts.push({ 
@@ -1112,8 +1007,8 @@
                     <td class="px-2 sm:px-6 py-3 sm:py-5 font-black text-dm-blue uppercase leading-tight tracking-tighter">
                         <span class="text-[11px] sm:text-sm block mb-1 sm:mb-2 leading-tight">${name}</span>
                         <div class="flex items-center gap-2 sm:gap-3">
-                            <span class="text-xs sm:text-sm font-black text-blue-600/80">${pretNet.toFixed(2)} RON</span>
-                            ${stocVal !== null ? `<span class="text-[9px] font-black ${stocVal>0?'text-green-600 bg-green-50':'text-red-500 bg-red-50'} px-2 py-0.5 rounded-lg border">STOC: ${stocVal.toFixed(0)}</span>` : ''}
+                            <span class="text-xs sm:text-base font-black text-blue-600/80">${pretNet.toFixed(2)} RON</span>
+                            ${stocVal !== null ? `<span class="text-[9px] sm:text-[10px] font-black ${stocVal>0?'text-green-600 bg-green-50':'text-red-500 bg-red-50'} px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl border">STOC: ${stocVal.toFixed(0)}</span>` : ''}
                         </div>
                     </td>
                     <td class="py-3 sm:py-5">
@@ -1151,7 +1046,7 @@
                 totalNet += i.quantity * pF_net;
                 const encodedName = encodeURIComponent(name);
                 
-                return `<tr class="border-b border-gray-100"><td class="px-4 sm:px-6 py-4 font-black text-dm-blue uppercase text-[10px] sm:text-xs leading-tight">${name}<br><span class="text-[9px] sm:text-[10px] font-bold text-blue-600/60 mt-1 block">${pF_net.toFixed(2)} RON</span></td><td class="py-4"><div class="flex items-center justify-center gap-1 sm:gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100"><button onclick="updateCart('${encodedName}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100" style="width:38px;height:38px;font-size:1.2rem;">-</button><span class="font-black text-sm sm:text-base w-5 sm:w-6 text-center text-dm-blue">${i.quantity}</span><button onclick="updateCart('${encodedName}', 1)" class="qty-btn bg-dm-blue text-white shadow-md" style="width:38px;height:38px;font-size:1.2rem;">+</button></div></td><td class="text-right pr-4 sm:pr-6 py-4 font-black text-dm-blue text-sm sm:text-base">${(i.quantity*pF_net).toFixed(2)}</td></tr>`;
+                return `<tr class="border-b border-gray-100"><td class="px-4 sm:px-6 py-4 sm:py-5 font-black text-dm-blue uppercase text-[10px] sm:text-xs leading-tight">${name}<br><span class="text-[9px] sm:text-[10px] font-bold text-blue-600/60 mt-1 block">${pF_net.toFixed(2)} RON</span></td><td class="py-4 sm:py-5"><div class="flex items-center justify-center gap-1 sm:gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100"><button onclick="updateCart('${encodedName}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100" style="width:38px;height:38px;font-size:1.2rem;">-</button><span class="font-black text-sm sm:text-base w-5 sm:w-6 text-center text-dm-blue">${i.quantity}</span><button onclick="updateCart('${encodedName}', 1)" class="qty-btn bg-dm-blue text-white shadow-md" style="width:38px;height:38px;font-size:1.2rem;">+</button></div></td><td class="text-right pr-4 sm:pr-6 py-4 sm:py-5 font-black text-dm-blue text-sm sm:text-base">${(i.quantity*pF_net).toFixed(2)}</td></tr>`;
             }).join('');
             document.getElementById('totalNoVat').innerText = totalNet.toFixed(2) + ' RON';
             document.getElementById('totalWithVat').innerText = (totalNet * TVA_RATE).toFixed(2) + ' RON';
@@ -1178,7 +1073,7 @@
 
         function renderHistory() {
             const c = document.getElementById('history-content'); if (!c) return;
-            if (window.orderHistory.length === 0) { c.innerHTML = '<div class="p-12 sm:p-20 text-center text-gray-400 font-bold uppercase tracking-widest italic text-sm">Istoric Gol.</div>'; return; }
+            if (window.orderHistory.length === 0) { c.innerHTML = '<div class="p-12 sm:p-20 text-center text-gray-400 font-bold uppercase tracking-widest italic text-sm sm:text-base">Istoric Gol.</div>'; return; }
             c.innerHTML = window.orderHistory.map((o, idx) => `<div onclick="veziDetaliiComanda(${idx})" class="bg-white p-6 sm:p-8 rounded-[2rem] shadow-xl border-l-[12px] border-dm-yellow active:scale-[0.98] transition-all cursor-pointer"><div class="flex justify-between items-start mb-4"><span class="text-[10px] font-black text-gray-400 italic">${o.timestamp}</span><span class="${o.status==='Ciornă'?'bg-blue-100 text-blue-700':'bg-green-100 text-green-700'} text-[9px] font-black px-3 py-1.5 rounded-xl uppercase">${o.status}</span></div><p class="text-base sm:text-xl font-black text-dm-blue uppercase leading-none truncate mb-3">${o.client ? o.client.name : 'N/A'}</p><div class="flex justify-between items-end border-t border-gray-50 pt-4"><p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">${o.items} REPERE</p><p class="text-lg sm:text-xl font-black text-dm-blue">${o.total} RON</p></div></div>`).join('');
         }
 
@@ -1194,17 +1089,6 @@
         function retrimiteComandaDirect() { if (currentViewingOrderIndex === null) return; const o = window.orderHistory[currentViewingOrderIndex]; selectedClient = o.client; trimiteWhatsApp(o.timestamp, o.cartData); if (o.status === 'Ciornă') { window.orderHistory[currentViewingOrderIndex].status = 'Trimisă'; saveAgentData(); renderHistory(); } }
         function stergeComandaCurenta() { if (currentViewingOrderIndex === null) return; if (confirm("Ștergi definitiv?")) { window.orderHistory.splice(currentViewingOrderIndex, 1); saveAgentData(); switchView('history'); } }
         
-        function formatPriceNum(val) {
-            if (val === undefined || val === null || val === "") return 0;
-            if (typeof val === 'number') return val;
-            let s = val.toString().trim();
-            if (s.includes(',') && s.includes('.')) {
-                if (s.lastIndexOf('.') > s.lastIndexOf(',')) s = s.replace(/,/g, ''); 
-                else s = s.replace(/\./g, '').replace(',', '.');
-            } else if (s.includes(',')) s = s.replace(',', '.');
-            const p = parseFloat(s); return isNaN(p) ? 0 : p;
-        }
-
         function triggerManualSync() { 
             showToast("ACTUALIZARE LIVE...");
             syncMasterData(); 
