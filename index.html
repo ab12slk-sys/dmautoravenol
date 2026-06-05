@@ -707,42 +707,8 @@
             
             loadAgentData(); 
             
-            // Generam Date Mockup pentru Demonstratia din Canva, 
-            // In productia reala s-ar apela syncMasterData() care citeste Excel.
-            generateMockDataForDemo();
-        }
-
-        // Functie suplimentara PENTRU PREVIEW CANVA, intrucat n-avem fisierele Excel incarcate fizic aici.
-        function generateMockDataForDemo() {
-            // Produse
-            allProductsRaw = [
-                { denumire: 'Ulei Ravenol VMP 5W-30 5L', pret: 185.50, stoc: 12 },
-                { denumire: 'Ulei Ravenol SMP 5W-30 1L', pret: 45.00, stoc: 5 },
-                { denumire: 'Ulei Ravenol FDS 5W-30 5L', pret: 210.00, stoc: 0 },
-                { denumire: 'Baterie Banner Power Bull 74Ah', pret: 350.00, stoc: 8 },
-                { denumire: 'Baterie Banner Starting Bull 60Ah', pret: 280.00, stoc: 3 },
-                { denumire: 'Vaselina Cyclon Lithium 400g', pret: 25.00, stoc: 24 },
-                { denumire: 'Ulei Hidraulic Cyclon HLP 46 20L', pret: 380.00, stoc: 2 },
-                { denumire: 'Placute Frana Cemsa Fata Dacia Logan', pret: 110.00, stoc: 6 },
-                { denumire: 'Filtru Aer Cemsa CA100', pret: 45.50, stoc: 15 }
-            ];
-            
-            // Clienti
-            allClients = [
-                { _id: 'excel_1', "Denumire Client": "AUTO SERVICE GIGI SRL", Localitate: "SEBEȘ", "Cod Fiscal": "RO12345678", "Reg Com": "J01/1/2000", Tel: "0711223344", "Adresa": "Str. Lucian Blaga 10", "Den_Agent": "MOCEAN" },
-                { _id: 'excel_2', "Denumire Client": "TRANSPORTER EXPRESS SA", Localitate: "ALBA IULIA", "Cod Fiscal": "RO98765432", "Reg Com": "J01/2/2005", Tel: "0755667788", "Adresa": "Bdul Incoronarii 5", "Den_Agent": "RAHOVEAN" },
-                { _id: 'excel_3', "Denumire Client": "BOGDAN PFA", Localitate: "PETREȘTI", "Cod Fiscal": "11223344", "Reg Com": "F01/3/2010", Tel: "0700000000", "Adresa": "Str Principala 1", "Den_Agent": "MOCEAN" }
-            ];
-            
-            // Facturi neincasate (pentru testul de sold)
-            allSoldData = [
-                { client: "AUTO SERVICE GIGI SRL", clientNorm: normalizeName("AUTO SERVICE GIGI SRL"), factura: "FCT-1001", data: "01/05/2026", rest: 1250.50 },
-                { client: "AUTO SERVICE GIGI SRL", clientNorm: normalizeName("AUTO SERVICE GIGI SRL"), factura: "FCT-1005", data: "15/05/2026", rest: 450.00 },
-                { client: "BOGDAN PFA", clientNorm: normalizeName("BOGDAN PFA"), factura: "FCT-0990", data: "10/04/2026", rest: -100.00 } // Sold negativ (credit)
-            ];
-            
-            filterClients();
-            showToast("Bază de date DEMO încărcată.");
+            // Incarcam datele reale din fisierele Excel
+            triggerManualSync();
         }
 
         // Functia care citeste Excel in viata reala
@@ -750,6 +716,69 @@
             const cacheBuster = '?t=' + new Date().getTime();
             const path = window.location.pathname.includes('DM-Auto-App') ? `./${filename}${cacheBuster}` : filename + cacheBuster;
             return await fetch(path);
+        }
+
+        function parseExcelNumber(s) {
+            if (typeof s !== 'string') return typeof s === 'number' ? s : 0;
+            if (s.includes('.') && s.includes(',')) {
+                if (s.lastIndexOf('.') > s.lastIndexOf(',')) s = s.replace(/,/g, ''); 
+                else s = s.replace(/\./g, '').replace(',', '.');
+            } else if (s.includes(',')) s = s.replace(',', '.');
+            const p = parseFloat(s); return isNaN(p) ? 0 : p;
+        }
+
+        async function syncMasterData() {
+            try {
+                const res = await fetchExcelLive(MASTER_FILE);
+                const ab = await res.arrayBuffer();
+                const wb = XLSX.read(ab, {type: 'array'});
+                const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                allProductsRaw = data.map(r => {
+                    const kName = Object.keys(r).find(k => k.toLowerCase().includes("denumire")) || Object.keys(r)[0];
+                    const kPret = Object.keys(r).find(k => k.toLowerCase().includes("pret") || k.toLowerCase().includes("preț")) || Object.keys(r)[1];
+                    const kStoc = Object.keys(r).find(k => k.toLowerCase().includes("stoc")) || Object.keys(r)[2];
+                    return {
+                        denumire: r[kName] ? r[kName].toString().trim() : 'Necunoscut',
+                        pret: parseExcelNumber(r[kPret]),
+                        stoc: parseExcelNumber(r[kStoc])
+                    };
+                }).filter(p => p.denumire && p.denumire !== 'Necunoscut');
+            } catch (err) { console.error("Eroare stoc:", err); showToast("Eroare citire STOCEGIUNIE.xlsx"); }
+        }
+
+        async function syncClients() {
+            try {
+                const res = await fetchExcelLive(CLIENTS_FILE);
+                const ab = await res.arrayBuffer();
+                const wb = XLSX.read(ab, {type: 'array'});
+                allClients = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                allClients.forEach((c, i) => c._id = 'excel_' + i);
+                filterClients();
+            } catch (err) { console.error("Eroare clienti:", err); showToast("Eroare citire LISTA_CLIENTI.xlsx"); }
+        }
+
+        async function syncSoldData() {
+            try {
+                const res = await fetchExcelLive(SOLD_FILE);
+                const ab = await res.arrayBuffer();
+                const wb = XLSX.read(ab, {type: 'array'});
+                const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                allSoldData = data.map(r => {
+                    const kClient = Object.keys(r).find(k => k.toLowerCase().includes("client")) || 'Client';
+                    const kFact = Object.keys(r).find(k => k.toLowerCase().includes("factur")) || 'Factura';
+                    const kData = Object.keys(r).find(k => k.toLowerCase().includes("data") || k.toLowerCase().includes("dată")) || 'Data';
+                    const kRest = Object.keys(r).find(k => k.toLowerCase().includes("rest") || k.toLowerCase().includes("sold")) || 'Rest';
+                    
+                    const clientName = r[kClient] ? r[kClient].toString().trim() : '';
+                    return {
+                        client: clientName,
+                        clientNorm: normalizeName(clientName),
+                        factura: r[kFact] ? r[kFact].toString() : '',
+                        data: r[kData] ? r[kData].toString() : '',
+                        rest: parseExcelNumber(r[kRest])
+                    };
+                });
+            } catch (err) { console.error("Eroare solduri:", err); showToast("Eroare citire Facturi_Neincasate.xlsx"); }
         }
 
         // Incarcam date din LocalStorage
@@ -1454,9 +1483,13 @@
             switchView('client-mode');
         }
 
-        function triggerManualSync() { 
-            showToast("SIMULARE ACTUALIZARE LIVE...");
-            generateMockDataForDemo();
+        async function triggerManualSync() { 
+            showToast("ACTUALIZARE LIVE...");
+            await syncMasterData(); 
+            await syncClients(); 
+            await syncSoldData();
+            showToast("Bază de date actualizată!");
+            if(selectedCategory) selectCategory(selectedCategory); 
         }
 
     </script>
