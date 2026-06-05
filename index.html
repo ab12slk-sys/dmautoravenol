@@ -184,7 +184,7 @@
                         </div>
                     </button>
                 </div>
-                <!-- BUTONUL CARE FORȚEAZĂ CURĂȚAREA MEMORIEI ȘI CITIREA DE PE GITHUB -->
+                <!-- BUTON FORȚARE ACTUALIZARE -->
                 <button onclick="triggerManualSync()" class="bg-white/10 p-4 rounded-xl border border-white/20 active:scale-90 transition-all shadow-lg flex-shrink-0">
                     <span class="text-2xl">🔄</span>
                 </button>
@@ -210,7 +210,6 @@
                         <p class="text-white/50 text-[10px] uppercase font-bold tracking-tighter mt-1">Stoc Real & Inventar Complet</p>
                     </div>
                 </div>
-                <!-- IMAGINILE DE FUNDAL RESTAURATE -->
                 <div id="card-Ravenol" onclick="selectCategory('Ravenol')" class="category-card" style="background-image: url('ravenol.jpg'); background-color: #334155;">
                     <div class="category-overlay"><h3 class="text-white font-black text-sm uppercase italic tracking-tighter">RAVENOL</h3></div>
                 </div>
@@ -559,6 +558,7 @@
             savedClientNames = JSON.parse(localStorage.getItem(`dma_sv_cli_${id}`) || '[]');
             
             manuallyCreatedClients = JSON.parse(localStorage.getItem(`dma_man_cli_${id}`) || '[]');
+            // Asiguram ID-uri unice pt clienți manuali
             manuallyCreatedClients.forEach((c, i) => { if(!c._id) c._id = 'manual_' + i; });
             
             editedClients = JSON.parse(localStorage.getItem(`dma_edit_cli_${id}`) || '{}');
@@ -606,7 +606,7 @@
                         // A: Denumire Client (Coloana 0)
                         if (row[0] && row[0].toString().trim()) {
                             const val = row[0].toString().trim().toUpperCase();
-                            // Am scos excluderea cuvantului "TOTAL" ca sa lase "TOTAL FOCUS TRADE" si "GOW TOTAL"
+                            // Am scos excluderea cuvantului "TOTAL" ca sa lase "TOTAL FOCUS TRADE"
                             if (val.startsWith("SOLD ANALITIC") || val.includes("UNITATEA:") || val.includes("REPORT")) {
                                 currentClient = ""; 
                             } else {
@@ -618,9 +618,11 @@
                         const factNr = row[1] ? row[1].toString().trim() : "";
                         
                         // F: Rest Plata (Coloana 5) - Acum cu formatPriceNum care intelege si numere cu minus
-                        const restVal = formatPriceNum(row[5]);
+                        let restRaw = row[5];
+                        if (restRaw === undefined || restRaw === "") restRaw = row[4]; // Fallback in caz de format gresit
+                        
+                        const restVal = formatPriceNum(restRaw);
 
-                        // Adaugam DACA exista un client, o factura, si valoarea facturii NU E ZERO. 
                         if (currentClient && factNr && restVal !== 0 && !factNr.includes("CLIENTI")) {
                             allSoldData.push({
                                 client: currentClient,
@@ -800,6 +802,7 @@
                     }
                 });
 
+                // Sortam dupa cine are de dat mai mult (descrescator)
                 debtors.sort((a, b) => b.sold - a.sold);
 
                 const container = document.getElementById('clients-list');
@@ -832,6 +835,7 @@
             const cached = localStorage.getItem(`dma_cache_cli`);
             if (cached) { 
                 allClients = JSON.parse(cached); 
+                // Asiguram ID-uri pt back-compatibility
                 allClients.forEach((c, i) => { if(!c._id) c._id = 'excel_' + i; });
                 filterClients(); 
             }
@@ -848,7 +852,7 @@
                     
                     allClients = XLSX.utils.sheet_to_json(sh, { range: idx === -1 ? 0 : idx, defval: "" }).filter(c => c[Object.keys(c).find(k => k.trim().toLowerCase().includes("denumire"))]);
                     
-                    // ATRIBUIRE ID UNIC DIRECT LA CITIRE
+                    // ATRIBUIRE ID UNIC DIRECT LA CITIRE PENTRU A EVITA PROBLEMA DE CLICK
                     allClients.forEach((c, i) => c._id = 'excel_' + i);
                     
                     localStorage.setItem(`dma_cache_cli`, JSON.stringify(allClients));
@@ -1054,7 +1058,7 @@
                         const keys = Object.keys(p);
                         const kD = keys.find(k => k.toLowerCase().includes("denumire") || k.toLowerCase().includes("articol") || k.toLowerCase().includes("produs"));
                         const kPretNet = keys.find(k => k.toLowerCase().includes("fara tva") || k.toLowerCase().includes("net"));
-                        const kPretBrut = keys.find(k => k.toLowerCase().includes("pret") || k.toLowerCase().includes("valoare") || k.toLowerCase().includes("vanzare"));
+                        const kPretBrut = keys.find(k => k.toUpperCase() === "PRET" || k.toLowerCase().includes("valoare") || k.toLowerCase().includes("vanzare"));
                         const kS = keys.find(k => k.toLowerCase().includes("stoc") || k.toLowerCase().includes("cantitate"));
                         
                         if(!kD || !p[kD]) return;
@@ -1219,7 +1223,7 @@
         }
 
         function triggerManualSync() { 
-            // Fortam stergerea din memorie si citirea live de pe Github!
+            // Curățare agresivă a cache-ului local ca să forțăm descărcarea proaspătă
             localStorage.removeItem(`dma_mast_cache`);
             localStorage.removeItem(`dma_cache_cli`);
             
