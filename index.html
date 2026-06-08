@@ -30,7 +30,7 @@
         .text-dm-yellow { color: #ffcc00; }
         .bg-dm-yellow { background-color: #ffcc00; }
         
-        /* Stiluri pentru cardurile de categorii (Ravenol, Banner, etc) */
+        /* Stiluri pentru cardurile de categorii */
         .category-card {
             position: relative;
             overflow: hidden;
@@ -61,7 +61,7 @@
             padding: 1rem;
         }
 
-        /* Bulina rosie cu numarul de produse din cos (din bara de jos) */
+        /* Bulina rosie cu numarul de produse din cos */
         .cart-badge {
             position: absolute;
             top: -8px;
@@ -91,10 +91,8 @@
             .category-overlay { padding: 1.5rem; }
         }
 
-        /* Clasa utilitara pentru a ascunde elemente */
         .view-hidden { display: none !important; }
         
-        /* Categoria selectata activ */
         .selected-category {
             border-color: #ffcc00;
             transform: scale(1.03);
@@ -105,7 +103,6 @@
             background: linear-gradient(135deg, #003366 0%, #001a33 100%);
         }
 
-        /* Linia laterala de la lista de clienti (alba/gri in mod normal, galbena daca e clientul curent selectat) */
         .client-card {
             border-left: 8px solid #e2e8f0;
             transition: all 0.2s;
@@ -117,7 +114,6 @@
             background-color: #fffbeb;
         }
 
-        /* Butoanele mari patrate din meniul de selectie Vanzare/Incasare */
         .mode-btn {
             aspect-ratio: 1/1;
             display: flex;
@@ -129,7 +125,6 @@
         }
         @media (min-width: 640px) { .mode-btn { border-radius: 2.5rem; box-shadow: 0 15px 30px -5px rgba(0,0,0,0.15); } }
 
-        /* Mesajele de notificare (ex: "Sincronizare reusita") */
         #custom-toast {
             position: fixed;
             top: 20px;
@@ -154,11 +149,9 @@
         
         #custom-toast.show { transform: translateX(-50%) translateY(0); }
 
-        /* Ascunde scrollbar-ul pentru estetica */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* Header-ul fix (Reper / Pret Net) in tabelul de produse */
         .quick-order-table th {
             font-size: 10px;
             color: #64748b;
@@ -171,7 +164,6 @@
             z-index: 10;
         }
         
-        /* Butoanele de + si - de la cantitate */
         .qty-btn {
             width: 42px;
             height: 42px;
@@ -187,10 +179,9 @@
             .qty-btn { width: 48px; height: 48px; border-radius: 16px; }
         }
         
-        /* Stiluri extra pentru butoanele de filtrare clienți ("Zona Mea" vs "Toți") */
         .sheet-tab {
             padding: 8px 16px;
-            border-radius: 9999px; /* full rounded */
+            border-radius: 9999px; 
             font-size: 12px;
             font-weight: 900;
             text-transform: uppercase;
@@ -202,8 +193,8 @@
             color: white;
         }
         .sheet-tab-inactive {
-            background-color: #f1f5f9; /* gray-100 */
-            color: #64748b; /* gray-500 */
+            background-color: #f1f5f9; 
+            color: #64748b; 
         }
     </style>
 </head>
@@ -213,50 +204,39 @@
     <div id="custom-toast">Mesaj Notificare</div>
 
     <!-- ECRAN LOGIN -->
-    <!-- Afisat doar prima oara sau daca agentul a dat logout -->
     <div id="view-login" class="fixed inset-0 z-[100] login-gradient flex flex-col items-center justify-center p-6 text-center">
         <div class="w-full max-w-sm">
             <div class="flex flex-col items-center mb-8 sm:mb-12">
-                <!-- Aici pui logoul tau real. Momentan e un text de fallback prin atributul onerror -->
                 <img src="logo_dmauto.png" alt="DM Auto Logo" class="h-24 sm:h-32 mb-4 sm:mb-6 object-contain" onerror="this.src='https://placehold.co/150x50/003366/ffcc00?text=DM+AUTO'">
                 <h2 class="text-dm-yellow font-black text-xl sm:text-2xl tracking-widest italic uppercase">Portal Agenți</h2>
             </div>
             
             <div class="bg-white/10 backdrop-blur-xl p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] border border-white/20 shadow-2xl">
-                <!-- Field Utilizator -->
                 <div class="mb-5 sm:mb-6 text-left">
                     <label class="block text-white/50 text-[10px] font-black uppercase mb-1 sm:mb-2 ml-1">Utilizator</label>
                     <input type="text" id="login-user" placeholder="ex: calin" class="w-full bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-5 text-white text-base sm:text-lg focus:outline-none focus:border-dm-yellow transition-all uppercase">
                 </div>
-                <!-- Field Parola -->
                 <div class="mb-8 sm:mb-10 text-left">
                     <label class="block text-white/50 text-[10px] font-black uppercase mb-1 sm:mb-2 ml-1">Parolă</label>
                     <input type="password" id="login-pass" placeholder="••••••••" class="w-full bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-5 text-white text-base sm:text-lg focus:outline-none focus:border-dm-yellow transition-all">
                 </div>
-                <!-- Buton de Log in -->
                 <button onclick="handleLogin()" class="w-full bg-dm-yellow text-dm-blue py-4 sm:py-6 rounded-xl sm:rounded-2xl font-black uppercase shadow-xl active:scale-95 transition-all text-lg sm:text-xl tracking-tighter">Autentificare 🚀</button>
-                <!-- Mesaj de eroare -->
                 <div id="login-error" class="mt-4 sm:mt-5 text-red-400 text-xs font-black hidden uppercase tracking-tighter text-center">Date incorecte!</div>
-                
-                <!-- Helper text pt DEMO -->
                 <p class="text-white/40 text-[10px] mt-6 leading-tight">Pentru demo, folosește userul: <strong class="text-white">calin</strong> și parola <strong class="text-white">mocean</strong></p>
             </div>
         </div>
     </div>
 
-    <!-- APP CONTENT (Tot restul aplicatiei sta aici, e ascuns cat timp esti pe login) -->
+    <!-- APP CONTENT -->
     <div id="app-content" class="view-hidden">
         
         <!-- HEADER-UL DE SUS -->
-        <!-- Acesta ramane lipit sus pe majoritatea ecranelor -->
         <header class="bg-dm-blue text-white p-4 pb-8 sm:p-5 sm:pb-10 shadow-2xl rounded-b-[2.5rem] sm:rounded-b-[3.5rem] sticky top-0 z-40">
             <div class="flex items-center gap-3 sm:gap-5 mb-6 sm:mb-8">
-                <!-- Buton de Inapoi (apare doar cand nu esti pe prima pagina) -->
                 <button id="header-back-btn" onclick="goBack()" class="bg-white/10 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-white/20 active:scale-90 transition-all shadow-lg view-hidden">
                     <span class="text-xl sm:text-2xl font-black">⬅️</span>
                 </button>
                 
-                <!-- Numele agentului si selectia clientului activ -->
                 <div class="flex-1">
                     <h1 class="text-xs sm:text-sm font-medium opacity-70 leading-none mb-1">Salut, <span id="agent-display-name" class="font-black text-white">Agent!</span></h1>
                     <button onclick="switchView('clients')" class="mt-1 sm:mt-2 w-full bg-black/40 border border-white/20 p-3 sm:p-4 rounded-xl sm:rounded-2xl flex flex-col items-start gap-1 active:scale-95 transition-all shadow-inner">
@@ -268,18 +248,15 @@
                     </button>
                 </div>
                 
-                <!-- Buton de sincronizare manuala (Fortam sa traga ultimele excel-uri) -->
                 <button onclick="triggerManualSync()" class="bg-white/10 p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-white/20 active:scale-90 transition-all shadow-lg flex-shrink-0">
                     <span class="text-2xl sm:text-3xl">🔄</span>
                 </button>
             </div>
 
-            <!-- Bara de Cautare Marfa (Apare doar pe ecranul principal de Catalog) -->
             <div id="search-container" class="relative">
                 <input type="text" id="searchInput" onkeyup="if(event.key === 'Enter') filterProducts()" placeholder="Caută marfă (ex: RAV, 5W30)..." 
                        class="w-full p-4 sm:p-6 pr-16 sm:pr-20 rounded-2xl sm:rounded-3xl text-gray-800 text-base sm:text-xl focus:outline-none shadow-2xl border-none font-semibold uppercase">
                 <div onclick="filterProducts()" class="absolute right-4 sm:right-6 top-3 sm:top-5 text-gray-300 cursor-pointer active:scale-90 active:text-dm-blue transition-all">
-                    <!-- Iconita de lupa -->
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 sm:h-10 sm:w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
@@ -289,38 +266,51 @@
 
         <!-- ECRANUL 1: CATALOGUL DE PRODUSE (Acasa) -->
         <div id="view-catalog" class="active-view">
-            <!-- Grila de categorii -->
+            <!-- Noua Grilă de categorii 2x4 -->
             <div class="p-3 sm:p-4 grid grid-cols-2 gap-3 sm:gap-5">
-                <!-- Categoria: Toate Produsele / Inventar (Ocupa ambele coloane) -->
-                <div id="card-Inventar" onclick="selectCategory('Inventar')" class="category-card col-span-2 !aspect-[25/9] sm:!aspect-[30/9]" style="background-color: #1e293b;">
-                    <div class="category-overlay">
-                        <h3 class="text-dm-yellow font-black text-xl sm:text-2xl uppercase italic tracking-widest leading-none">📦 TOATE PRODUSELE</h3>
-                        <p class="text-white/50 text-[10px] sm:text-xs uppercase font-bold tracking-tighter mt-1">Caută în toată baza de date</p>
-                    </div>
-                </div>
                 
                 <!-- Categoria: Ravenol -->
-                <div id="card-Ravenol" onclick="selectCategory('Ravenol')" class="category-card" style="background-color: #334155; background-image: url('https://placehold.co/400x250/334155/ffffff?text=RAVENOL')">
+                <div id="card-Ravenol" onclick="selectCategory('Ravenol')" class="category-card" style="background-color: #1e293b; background-image: url('ravenol.jpg')">
                     <div class="category-overlay"><h3 class="text-white font-black text-sm sm:text-base uppercase italic tracking-tighter">RAVENOL</h3></div>
                 </div>
                 
                 <!-- Categoria: Banner -->
-                <div id="card-Banner" onclick="selectCategory('Banner')" class="category-card" style="background-color: #475569; background-image: url('https://placehold.co/400x250/475569/ffffff?text=BANNER')">
+                <div id="card-Banner" onclick="selectCategory('Banner')" class="category-card" style="background-color: #334155; background-image: url('banner.jpg')">
                     <div class="category-overlay"><h3 class="text-white font-black text-sm sm:text-base uppercase italic tracking-tighter">BANNER</h3></div>
                 </div>
                 
                 <!-- Categoria: Cyclon -->
-                <div id="card-Cyclon" onclick="selectCategory('Cyclon')" class="category-card" style="background-color: #64748b; background-image: url('https://placehold.co/400x250/64748b/ffffff?text=CYCLON')">
+                <div id="card-Cyclon" onclick="selectCategory('Cyclon')" class="category-card" style="background-color: #475569; background-image: url('cyclon.jpg')">
                     <div class="category-overlay"><h3 class="text-white font-black text-sm sm:text-base uppercase italic tracking-tighter">CYCLON</h3></div>
                 </div>
-                
-                <!-- Categoria: Cemsa / Altele -->
-                <div id="card-Cemsa" onclick="selectCategory('Cemsa')" class="category-card" style="background-color: #94a3b8; background-image: url('https://placehold.co/400x250/94a3b8/ffffff?text=CEMSA')">
-                    <div class="category-overlay"><h3 class="text-white font-black text-xs sm:text-sm uppercase italic tracking-tighter">CEMSA / ALTELE</h3></div>
+
+                <!-- Categoria: Castrol -->
+                <div id="card-Castrol" onclick="selectCategory('Castrol')" class="category-card" style="background-color: #166534; background-image: url('castrol.jpg')">
+                    <div class="category-overlay"><h3 class="text-white font-black text-sm sm:text-base uppercase italic tracking-tighter">CASTROL</h3></div>
                 </div>
+
+                <!-- Categoria: Cemsa -->
+                <div id="card-Cemsa" onclick="selectCategory('Cemsa')" class="category-card" style="background-color: #64748b; background-image: url('cemsa.jpg')">
+                    <div class="category-overlay"><h3 class="text-white font-black text-sm sm:text-base uppercase italic tracking-tighter">CEMSA</h3></div>
+                </div>
+
+                <!-- Categoria: Repsol -->
+                <div id="card-Repsol" onclick="selectCategory('Repsol')" class="category-card" style="background-color: #ea580c; background-image: url('repsol.jpg')">
+                    <div class="category-overlay"><h3 class="text-white font-black text-sm sm:text-base uppercase italic tracking-tighter">REPSOL</h3></div>
+                </div>
+
+                <!-- Categoria: Valvoline -->
+                <div id="card-Valvoline" onclick="selectCategory('Valvoline')" class="category-card" style="background-color: #0284c7; background-image: url('valvoline.jpg')">
+                    <div class="category-overlay"><h3 class="text-white font-black text-sm sm:text-base uppercase italic tracking-tighter">VALVOLINE</h3></div>
+                </div>
+
+                <!-- Categoria: Eurol -->
+                <div id="card-Eurol" onclick="selectCategory('Eurol')" class="category-card" style="background-color: #b91c1c; background-image: url('eurol.jpg')">
+                    <div class="category-overlay"><h3 class="text-white font-black text-sm sm:text-base uppercase italic tracking-tighter">EUROL</h3></div>
+                </div>
+                
             </div>
 
-            <!-- Tabelul cu lista de produse (Ascuns initial pana dai click pe o categorie) -->
             <div id="product-section" class="px-2 sm:px-4 view-hidden">
                 <div class="flex justify-between items-center mb-3 sm:mb-5 px-1 pt-2 sm:pt-4">
                     <div class="flex items-center gap-3 sm:gap-4">
@@ -333,7 +323,6 @@
                 <div class="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100 mb-8 sm:mb-12">
                     <div class="overflow-x-auto max-h-[75vh]">
                         <table class="w-full text-left quick-order-table">
-                            <!-- Capul de tabel lipit (sticky) -->
                             <thead class="bg-gray-50 border-b border-gray-100">
                                 <tr>
                                     <th class="pl-4 sm:pl-6 w-1/2">Reper / Stoc / Preț Net</th>
@@ -341,18 +330,16 @@
                                     <th class="pr-4 sm:pr-6 text-right">Total Net</th>
                                 </tr>
                             </thead>
-                            <!-- Randurile sunt generate in Javascript de `renderProducts()` -->
                             <tbody id="productTableBody" class="divide-y divide-gray-100"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
             
-            <!-- Mesaj afisat cand nicio categorie nu e selectata -->
             <div id="category-placeholder" class="p-8 sm:p-12 text-center mt-4">
                 <div class="bg-gray-50 border-2 border-dashed border-gray-200 rounded-[2rem] sm:rounded-[3rem] p-8 sm:p-12 shadow-inner">
                     <span class="text-5xl sm:text-7xl block mb-4 sm:mb-6 animate-bounce">👇</span>
-                    <p class="text-gray-400 font-black uppercase text-sm sm:text-base tracking-widest">Alege o gamă de produse</p>
+                    <p class="text-gray-400 font-black uppercase text-sm sm:text-base tracking-widest">Alege producătorul de mai sus</p>
                 </div>
             </div>
         </div>
@@ -361,44 +348,38 @@
         <div id="view-clients" class="view-hidden p-4 sm:p-5">
             <div class="flex justify-between items-center mb-6 sm:mb-8">
                 <h2 class="text-2xl sm:text-3xl font-black text-dm-blue uppercase italic leading-none">👤 Baza Clienți</h2>
-                <!-- Buton Client Nou manual -->
                 <button onclick="switchView('add-client')" class="bg-dm-yellow text-dm-blue px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black text-[10px] sm:text-xs uppercase shadow-xl">+ Client Nou</button>
             </div>
             
-            <!-- BUTON ROSU RESTANTIERI -->
             <button onclick="renderRestantieriList()" class="w-full bg-red-600 text-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl font-black uppercase shadow-xl mb-6 sm:mb-8 active:scale-95 transition-all text-sm sm:text-lg flex justify-center items-center gap-3">
                 <span class="text-2xl sm:text-3xl">🚨</span> VEZI TOȚI RESTANȚIERII
             </button>
 
-            <!-- Cautare in lista de clienti -->
             <div class="relative mb-6 sm:mb-8">
                 <input type="text" id="clientSearch" onkeyup="filterClients()" placeholder="Nume, Oraș sau CIF..." class="w-full p-4 sm:p-6 rounded-2xl sm:rounded-3xl text-gray-800 text-base sm:text-xl focus:outline-none shadow-xl border border-gray-100 font-semibold uppercase">
                 <div class="absolute right-4 sm:right-6 top-4 sm:top-5 text-gray-300 text-xl sm:text-2xl">🔍</div>
             </div>
             
-            <!-- Filtre (Tab-uri): Zona mea vs Toti -->
             <div class="flex gap-2 sm:gap-3 mb-6 sm:mb-8 overflow-x-auto pb-2 no-scrollbar">
                 <button onclick="toggleClientFilter(true)" id="btnFilterMyClients" class="sheet-tab sheet-tab-inactive shadow-md">Zona Mea ⭐</button>
                 <button onclick="toggleClientFilter(false)" id="btnFilterAllClients" class="sheet-tab sheet-tab-active shadow-lg">Toți Clienții</button>
             </div>
 
-            <!-- Lista generata de JS in `renderClients()` -->
             <div id="clients-list" class="space-y-3 sm:space-y-5 overflow-y-auto max-h-[75vh] pr-1 sm:pr-2"></div>
         </div>
 
-        <!-- ECRANUL: ADAUGARE CLIENT NOU (Manual, cand nu e in excel) -->
+        <!-- ECRANUL: ADAUGARE CLIENT NOU -->
         <div id="view-add-client" class="view-hidden p-4 sm:p-5">
             <h2 class="text-2xl sm:text-3xl font-black text-dm-blue uppercase italic mb-6 sm:mb-8">➕ Client Nou</h2>
             <div class="bg-white p-5 sm:p-8 rounded-[2rem] sm:rounded-[3rem] shadow-2xl border border-gray-100 space-y-4 sm:space-y-6">
                 <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Denumire Firmă</label><input type="text" id="new-client-name" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
-                <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Localitate (Oraș/Sat)</label><input type="text" id="new-client-loc" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
-                <div class="col-span-2"><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Adresă Livrare Completă (Strada + Nr)</label><input type="text" id="new-client-adresa" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
+                <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Localitate</label><input type="text" id="new-client-loc" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
+                <div class="col-span-2"><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Adresă Livrare Completă</label><input type="text" id="new-client-adresa" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
                 <div class="grid grid-cols-2 gap-3 sm:gap-4">
                     <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">C.U.I / C.I.F.</label><input type="text" id="new-client-cif" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
                     <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Reg. Com.</label><input type="text" id="new-client-rc" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
                 </div>
                 <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Nr. Telefon (Optional)</label><input type="tel" id="new-client-tel" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all"></div>
-                
                 <button onclick="handleCreateClient()" class="w-full bg-dm-blue text-dm-yellow py-4 sm:py-6 rounded-xl sm:rounded-[2rem] font-black uppercase text-base sm:text-xl shadow-2xl active:scale-95 transition-all mt-2 sm:mt-4">Salvează Clientul ✅</button>
             </div>
         </div>
@@ -415,28 +396,21 @@
                     <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Reg. Com.</label><input type="text" id="edit-client-rc" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all uppercase"></div>
                 </div>
                 <div><label class="block text-[9px] sm:text-[10px] font-black uppercase text-gray-400 mb-1 sm:mb-2 ml-1">Telefon</label><input type="tel" id="edit-client-tel" class="w-full p-3 sm:p-5 bg-gray-50 border-none rounded-xl sm:rounded-2xl text-sm sm:text-lg font-bold focus:ring-2 focus:ring-dm-yellow transition-all"></div>
-                
                 <button onclick="handleEditClientSave()" class="w-full bg-green-600 text-white py-4 sm:py-6 rounded-xl sm:rounded-[2rem] font-black uppercase text-base sm:text-xl shadow-2xl active:scale-95 transition-all mt-2 sm:mt-4">Salvează Modificările 💾</button>
             </div>
         </div>
 
-        <!-- ECRANUL: SELECTOR MOD (Meniul ce apare FIX dupa ce dai click pe un client) -->
+        <!-- ECRANUL: SELECTOR MOD -->
         <div id="view-client-mode" class="view-hidden p-5 sm:p-6 flex flex-col justify-start pt-8 sm:pt-10 min-h-[70vh]">
-            
-            <!-- Caseta dinamica pt Sold -->
             <div id="client-mode-sold-container" class="bg-gray-50 rounded-[2rem] shadow-sm border border-gray-200 p-6 mb-6 sm:mb-8 text-center transition-all duration-300">
                 <p class="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 sm:mb-2">Situație Sold Agent / Verificare</p>
-                <!-- Aici apare in JS: Se verifica... sau valoarea sau CLIENT LA ZI -->
                 <p id="client-mode-sold-total" class="text-xl sm:text-2xl font-black text-gray-500 tracking-tighter mb-0">Se verifică... ⏳</p>
-                
-                <!-- Buton care te duce la lista de facturi (apare doar daca e dator) -->
                 <button id="btn-mode-incasare" onclick="selectMode('incasare')" class="hidden bg-green-100 text-green-700 px-6 py-3 rounded-xl font-black text-xs sm:text-sm uppercase shadow-sm active:scale-95 transition-all w-full mt-4 border border-green-300">Vezi Facturile de Încasat 🧾</button>
             </div>
 
             <h3 class="text-center text-gray-400 font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] mb-4 sm:mb-5 text-sm sm:text-base">Ce vrei să faci cu acest client?</h3>
             
             <div class="grid grid-cols-1 gap-4 sm:gap-5 mb-4 sm:mb-5">
-                <!-- Buton mare pentru comanda noua -->
                 <button onclick="selectMode('vanzare')" class="bg-dm-blue text-white shadow-2xl rounded-2xl sm:rounded-[2.5rem] py-6 sm:py-8 flex items-center justify-center gap-4 active:scale-95 transition-all border-b-4 border-dm-yellow">
                     <span class="text-4xl sm:text-5xl">🛒</span>
                     <span class="font-black uppercase tracking-widest text-lg sm:text-xl">Faci o Comandă Nouă</span>
@@ -450,17 +424,13 @@
             <button onclick="switchView('clients')" class="text-center text-dm-blue font-black uppercase tracking-widest text-xs sm:text-sm opacity-50 underline w-full py-4">M-am răzgândit. Schimbă Clientul.</button>
         </div>
 
-        <!-- ECRANUL: VEDERE ÎNCASARE (Lista de facturi ale clientului selectat) -->
+        <!-- ECRANUL: VEDERE ÎNCASARE -->
         <div id="view-incasare" class="view-hidden p-4 sm:p-6">
             <h2 class="text-2xl sm:text-3xl font-black text-green-700 uppercase italic mb-4 sm:mb-6 leading-none">💰 Situație Financiară</h2>
-            
-            <!-- Caseta Sumar (Apare sus mare datoria totala) -->
             <div class="bg-white p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] shadow-xl mb-6 sm:mb-8 text-center border-t-8 border-red-500">
                 <p class="text-gray-400 font-black uppercase text-[10px] sm:text-xs mb-1 sm:mb-2">Sold Client Neîncasat:</p>
                 <p id="display-sold" class="text-4xl sm:text-5xl font-black text-red-600 tracking-tighter">0.00 RON</p>
             </div>
-            
-            <!-- Tabelul cu facturile individuale -->
             <div class="bg-white rounded-[1.5rem] sm:rounded-[2rem] shadow-2xl overflow-hidden border border-gray-100">
                 <div class="overflow-x-auto max-h-[60vh]">
                     <table class="w-full text-left">
@@ -476,8 +446,6 @@
         <!-- ECRANUL 3: COȘUL DE CUMPĂRĂTURI -->
         <div id="view-cart" class="view-hidden p-4 sm:p-5">
             <h2 class="text-2xl sm:text-3xl font-black text-dm-blue uppercase italic mb-6 sm:mb-8">🛒 Finalizare Coș</h2>
-            
-            <!-- Banner Sus cu Numele Clientului (Daca n-a ales, e pe rosu) -->
             <div id="cart-client-banner" class="bg-dm-yellow/20 border border-dm-yellow/30 p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] mb-6 sm:mb-8 flex justify-between items-center shadow-sm">
                 <div class="flex-1 min-w-0 pr-4 sm:pr-8">
                     <p class="text-[9px] sm:text-[10px] font-black uppercase text-dm-blue/60 tracking-widest leading-none">Comanda pleacă către:</p>
@@ -486,8 +454,6 @@
                 </div>
                 <button onclick="switchView('clients')" class="text-[10px] sm:text-xs font-black bg-dm-blue text-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl uppercase shadow-xl flex-shrink-0">Schimbă</button>
             </div>
-            
-            <!-- Tabelul cu produsele din cos -->
             <div class="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden mb-8 sm:mb-10">
                 <div class="overflow-x-auto max-h-[50vh]">
                     <table class="w-full text-left quick-order-table">
@@ -500,18 +466,13 @@
                 <div id="cart-empty-msg" class="p-12 sm:p-20 text-center text-gray-400 uppercase font-black text-base sm:text-lg italic view-hidden">Coșul este gol momentan.</div>
             </div>
             
-            <!-- Panoul final cu Totalul si butoanele de trimitere -->
             <div id="cart-summary-box" class="bg-dm-blue text-white rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 shadow-2xl relative overflow-hidden">
-                <!-- Un mic decor de fundal pt vizual -->
                 <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl pointer-events-none">💰</div>
-                
                 <div class="flex justify-between items-end border-b border-white/10 pb-4 sm:pb-6 mb-4 sm:mb-6">
                     <span class="text-[10px] sm:text-xs font-black text-dm-yellow uppercase tracking-widest">Total Net de Plată:</span>
                     <span id="totalNoVat" class="text-3xl sm:text-5xl font-black italic tracking-tighter">0.00 RON</span>
                 </div>
-                <!-- Div ascuns care tine minte si pretul cu tva -->
                 <span id="totalWithVat" class="hidden">0.00 RON</span>
-                
                 <div class="grid grid-cols-2 gap-4 sm:gap-6 relative z-10">
                     <button onclick="salveazaComanda(true)" class="bg-blue-600 text-white py-4 sm:py-7 rounded-[1.5rem] sm:rounded-[2rem] font-black uppercase shadow-2xl flex flex-col items-center gap-1 sm:gap-2 text-xs sm:text-base border border-blue-400/50 hover:bg-blue-500">
                         <span class="text-xl sm:text-2xl">💾</span> SALVEAZĂ (Ciornă)
@@ -521,8 +482,6 @@
                     </button>
                 </div>
             </div>
-            
-            <!-- Buton Extra de Golire Totala -->
             <button onclick="golesteCos()" class="mt-4 w-full text-center text-red-400/80 font-black text-[10px] uppercase tracking-widest underline py-4">Golește tot coșul 🗑️</button>
         </div>
 
@@ -537,7 +496,6 @@
             <div class="bg-white rounded-[2rem] sm:rounded-[3rem] shadow-2xl border border-gray-100 p-6 sm:p-10 mb-8 sm:mb-10">
                 <div id="order-details-header" class="border-b border-gray-100 pb-5 sm:pb-8 mb-5 sm:mb-8"></div>
                 <div id="order-details-items" class="space-y-4 sm:space-y-6 mb-8 sm:mb-12"></div>
-                
                 <div class="flex flex-col gap-3 sm:gap-4">
                     <div class="grid grid-cols-2 gap-3 sm:gap-5">
                         <button onclick="incarcaComandaInCos()" class="bg-dm-blue text-white py-4 sm:py-6 rounded-2xl sm:rounded-3xl font-black uppercase shadow-xl text-xs sm:text-sm">🔄 MUTĂ ÎN COȘ PT MODIFICARE</button>
@@ -565,18 +523,15 @@
     <script>
         const TVA_RATE = 1.21; 
         
-        // Agentii hardcodati (asa cum i-ai cerut tu in cod)
         const AGENTS = {
             'calin': { pass: 'mocean', name: 'Călin Mocean', filter: 'MOCEAN' },
             'ovidiu': { pass: 'rahovean', name: 'Ovidiu Rahovean', filter: 'RAHOVEAN' }
         };
 
-        // Fisierele asteptate in director
         const MASTER_FILE = 'STOCEGIUNIE.xlsx';
         const CLIENTS_FILE = 'LISTA_CLIENTI.xlsx';
         const SOLD_FILE = 'Facturi_Neincasate.xlsx';
 
-        // Variabile de stare globale
         let currentAgent = null;
         let allProductsRaw = []; 
         let allClients = [];
@@ -596,15 +551,6 @@
         window.orderHistory = [];
         let currentViewingOrderIndex = null;
 
-        /* PWA Service worker (pentru viitor cand o pui pe net)
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
-            });
-        }
-        */
-
-        // Sistem de Notificari (Toast)
         function showToast(msg) {
             const t = document.getElementById('custom-toast'); 
             t.innerText = msg; 
@@ -612,7 +558,6 @@
             setTimeout(() => t.classList.remove('show'), 3000);
         }
 
-        // Functii de curatare a numelor pentru cautare flexibila
         function normalizeName(name) {
             if (!name) return "";
             return name.toString().toUpperCase()
@@ -625,38 +570,30 @@
                 .trim();
         }
 
-        // --- SISTEM DE NAVIGATIE VIZUALA (SPA) ---
         function switchView(viewName, saveHistory = true) {
             if (saveHistory && currentActiveView !== viewName) navigationHistory.push(currentActiveView);
             currentActiveView = viewName;
             
-            // Ascunde tot
             const views = ['catalog', 'cart', 'history', 'order-details', 'clients', 'add-client', 'edit-client', 'client-mode', 'incasare']; 
             views.forEach(v => { const el = document.getElementById(`view-${v}`); if (el) el.classList.add('view-hidden'); });
             
-            // Arata doar cel cerut
             document.getElementById(`view-${viewName}`).classList.remove('view-hidden');
             
-            // Gestionare Buton "Inapoi"
             const backBtn = document.getElementById('header-back-btn');
             if (viewName === 'catalog') backBtn.classList.add('view-hidden'); else backBtn.classList.remove('view-hidden');
 
-            // Logica meniului de jos
             const navs = ['catalog', 'cart', 'history'];
             navs.forEach(n => { const el = document.getElementById(`nav-${n}`); if (el) { el.classList.remove('text-dm-blue'); el.classList.add('text-gray-400'); } });
             
             let activeNav = viewName;
-            // Ecranele de clienti fac parte logic tot din "catalog" pt ca agentul porneste comanda
             if (['add-client', 'edit-client', 'client-mode', 'incasare', 'clients'].includes(viewName)) activeNav = 'catalog';
             if (viewName === 'order-details') activeNav = 'history';
             
             const currentNav = document.getElementById(`nav-${activeNav}`); 
             if (currentNav) { currentNav.classList.remove('text-gray-400'); currentNav.classList.add('text-dm-blue'); } 
             
-            // Bara de cautare produse
             if (viewName === 'catalog') document.getElementById('search-container').classList.remove('view-hidden'); else document.getElementById('search-container').classList.add('view-hidden'); 
             
-            // Refresh pe date daca e cazul
             if (viewName === 'cart') renderCart(); 
             if (viewName === 'history') renderHistory(); 
             
@@ -668,22 +605,20 @@
             else switchView('catalog');
         }
 
-        // Gesturi Swipe stanga-dreapta pentru meniu
         let tsX = 0; let tsY = 0; 
         document.addEventListener('touchstart', e => { tsX = e.changedTouches[0].screenX; tsY = e.changedTouches[0].screenY; }, {passive: true});
         document.addEventListener('touchend', e => { 
             const teX = e.changedTouches[0].screenX;
             const teY = e.changedTouches[0].screenY;
-            if (Math.abs(teY - tsY) > 50) return; // scroll vertical, ignoram swipe
+            if (Math.abs(teY - tsY) > 50) return; 
             
             const idx = ['catalog', 'cart', 'history'].indexOf(currentActiveView);
-            if (idx === -1) return; // nu suntem in ecranele principale
+            if (idx === -1) return; 
             
-            if (teX < tsX - 70 && idx < 2) switchView(['catalog', 'cart', 'history'][idx + 1]); // swipe stanga (merge la dreapta in array)
-            if (teX > tsX + 70 && idx > 0) switchView(['catalog', 'cart', 'history'][idx - 1]); // swipe dreapta (merge la stanga in array)
+            if (teX < tsX - 70 && idx < 2) switchView(['catalog', 'cart', 'history'][idx + 1]); 
+            if (teX > tsX + 70 && idx > 0) switchView(['catalog', 'cart', 'history'][idx - 1]); 
         }, {passive: true});
 
-        // --- SISTEM AUTENTIFICARE & INITIALIZARE DATE ---
         function handleLogin() {
             const u = document.getElementById('login-user').value.toLowerCase().trim();
             const p = document.getElementById('login-pass').value.trim();
@@ -706,12 +641,9 @@
             document.getElementById('agent-display-name').innerText = currentAgent.name;
             
             loadAgentData(); 
-            
-            // Incarcam datele reale din fisierele Excel
             triggerManualSync();
         }
 
-        // Functia care citeste Excel in viata reala
         async function fetchExcelLive(filename) {
             const cacheBuster = '?t=' + new Date().getTime();
             const path = window.location.pathname.includes('DM-Auto-App') ? `./${filename}${cacheBuster}` : filename + cacheBuster;
@@ -781,7 +713,6 @@
             } catch (err) { console.error("Eroare solduri:", err); showToast("Eroare citire Facturi_Neincasate.xlsx"); }
         }
 
-        // Incarcam date din LocalStorage
         function loadAgentData() {
             const id = currentAgent.id;
             window.orderHistory = JSON.parse(localStorage.getItem(`dma_hist_${id}`) || '[]');
@@ -808,15 +739,11 @@
             localStorage.setItem(`dma_edit_cli_${id}`, JSON.stringify(editedClients));
         }
 
-        // --- SISTEM DE CLIENTI SI SOLD ---
-
-        // Ce se intampla cand agentul apasa pe un client in lista
         function handleClientClick(clientId) {
             let baseClient = manuallyCreatedClients.find(c => c._id === clientId) || allClients.find(c => c._id === clientId);
             
             if (!baseClient) { showToast("Eroare la încărcarea clientului!"); return; }
 
-            // Cautam numele campurilor din excel indiferent de litere mari/mici
             const kName = Object.keys(baseClient).find(k => k.toLowerCase().includes("denumire"));
             const kLoc = Object.keys(baseClient).find(k => k.toLowerCase().includes("localitate")) || 'localitate';
             const kCIF = Object.keys(baseClient).find(k => k.toLowerCase().includes("cod_fiscal")) || 'cod_fiscal';
@@ -837,7 +764,6 @@
                 adresa: baseClient[kAdresa] || ''
             };
 
-            // Daca l-a editat local, luam noile date
             if (editedClients[originalName]) {
                 clientData = { ...clientData, ...editedClients[originalName] };
             }
@@ -846,10 +772,8 @@
             saveAgentData();
             updateClientUI();
 
-            // SĂRIM IMEDIAT LA ECRANUL CLIENTULUI!
             switchView('client-mode');
 
-            // Calculare automata SOLD pt acest client
             const targetNorm = normalizeName(selectedClient.name);
             const mySold = allSoldData.filter(row => row.clientNorm.includes(targetNorm) || targetNorm.includes(row.clientNorm));
             
@@ -860,21 +784,17 @@
             const totalSoldText = document.getElementById('client-mode-sold-total');
             const btnIncasareMode = document.getElementById('btn-mode-incasare');
 
-            // Styling conditionat in functie de valoarea soldului
             if (totalSold > 0.1) {
-                // Are datorii
                 containerSold.className = "bg-white rounded-[2rem] shadow-xl border-t-8 border-red-500 p-6 mb-6 sm:mb-8 text-center";
                 totalSoldText.className = "text-4xl sm:text-5xl font-black text-red-600 mb-3 sm:mb-4 tracking-tighter";
                 totalSoldText.innerText = totalSold.toLocaleString('ro-RO', {minimumFractionDigits: 2}) + ' RON';
                 btnIncasareMode.classList.remove('hidden');
             } else if (totalSold < -0.1) {
-                // E pe minus (Agentia ii datoreaza bani sau are stornare in avans)
                 containerSold.className = "bg-white rounded-[2rem] shadow-xl border-t-8 border-blue-500 p-6 mb-6 sm:mb-8 text-center";
                 totalSoldText.className = "text-4xl sm:text-5xl font-black text-blue-600 mb-3 sm:mb-4 tracking-tighter";
                 totalSoldText.innerText = Math.abs(totalSold).toLocaleString('ro-RO', {minimumFractionDigits: 2}) + ' RON (CREDIT)';
                 btnIncasareMode.classList.remove('hidden');
             } else {
-                // E la zi
                 containerSold.className = "bg-green-50 rounded-[2rem] shadow-sm border border-green-200 p-6 mb-6 sm:mb-8 text-center";
                 totalSoldText.className = "text-2xl sm:text-3xl font-black text-green-600 tracking-tighter mb-0";
                 totalSoldText.innerText = "CLIENT LA ZI ✅";
@@ -882,7 +802,6 @@
             }
         }
 
-        // Functia de filtrare a clientilor (Bara de cautare)
         function filterClients() {
             const q = document.getElementById('clientSearch').value.toLowerCase().trim();
             const merged = [...manuallyCreatedClients, ...allClients];
@@ -912,7 +831,6 @@
             renderClients(filtered);
         }
 
-        // Randarea pe ecran a listei de clienti gasiti
         function renderClients(clients) {
             const container = document.getElementById('clients-list'); 
             
@@ -938,7 +856,6 @@
                         <p class="text-base sm:text-2xl font-black text-dm-blue uppercase truncate leading-tight">${displayName}</p>
                         <p class="text-[10px] sm:text-lg font-bold text-gray-400 mt-1">📍 ${displayLoc}</p>
                     </div>
-                    <!-- Butonul de Stea (Favorit) -->
                     <button onclick="event.stopPropagation(); toggleSavedClient('${c._id}')" class="flex-shrink-0 pointer-events-auto rounded-full w-10 h-10 flex items-center justify-center ${isSaved ? 'bg-dm-yellow text-dm-blue' : 'bg-gray-100 text-gray-400'}"><span class="text-xl sm:text-2xl">${isSaved ? '⭐' : '☆'}</span></button>
                 </div>`;
             }).join('');
@@ -956,10 +873,9 @@
             else savedClientNames.push(originalName); 
             
             saveAgentData(); 
-            filterClients(); // Refresh lista
+            filterClients(); 
         }
 
-        // Alegerea dintre Modul Vanzare (merge in catalog) sau Modul Incasare (vede facturile)
         function selectMode(m) { 
             if (m === 'vanzare') switchView('catalog'); 
             else { renderSoldItems(); switchView('incasare'); } 
@@ -998,7 +914,6 @@
                     <td class="pr-4 sm:pr-6 text-right">
                         <div class="flex flex-col items-end gap-2 sm:gap-3">
                             <span class="font-black ${colorClass} text-xl sm:text-3xl">${sign}${formattedSum}</span>
-                            <!-- Buton de Incasare prin WhatsApp -->
                             <button onclick="handleIncasareFactura('${row.factura}', ${row.rest})" class="bg-green-600 text-white px-4 sm:px-5 py-2 sm:py-3 rounded-lg sm:rounded-xl font-black text-[9px] sm:text-xs uppercase shadow-lg active:scale-90 transition-all">Încasează ✅</button>
                         </div>
                     </td>
@@ -1019,7 +934,6 @@
             }
         }
 
-        // Functia pentru Lista generala de Restantieri
         function renderRestantieriList() {
             showToast("Se calculează datoriile...");
             
@@ -1052,7 +966,6 @@
                     }
                 });
 
-                // Sortare Descrescator
                 debtors.sort((a, b) => b.sold - a.sold);
 
                 const container = document.getElementById('clients-list');
@@ -1082,7 +995,6 @@
             }, 100);
         }
         
-        // Tab-urile pt My Clients / All Clients
         function toggleClientFilter(mine) {
             showOnlyMyClients = mine;
             document.getElementById('btnFilterMyClients').className = `sheet-tab ${mine ? 'sheet-tab-active' : 'sheet-tab-inactive'} shadow-md`;
@@ -1090,7 +1002,6 @@
             filterClients();
         }
 
-        // Actualizeaza vizual in header/cos numele clientului selectat
         function updateClientUI() {
             const h = document.getElementById('header-client-name');
             const c = document.getElementById('cart-client-name');
@@ -1115,54 +1026,72 @@
             }
         }
 
-        // --- SISTEM DE PRODUSE SI COS ---
+        // ====== LOGICA NOUĂ PENTRU CATEGORII ======
 
-        // Cand selectezi o categorie mare gen Ravenol din ecranul principal
+        // Când se selectează un brand/categorie
         function selectCategory(category) {
             document.getElementById('searchInput').value = ''; 
             selectedCategory = category;
             
-            // Comutare Vizibilitate elemente
             document.getElementById('product-section').classList.remove('view-hidden');
             document.getElementById('category-placeholder').classList.add('view-hidden');
-            document.getElementById('selected-category-title').innerText = category === 'Inventar' ? "INVENTAR COMPLET" : category;
+            document.getElementById('selected-category-title').innerText = category;
             
-            // Design pt carduri selectate
-            ['Ravenol', 'Banner', 'Cyclon', 'Cemsa', 'Inventar'].forEach(cat => {
+            // Adăugăm evidențierea pe cardul apăsat
+            ['Ravenol', 'Banner', 'Cyclon', 'Castrol', 'Cemsa', 'Repsol', 'Valvoline', 'Eurol'].forEach(cat => {
                 const card = document.getElementById(`card-${cat}`); 
                 if (card) card.classList.toggle('selected-category', cat === category);
             });
             
-            // Filtrarea propriu-zisa a produselor in array-ul de memorie
+            // LOGICA NOUĂ DE FILTRARE PE BRANDURI
             currentCategoryData = allProductsRaw.filter(p => {
-                if (category === 'Inventar') return true;
                 const n = p.denumire.toUpperCase();
+                
                 if (category === 'Ravenol') return n.startsWith('RAV');
                 if (category === 'Cyclon') return n.startsWith('CYC');
-                if (category === 'Banner') return n.startsWith('BANNER');
-                if (category === 'Cemsa') return !n.startsWith('RAV') && !n.startsWith('CYC') && !n.startsWith('BANNER');
+                if (category === 'Banner') return n.startsWith('BANNER') || n.startsWith('BAN');
+                if (category === 'Castrol') return n.includes('CASTROL') || n.startsWith('CAS');
+                if (category === 'Cemsa') return n.includes('CEMSA') || n.startsWith('CEM');
+                if (category === 'Repsol') return n.includes('REPSOL') || n.startsWith('REP');
+                if (category === 'Valvoline') return n.includes('VALVOLINE') || n.startsWith('VAL');
+                if (category === 'Eurol') return n.includes('EUROL') || n.startsWith('EUR');
+                
                 return false;
             });
             
-            filterProducts(); // Redesenam tabelul
+            filterProducts(); 
             document.getElementById('product-section').scrollIntoView({ behavior: 'smooth' });
         }
 
         function filterProducts() { 
             const q = document.getElementById('searchInput').value.toLowerCase().trim(); 
-            // Cautare dupa text (inclusiv bucati partiale) in categoria curenta selectata
             const filtrat = currentCategoryData.filter(p => p.denumire.toLowerCase().includes(q));
             
             document.getElementById('productCount').innerText = `${filtrat.length} produse`;
             renderProducts(filtrat); 
         }
 
-        // Functia ce randeaza HTML-ul fiecarui rand din tabelul cu stoc
+        // Când ieșim din vizualizarea unei categorii
+        function resetSelection() { 
+            document.getElementById('searchInput').value = ''; 
+            selectedCategory = null; 
+            document.getElementById('product-section').classList.add('view-hidden'); 
+            document.getElementById('category-placeholder').classList.remove('view-hidden'); 
+            
+            ['Ravenol', 'Banner', 'Cyclon', 'Castrol', 'Cemsa', 'Repsol', 'Valvoline', 'Eurol'].forEach(cat => { 
+                const card = document.getElementById(`card-${cat}`); 
+                if (card) card.classList.remove('selected-category'); 
+            }); 
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' }); 
+        }
+
+        // ==========================================
+
         function renderProducts(products) {
             const tbody = document.getElementById('productTableBody'); if (!tbody) return;
             if (products.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-10 sm:p-20 text-center text-gray-400 font-black text-sm sm:text-xl">Niciun produs găsit.</td></tr>'; return; }
             
-            // Limitare pentru performanta pe telefon, daca sunt peste 200 de produse la o cautare generica
             const dataToRender = products.slice(0, 150);
             
             tbody.innerHTML = dataToRender.map(p => {
@@ -1171,7 +1100,7 @@
                 const stocVal = (p.stoc !== undefined && p.stoc !== "") ? parseFloat(p.stoc.toString().replace(/\./g, '').replace(',', '.')) : null;
                 const qty = cart[name] ? cart[name].quantity : 0;
                 
-                const encodedName = encodeURIComponent(name); // pt a nu se strica string-ul cand il pasez in butonul onclick
+                const encodedName = encodeURIComponent(name); 
                 
                 return `<tr class="${qty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100">
                     <td class="px-2 sm:px-6 py-3 sm:py-5 font-black text-dm-blue uppercase leading-tight tracking-tighter">
@@ -1193,18 +1122,6 @@
             }).join('');
         }
 
-        function resetSelection() { 
-            document.getElementById('searchInput').value = ''; 
-            selectedCategory = null; 
-            document.getElementById('product-section').classList.add('view-hidden'); 
-            document.getElementById('category-placeholder').classList.remove('view-hidden'); 
-            ['Ravenol', 'Banner', 'Cyclon', 'Cemsa', 'Inventar'].forEach(cat => { 
-                const card = document.getElementById(`card-${cat}`); 
-                if (card) card.classList.remove('selected-category'); 
-            }); 
-            window.scrollTo({ top: 0, behavior: 'smooth' }); 
-        }
-
         function updateCart(encodedName, d) {
             const name = decodeURIComponent(encodedName);
             const p = allProductsRaw.find(x => x.denumire === name);
@@ -1214,23 +1131,21 @@
             
             cart[name].quantity += d;
             
-            if (cart[name].quantity <= 0) delete cart[name]; // eliminam din cos
+            if (cart[name].quantity <= 0) delete cart[name]; 
             
             saveAgentData(); 
-            filterProducts(); // redesenam randul sa reflecte cantitatea curenta
+            filterProducts(); 
             
-            if (currentActiveView === 'cart') renderCart(); // daca eram in cos, facem refresh live
+            if (currentActiveView === 'cart') renderCart(); 
             updateBadge();
         }
 
-        // Bulina rosie ce numara produsele in total
         function updateBadge() { 
             const c = Object.values(cart).reduce((s, i) => s + i.quantity, 0); 
             const b = document.getElementById('cartBadge'); 
             if (b) { b.innerText = c; b.classList.toggle('hidden', c === 0); } 
         }
 
-        // Deseneaza continutul cosului (tab-ul 2)
         function renderCart() {
             const tbody = document.getElementById('cart-content-table');
             const em = document.getElementById('cart-empty-msg'); 
@@ -1278,7 +1193,6 @@
             } 
         }
 
-        // Logica principala de finalizare
         function salveazaComanda(isDraft) {
             if (!selectedClient && !isDraft) { 
                 showToast("EROARE: SELECTEAZĂ CLIENTUL MAI ÎNTÂI!"); 
@@ -1294,7 +1208,6 @@
             let total = 0;
             Object.values(cart).forEach(i => total += i.quantity * i.data.pret);
             
-            // Adaugare in array-ul de istoric
             window.orderHistory.unshift({ 
                 timestamp: ts, 
                 total: total.toFixed(2), 
@@ -1307,9 +1220,7 @@
             saveAgentData(); 
             
             if (!isDraft) { 
-                // Finalizare reala, trimite pe WA
                 trimiteWhatsApp(ts, cart); 
-                // Resetam starea dupa trimitere
                 cart = {}; 
                 selectedClient = null; 
                 saveAgentData(); 
@@ -1339,7 +1250,6 @@
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
-        // --- SISTEM DE ISTORIC (Tab-ul 3) ---
         function renderHistory() {
             const c = document.getElementById('history-content'); if (!c) return;
             
@@ -1387,11 +1297,10 @@
             }).join('');
         }
 
-        // Actiunile din meniul de istoric (Modifica/Sterge/Retrimite)
         function incarcaComandaInCos() { 
             if (currentViewingOrderIndex === null) return; 
             const o = window.orderHistory[currentViewingOrderIndex]; 
-            cart = JSON.parse(JSON.stringify(o.cartData)); // clona adanca
+            cart = JSON.parse(JSON.stringify(o.cartData)); 
             selectedClient = o.client; 
             saveAgentData(); 
             updateClientUI(); 
@@ -1420,7 +1329,6 @@
             } 
         }
 
-        // Functii de utilitate specifice pentru creare de client manual din aplicatie
         function handleCreateClient() {
             const n = document.getElementById('new-client-name').value.trim().toUpperCase();
             const l = document.getElementById('new-client-loc').value.trim().toUpperCase();
@@ -1491,6 +1399,11 @@
             showToast("Bază de date actualizată!");
             if(selectedCategory) selectCategory(selectedCategory); 
         }
+
+        window.addEventListener('load', () => { 
+            const s = localStorage.getItem('dmauto_session'); 
+            if (s) { currentAgent = JSON.parse(s); initApp(); } 
+        });
 
     </script>
 </body>
