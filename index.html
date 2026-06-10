@@ -881,6 +881,33 @@
             else { renderSoldItems(); switchView('incasare'); } 
         }
 
+        // --- Funcție nouă utilitară pentru a citi și ordona corect datele facturilor ---
+        function parseDateString(dateVal) {
+            if (!dateVal || dateVal === '-') return new Date(0); // Dacă nu are dată, o punem foarte veche
+            const str = dateVal.toString().trim();
+            
+            // Caz 1: Format de serie nativ din Excel (ex. 45200 în loc de dată formatată)
+            if (!isNaN(str) && str.length >= 4 && str.length <= 5) {
+                const excelDays = parseInt(str, 10);
+                // 25569 reprezintă zilele diferență între baza Excel (1900) și baza JS (1970)
+                return new Date((excelDays - 25569) * 86400 * 1000); 
+            }
+            
+            // Caz 2: Format text din România (ex. 25.12.2025, 25/12/2025, 25-12-2025)
+            const parts = str.split(/[\.\-\/]/);
+            if (parts.length >= 3) {
+                const d = parseInt(parts[0], 10);
+                const m = parseInt(parts[1], 10) - 1; // În JS lunile încep de la 0
+                let y = parseInt(parts[2].substring(0, 4), 10);
+                if (y < 100) y += 2000; // Protecție pentru an scris scurt, ex: 24
+                return new Date(y, m, d);
+            }
+            
+            // Caz 3: Fallback general JS
+            const fallback = new Date(str);
+            return isNaN(fallback.getTime()) ? new Date(0) : fallback;
+        }
+
         function renderSoldItems() {
             const table = document.getElementById('sold-items-table');
             const disp = document.getElementById('display-sold');
@@ -892,13 +919,16 @@
             }
 
             const targetNorm = normalizeName(selectedClient.name);
-            const mySold = allSoldData.filter(row => row.clientNorm.includes(targetNorm) || targetNorm.includes(row.clientNorm));
+            let mySold = allSoldData.filter(row => row.clientNorm.includes(targetNorm) || targetNorm.includes(row.clientNorm));
 
             if (mySold.length === 0) { 
                 table.innerHTML = '<tr><td colspan="2" class="p-8 sm:p-10 text-center font-bold text-gray-400 italic text-sm sm:text-base">CLIENT LA ZI. ZERO RESTANȚE.</td></tr>'; 
                 disp.className = "text-4xl sm:text-5xl font-black text-green-600 tracking-tighter";
                 disp.innerText = "0.00 RON"; return; 
             }
+
+            // === AICI SE FACE ORDONAREA CRONOLOGICĂ (Cele mai vechi primele) ===
+            mySold.sort((a, b) => parseDateString(a.data) - parseDateString(b.data));
 
             let total = 0;
             table.innerHTML = mySold.map(row => {
