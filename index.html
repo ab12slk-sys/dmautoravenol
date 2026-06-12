@@ -1281,7 +1281,7 @@
             let msg = `Salut! Comandă nouă\n🏢 DM Auto Sebeș\n\n👤 AGENT: ${currentAgent.name}\n🛒 CLIENT: ${clientName}\n📍 ADRESĂ: ${clientAdresa}\n📅 Data: ${ts}\n\n`;
             
             Object.values(data).forEach(i => {
-                msg += `👉 ${i.quantity} x ${i.data.denumire}\n`;
+                msg += `👉 ${i.quantity} x ${i.data.denumire} (${i.data.pret.toFixed(2)} RON/buc)\n`;
             });
             
             let total = 0;
