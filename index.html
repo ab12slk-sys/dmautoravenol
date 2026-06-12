@@ -672,16 +672,16 @@
                     
                     const name = r[kName] ? r[kName].toString().trim() : 'Necunoscut';
                     const pretNet = parseExcelNumber(r[kPret]);
-                    const stocVal = r[kStoc] !== undefined ? r[kStoc] : "";
+                    const stocCalculat = parseExcelNumber(r[kStoc]);
                     
-                    // Creăm un ID Unic pe baza numelui și a prețului pentru a rezolva produsele duplicate cu prețuri diferite
-                    const prodId = encodeURIComponent(name + '___' + pretNet).replace(/[']/g, "%27");
+                    // Creăm un ID Unic pe baza numelui, prețului ȘI STOCULUI pentru a separa liniile complet identice
+                    const prodId = encodeURIComponent(name + '___' + pretNet + '___' + stocCalculat).replace(/[']/g, "%27");
 
                     return {
                         id: prodId,
                         denumire: name,
                         pret: pretNet,
-                        stoc: parseExcelNumber(r[kStoc])
+                        stoc: stocCalculat
                     };
                 }).filter(p => p.denumire && p.denumire !== 'Necunoscut');
             } catch (err) { console.error("Eroare stoc:", err); showToast("Eroare citire STOCEGIUNIE.xlsx"); }
