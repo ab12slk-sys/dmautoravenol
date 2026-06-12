@@ -669,9 +669,18 @@
                     const kName = Object.keys(r).find(k => k.toLowerCase().includes("denumire")) || Object.keys(r)[0];
                     const kPret = Object.keys(r).find(k => k.toLowerCase().includes("pret") || k.toLowerCase().includes("preț")) || Object.keys(r)[1];
                     const kStoc = Object.keys(r).find(k => k.toLowerCase().includes("stoc")) || Object.keys(r)[2];
+                    
+                    const name = r[kName] ? r[kName].toString().trim() : 'Necunoscut';
+                    const pretNet = parseExcelNumber(r[kPret]);
+                    const stocVal = r[kStoc] !== undefined ? r[kStoc] : "";
+                    
+                    // Creăm un ID Unic pe baza numelui și a prețului pentru a rezolva produsele duplicate cu prețuri diferite
+                    const prodId = encodeURIComponent(name + '___' + pretNet).replace(/[']/g, "%27");
+
                     return {
-                        denumire: r[kName] ? r[kName].toString().trim() : 'Necunoscut',
-                        pret: parseExcelNumber(r[kPret]),
+                        id: prodId,
+                        denumire: name,
+                        pret: pretNet,
                         stoc: parseExcelNumber(r[kStoc])
                     };
                 }).filter(p => p.denumire && p.denumire !== 'Necunoscut');
@@ -1128,9 +1137,10 @@
                 const name = p.denumire;
                 const pretNet = p.pret;
                 const stocVal = (p.stoc !== undefined && p.stoc !== "") ? parseFloat(p.stoc.toString().replace(/\./g, '').replace(',', '.')) : null;
-                const qty = cart[name] ? cart[name].quantity : 0;
                 
-                const encodedName = encodeURIComponent(name); 
+                // Folosim ID-ul unic în loc de nume pentru a identifica produsele în coș
+                const prodId = p.id;
+                const qty = cart[prodId] ? cart[prodId].quantity : 0;
                 
                 return `<tr class="${qty > 0 ? 'bg-yellow-50' : ''} border-b border-gray-100">
                     <td class="px-2 sm:px-6 py-3 sm:py-5 font-black text-dm-blue uppercase leading-tight tracking-tighter">
@@ -1142,9 +1152,9 @@
                     </td>
                     <td class="py-3 sm:py-5">
                         <div class="flex items-center justify-center gap-1 sm:gap-2 bg-gray-50 rounded-xl sm:rounded-2xl p-1 border border-gray-100 shadow-inner">
-                            <button onclick="updateCart('${encodedName}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button>
+                            <button onclick="updateCart('${prodId}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button>
                             <span class="font-black text-sm sm:text-xl w-6 sm:w-8 text-center text-dm-blue">${qty}</span>
-                            <button onclick="updateCart('${encodedName}', 1)" class="qty-btn bg-dm-blue text-white shadow-md sm:shadow-xl">+</button>
+                            <button onclick="updateCart('${prodId}', 1)" class="qty-btn bg-dm-blue text-white shadow-md sm:shadow-xl">+</button>
                         </div>
                     </td>
                     <td class="text-right pr-3 sm:pr-6 py-3 sm:py-5 font-black text-dm-blue text-sm sm:text-lg">${(qty*pretNet).toFixed(2)}</td>
@@ -1152,16 +1162,15 @@
             }).join('');
         }
 
-        function updateCart(encodedName, d) {
-            const name = decodeURIComponent(encodedName);
-            const p = allProductsRaw.find(x => x.denumire === name);
+        function updateCart(prodId, d) {
+            const p = allProductsRaw.find(x => x.id === prodId);
             if (!p) return;
             
-            if (!cart[name]) cart[name] = { quantity: 0, data: p, category: selectedCategory };
+            if (!cart[prodId]) cart[prodId] = { quantity: 0, data: p, category: selectedCategory };
             
-            cart[name].quantity += d;
+            cart[prodId].quantity += d;
             
-            if (cart[name].quantity <= 0) delete cart[name]; 
+            if (cart[prodId].quantity <= 0) delete cart[prodId]; 
             
             saveAgentData(); 
             filterProducts(); 
@@ -1198,15 +1207,17 @@
                 const name = i.data.denumire;
                 const pF_net = i.data.pret;
                 totalNet += i.quantity * pF_net;
-                const encodedName = encodeURIComponent(name);
+                
+                // Folosim ID-ul din datele salvate
+                const prodId = i.data.id;
                 
                 return `<tr class="border-b border-gray-100">
                     <td class="px-4 sm:px-6 py-4 font-black text-dm-blue uppercase text-[10px] sm:text-xs leading-tight">${name}<br><span class="text-[9px] sm:text-[10px] font-bold text-blue-600/60 mt-1 block">${pF_net.toFixed(2)} RON</span></td>
                     <td class="py-4">
                         <div class="flex items-center justify-center gap-1 sm:gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100">
-                            <button onclick="updateCart('${encodedName}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100" style="width:38px;height:38px;font-size:1.2rem;">-</button>
+                            <button onclick="updateCart('${prodId}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100" style="width:38px;height:38px;font-size:1.2rem;">-</button>
                             <span class="font-black text-sm sm:text-base w-5 sm:w-6 text-center text-dm-blue">${i.quantity}</span>
-                            <button onclick="updateCart('${encodedName}', 1)" class="qty-btn bg-dm-blue text-white shadow-md" style="width:38px;height:38px;font-size:1.2rem;">+</button>
+                            <button onclick="updateCart('${prodId}', 1)" class="qty-btn bg-dm-blue text-white shadow-md" style="width:38px;height:38px;font-size:1.2rem;">+</button>
                         </div>
                     </td>
                     <td class="text-right pr-4 sm:pr-6 py-4 font-black text-dm-blue text-sm sm:text-base">${(i.quantity*pF_net).toFixed(2)}</td>
