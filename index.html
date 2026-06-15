@@ -344,6 +344,29 @@
             </div>
         </div>
 
+        <!-- ECRANUL: OFERTE SPECIALE -->
+        <div id="view-oferte" class="view-hidden p-4 sm:p-5">
+            <div class="flex justify-between items-center mb-4 sm:mb-6">
+                <h2 class="text-2xl sm:text-3xl font-black text-red-600 uppercase italic leading-none">🎁 Oferte Speciale</h2>
+            </div>
+            <p class="text-xs sm:text-sm font-bold text-gray-500 mb-6 uppercase tracking-widest">Adaugă direct din listă în coșul tău</p>
+
+            <div class="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden border border-red-100 mb-8 sm:mb-12">
+                <div class="overflow-x-auto max-h-[75vh]">
+                    <table class="w-full text-left quick-order-table">
+                        <thead class="bg-red-50 border-b border-red-100">
+                            <tr>
+                                <th class="pl-4 sm:pl-6 w-1/2 text-red-800">Ofertă / Stoc / Preț Net</th>
+                                <th class="text-center text-red-800">Cant.</th>
+                                <th class="pr-4 sm:pr-6 text-right text-red-800">Total Net</th>
+                            </tr>
+                        </thead>
+                        <tbody id="oferteTableBody" class="divide-y divide-gray-100"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <!-- ECRANUL 2: BAZA DE CLIENȚI -->
         <div id="view-clients" class="view-hidden p-4 sm:p-5">
             <div class="flex justify-between items-center mb-6 sm:mb-8">
@@ -507,15 +530,16 @@
         </div>
 
         <!-- NAVIGARE (BARA DE JOS) -->
-        <nav class="fixed bottom-0 w-full bg-white border-t border-gray-100 p-3 sm:p-5 flex justify-around shadow-[0_-20px_40px_-15px_rgba(0,0,0,0.15)] z-50 rounded-t-[2.5rem] sm:rounded-t-[3.5rem]">
-            <button onclick="switchView('catalog')" class="nav-btn flex flex-col items-center text-dm-blue transition-colors" id="nav-catalog"><span class="text-3xl sm:text-4xl font-bold">🏠</span><span class="text-[9px] sm:text-[10px] font-black uppercase mt-1 tracking-wider">Catalog</span></button>
+        <nav class="fixed bottom-0 w-full bg-white border-t border-gray-100 p-2 sm:p-4 flex justify-around shadow-[0_-20px_40px_-15px_rgba(0,0,0,0.15)] z-50 rounded-t-[2.5rem] sm:rounded-t-[3.5rem]">
+            <button onclick="switchView('catalog')" class="nav-btn flex flex-col items-center text-dm-blue transition-colors" id="nav-catalog"><span class="text-2xl sm:text-3xl font-bold">🏠</span><span class="text-[9px] sm:text-[10px] font-black uppercase mt-1 tracking-wider">Catalog</span></button>
+            <button onclick="switchView('oferte')" class="nav-btn flex flex-col items-center text-gray-400 transition-colors" id="nav-oferte"><span class="text-2xl sm:text-3xl font-bold text-red-500 drop-shadow-md">🎁</span><span class="text-[9px] sm:text-[10px] font-black uppercase mt-1 tracking-wider text-red-500">Oferte</span></button>
             <button onclick="switchView('cart')" class="nav-btn flex flex-col items-center text-gray-400 transition-colors relative" id="nav-cart">
-                <span class="text-3xl sm:text-4xl font-bold">🛒</span>
+                <span class="text-2xl sm:text-3xl font-bold">🛒</span>
                 <div id="cartBadge" class="cart-badge hidden">0</div>
                 <span class="text-[9px] sm:text-[10px] font-black uppercase mt-1 tracking-wider">Coș</span>
             </button>
-            <button onclick="switchView('history')" class="nav-btn flex flex-col items-center text-gray-400 transition-colors" id="nav-history"><span class="text-3xl sm:text-4xl font-bold">📋</span><span class="text-[9px] sm:text-[10px] font-black uppercase mt-1 tracking-wider">Istoric</span></button>
-            <button onclick="handleLogout()" class="nav-btn flex flex-col items-center text-gray-300 transition-colors hover:text-red-400"><span class="text-3xl sm:text-4xl font-bold">🚪</span><span class="text-[9px] sm:text-[10px] font-black uppercase mt-1 tracking-wider">Ieșire</span></button>
+            <button onclick="switchView('history')" class="nav-btn flex flex-col items-center text-gray-400 transition-colors" id="nav-history"><span class="text-2xl sm:text-3xl font-bold">📋</span><span class="text-[9px] sm:text-[10px] font-black uppercase mt-1 tracking-wider">Istoric</span></button>
+            <button onclick="handleLogout()" class="nav-btn flex flex-col items-center text-gray-300 transition-colors hover:text-red-400"><span class="text-2xl sm:text-3xl font-bold">🚪</span><span class="text-[9px] sm:text-[10px] font-black uppercase mt-1 tracking-wider">Ieșire</span></button>
         </nav>
     </div>
 
@@ -529,11 +553,13 @@
         };
 
         const MASTER_FILE = 'STOCEGIUNIE.xlsx';
+        const OFERTE_FILE = 'oferte_butoaie.xlsx';
         const CLIENTS_FILE = 'LISTA_CLIENTI.xlsx';
         const SOLD_FILE = 'Facturi_Neincasate.xlsx';
 
         let currentAgent = null;
         let allProductsRaw = []; 
+        let allOferteData = [];
         let allClients = [];
         let allSoldData = [];
         
@@ -574,7 +600,7 @@
             if (saveHistory && currentActiveView !== viewName) navigationHistory.push(currentActiveView);
             currentActiveView = viewName;
             
-            const views = ['catalog', 'cart', 'history', 'order-details', 'clients', 'add-client', 'edit-client', 'client-mode', 'incasare']; 
+            const views = ['catalog', 'oferte', 'cart', 'history', 'order-details', 'clients', 'add-client', 'edit-client', 'client-mode', 'incasare']; 
             views.forEach(v => { const el = document.getElementById(`view-${v}`); if (el) el.classList.add('view-hidden'); });
             
             document.getElementById(`view-${viewName}`).classList.remove('view-hidden');
@@ -582,20 +608,30 @@
             const backBtn = document.getElementById('header-back-btn');
             if (viewName === 'catalog') backBtn.classList.add('view-hidden'); else backBtn.classList.remove('view-hidden');
 
-            const navs = ['catalog', 'cart', 'history'];
-            navs.forEach(n => { const el = document.getElementById(`nav-${n}`); if (el) { el.classList.remove('text-dm-blue'); el.classList.add('text-gray-400'); } });
+            const navs = ['catalog', 'oferte', 'cart', 'history'];
+            navs.forEach(n => { 
+                const el = document.getElementById(`nav-${n}`); 
+                if (el) { 
+                    el.classList.remove('text-dm-blue'); 
+                    el.classList.add('text-gray-400'); 
+                } 
+            });
             
             let activeNav = viewName;
             if (['add-client', 'edit-client', 'client-mode', 'incasare', 'clients'].includes(viewName)) activeNav = 'catalog';
             if (viewName === 'order-details') activeNav = 'history';
             
             const currentNav = document.getElementById(`nav-${activeNav}`); 
-            if (currentNav) { currentNav.classList.remove('text-gray-400'); currentNav.classList.add('text-dm-blue'); } 
+            if (currentNav) { 
+                currentNav.classList.remove('text-gray-400'); 
+                currentNav.classList.add('text-dm-blue'); 
+            } 
             
             if (viewName === 'catalog') document.getElementById('search-container').classList.remove('view-hidden'); else document.getElementById('search-container').classList.add('view-hidden'); 
             
             if (viewName === 'cart') renderCart(); 
             if (viewName === 'history') renderHistory(); 
+            if (viewName === 'oferte') renderOferte();
             
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -612,11 +648,11 @@
             const teY = e.changedTouches[0].screenY;
             if (Math.abs(teY - tsY) > 50) return; 
             
-            const idx = ['catalog', 'cart', 'history'].indexOf(currentActiveView);
+            const idx = ['catalog', 'oferte', 'cart', 'history'].indexOf(currentActiveView);
             if (idx === -1) return; 
             
-            if (teX < tsX - 70 && idx < 2) switchView(['catalog', 'cart', 'history'][idx + 1]); 
-            if (teX > tsX + 70 && idx > 0) switchView(['catalog', 'cart', 'history'][idx - 1]); 
+            if (teX < tsX - 70 && idx < 3) switchView(['catalog', 'oferte', 'cart', 'history'][idx + 1]); 
+            if (teX > tsX + 70 && idx > 0) switchView(['catalog', 'oferte', 'cart', 'history'][idx - 1]); 
         }, {passive: true});
 
         function handleLogin() {
@@ -666,7 +702,6 @@
                 const wb = XLSX.read(ab, {type: 'array'});
                 const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
                 allProductsRaw = data.map(r => {
-                    // Logică actualizată pentru a citi exact noile coloane
                     const keys = Object.keys(r);
                     const kName = keys.find(k => k.toLowerCase().includes("denumire"));
                     const kPret = keys.find(k => k.toLowerCase().includes("pret fara tva") || (k.toLowerCase().includes("pret") && !k.toLowerCase().includes("cu tva")));
@@ -676,17 +711,48 @@
                     const pretNet = kPret ? parseExcelNumber(r[kPret]) : 0;
                     const stocCalculat = kStoc ? parseExcelNumber(r[kStoc]) : 0;
                     
-                    // Creăm un ID Unic pe baza numelui, prețului ȘI STOCULUI pentru a separa liniile complet identice
                     const prodId = encodeURIComponent(name + '___' + pretNet + '___' + stocCalculat).replace(/[']/g, "%27");
 
                     return {
                         id: prodId,
                         denumire: name,
                         pret: pretNet,
-                        stoc: stocCalculat
+                        stoc: stocCalculat,
+                        isOferta: false
                     };
                 }).filter(p => p.denumire && p.denumire !== 'Necunoscut');
             } catch (err) { console.error("Eroare stoc:", err); showToast("Eroare citire STOCEGIUNIE.xlsx"); }
+        }
+
+        async function syncOferteData() {
+            try {
+                const res = await fetchExcelLive(OFERTE_FILE);
+                if (!res.ok) return; // Silent catch in caz ca nu exista fisierul inca
+                const ab = await res.arrayBuffer();
+                const wb = XLSX.read(ab, {type: 'array'});
+                const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                
+                allOferteData = data.map(r => {
+                    const keys = Object.keys(r);
+                    const kName = keys.find(k => k.toLowerCase().includes("denumire") || k.toLowerCase().includes("oferta"));
+                    const kPret = keys.find(k => k.toLowerCase().includes("pret fara tva") || (k.toLowerCase().includes("pret") && !k.toLowerCase().includes("cu tva")));
+                    const kStoc = keys.find(k => k.toLowerCase().includes("cantitate") || k.toLowerCase().includes("stoc"));
+                    
+                    const name = kName && r[kName] ? r[kName].toString().trim() : 'Necunoscut';
+                    const pretNet = kPret ? parseExcelNumber(r[kPret]) : 0;
+                    const stocCalculat = kStoc ? parseExcelNumber(r[kStoc]) : 0;
+                    
+                    const prodId = encodeURIComponent('OFERTA___' + name + '___' + pretNet + '___' + stocCalculat).replace(/[']/g, "%27");
+
+                    return {
+                        id: prodId,
+                        denumire: "🎁 " + name, // Adaugam iconita sa iasa in evidenta in cos
+                        pret: pretNet,
+                        stoc: stocCalculat,
+                        isOferta: true
+                    };
+                }).filter(p => p.denumire && p.denumire !== '🎁 Necunoscut');
+            } catch (err) { console.warn("Fisier oferte_butoaie inexistent inca sau eroare."); }
         }
 
         async function syncClients() {
@@ -892,29 +958,21 @@
             else { renderSoldItems(); switchView('incasare'); } 
         }
 
-        // --- Funcție nouă utilitară pentru a citi și ordona corect datele facturilor ---
         function parseDateString(dateVal) {
-            if (!dateVal || dateVal === '-') return new Date(0); // Dacă nu are dată, o punem foarte veche
+            if (!dateVal || dateVal === '-') return new Date(0); 
             const str = dateVal.toString().trim();
-            
-            // Caz 1: Format de serie nativ din Excel (ex. 45200 în loc de dată formatată)
             if (!isNaN(str) && str.length >= 4 && str.length <= 5) {
                 const excelDays = parseInt(str, 10);
-                // 25569 reprezintă zilele diferență între baza Excel (1900) și baza JS (1970)
                 return new Date((excelDays - 25569) * 86400 * 1000); 
             }
-            
-            // Caz 2: Format text din România (ex. 25.12.2025, 25/12/2025, 25-12-2025)
             const parts = str.split(/[\.\-\/]/);
             if (parts.length >= 3) {
                 const d = parseInt(parts[0], 10);
-                const m = parseInt(parts[1], 10) - 1; // În JS lunile încep de la 0
+                const m = parseInt(parts[1], 10) - 1; 
                 let y = parseInt(parts[2].substring(0, 4), 10);
-                if (y < 100) y += 2000; // Protecție pentru an scris scurt, ex: 24
+                if (y < 100) y += 2000; 
                 return new Date(y, m, d);
             }
-            
-            // Caz 3: Fallback general JS
             const fallback = new Date(str);
             return isNaN(fallback.getTime()) ? new Date(0) : fallback;
         }
@@ -938,7 +996,6 @@
                 disp.innerText = "0.00 RON"; return; 
             }
 
-            // === AICI SE FACE ORDONAREA CRONOLOGICĂ (Cele mai vechi primele) ===
             mySold.sort((a, b) => parseDateString(a.data) - parseDateString(b.data));
 
             let total = 0;
@@ -1067,9 +1124,6 @@
             }
         }
 
-        // ====== LOGICA NOUĂ PENTRU CATEGORII ======
-
-        // Când se selectează un brand/categorie
         function selectCategory(category) {
             document.getElementById('searchInput').value = ''; 
             selectedCategory = category;
@@ -1078,16 +1132,13 @@
             document.getElementById('category-placeholder').classList.add('view-hidden');
             document.getElementById('selected-category-title').innerText = category;
             
-            // Adăugăm evidențierea pe cardul apăsat
             ['Ravenol', 'Banner', 'Cyclon', 'Castrol', 'Cemsa', 'Repsol', 'Valvoline', 'Eurol'].forEach(cat => {
                 const card = document.getElementById(`card-${cat}`); 
                 if (card) card.classList.toggle('selected-category', cat === category);
             });
             
-            // LOGICA NOUĂ DE FILTRARE PE BRANDURI
             currentCategoryData = allProductsRaw.filter(p => {
                 const n = p.denumire.toUpperCase();
-                
                 if (category === 'Ravenol') return n.startsWith('RAV');
                 if (category === 'Cyclon') return n.startsWith('CYC');
                 if (category === 'Banner') return n.startsWith('BANNER') || n.startsWith('BAN');
@@ -1096,7 +1147,6 @@
                 if (category === 'Repsol') return n.includes('REPSOL') || n.startsWith('REP');
                 if (category === 'Valvoline') return n.includes('VALVOLINE') || n.startsWith('VAL');
                 if (category === 'Eurol') return n.includes('EUROL') || n.startsWith('EUR');
-                
                 return false;
             });
             
@@ -1112,7 +1162,6 @@
             renderProducts(filtrat); 
         }
 
-        // Când ieșim din vizualizarea unei categorii
         function resetSelection() { 
             document.getElementById('searchInput').value = ''; 
             selectedCategory = null; 
@@ -1127,8 +1176,6 @@
             window.scrollTo({ top: 0, behavior: 'smooth' }); 
         }
 
-        // ==========================================
-
         function renderProducts(products) {
             const tbody = document.getElementById('productTableBody'); if (!tbody) return;
             if (products.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-10 sm:p-20 text-center text-gray-400 font-black text-sm sm:text-xl">Niciun produs găsit.</td></tr>'; return; }
@@ -1139,8 +1186,6 @@
                 const name = p.denumire;
                 const pretNet = p.pret;
                 const stocVal = (p.stoc !== undefined && p.stoc !== "") ? parseFloat(p.stoc.toString().replace(/\./g, '').replace(',', '.')) : null;
-                
-                // Folosim ID-ul unic în loc de nume pentru a identifica produsele în coș
                 const prodId = p.id;
                 const qty = cart[prodId] ? cart[prodId].quantity : 0;
                 
@@ -1164,18 +1209,62 @@
             }).join('');
         }
 
+        // Functia noua pentru listarea Ofertelor Specifice
+        function renderOferte() {
+            const tbody = document.getElementById('oferteTableBody'); if (!tbody) return;
+            if (allOferteData.length === 0) { 
+                tbody.innerHTML = '<tr><td colspan="3" class="p-10 sm:p-20 text-center text-gray-400 font-black text-sm sm:text-xl">Nu sunt oferte disponibile momentan.</td></tr>'; 
+                return; 
+            }
+            
+            tbody.innerHTML = allOferteData.map(p => {
+                const name = p.denumire;
+                const pretNet = p.pret;
+                const stocVal = (p.stoc !== undefined && p.stoc !== "") ? parseFloat(p.stoc.toString().replace(/\./g, '').replace(',', '.')) : null;
+                const prodId = p.id;
+                const qty = cart[prodId] ? cart[prodId].quantity : 0;
+                
+                return `<tr class="${qty > 0 ? 'bg-red-50' : ''} border-b border-red-50">
+                    <td class="px-2 sm:px-6 py-3 sm:py-5 font-black text-dm-blue uppercase leading-tight tracking-tighter">
+                        <span class="text-[11px] sm:text-sm block mb-1 sm:mb-2 leading-tight text-red-700 drop-shadow-sm">${name}</span>
+                        <div class="flex items-center gap-2 sm:gap-3">
+                            <span class="text-xs sm:text-sm font-black text-red-600/80">${pretNet.toFixed(2)} RON</span>
+                            ${stocVal !== null ? `<span class="text-[9px] font-black ${stocVal>0?'text-green-600 bg-green-50':'text-red-500 bg-red-50'} px-2 py-0.5 rounded-lg border">STOC: ${stocVal.toFixed(0)}</span>` : ''}
+                        </div>
+                    </td>
+                    <td class="py-3 sm:py-5">
+                        <div class="flex items-center justify-center gap-1 sm:gap-2 bg-gray-50 rounded-xl sm:rounded-2xl p-1 border border-red-100 shadow-inner">
+                            <button onclick="updateCart('${prodId}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button>
+                            <span class="font-black text-sm sm:text-xl w-6 sm:w-8 text-center text-dm-blue">${qty}</span>
+                            <button onclick="updateCart('${prodId}', 1)" class="qty-btn bg-red-500 text-white shadow-md sm:shadow-xl">+</button>
+                        </div>
+                    </td>
+                    <td class="text-right pr-3 sm:pr-6 py-3 sm:py-5 font-black text-red-700 text-sm sm:text-lg">${(qty*pretNet).toFixed(2)}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        // Functia unificata pentru a pune si produse si oferte in cos
         function updateCart(prodId, d) {
-            const p = allProductsRaw.find(x => x.id === prodId);
+            let p = allProductsRaw.find(x => x.id === prodId);
+            if (!p) p = allOferteData.find(x => x.id === prodId); // Cautam si in oferte daca nu e produs simplu
+            
             if (!p) return;
             
-            if (!cart[prodId]) cart[prodId] = { quantity: 0, data: p, category: selectedCategory };
+            if (!cart[prodId]) cart[prodId] = { quantity: 0, data: p, category: p.isOferta ? 'OFERTA' : selectedCategory };
             
             cart[prodId].quantity += d;
             
             if (cart[prodId].quantity <= 0) delete cart[prodId]; 
             
             saveAgentData(); 
-            filterProducts(); 
+            
+            // Actualizam interfata corecta de unde a venit clickul
+            if(p.isOferta) {
+                renderOferte();
+            } else {
+                filterProducts();
+            }
             
             if (currentActiveView === 'cart') renderCart(); 
             updateBadge();
@@ -1210,11 +1299,13 @@
                 const pF_net = i.data.pret;
                 totalNet += i.quantity * pF_net;
                 
-                // Folosim ID-ul din datele salvate
                 const prodId = i.data.id;
                 
+                // Daca e oferta, coloram putin textul in cos
+                const nameColorClass = i.data.isOferta ? 'text-red-700' : 'text-dm-blue';
+                
                 return `<tr class="border-b border-gray-100">
-                    <td class="px-4 sm:px-6 py-4 font-black text-dm-blue uppercase text-[10px] sm:text-xs leading-tight">${name}<br><span class="text-[9px] sm:text-[10px] font-bold text-blue-600/60 mt-1 block">${pF_net.toFixed(2)} RON</span></td>
+                    <td class="px-4 sm:px-6 py-4 font-black ${nameColorClass} uppercase text-[10px] sm:text-xs leading-tight">${name}<br><span class="text-[9px] sm:text-[10px] font-bold text-blue-600/60 mt-1 block">${pF_net.toFixed(2)} RON</span></td>
                     <td class="py-4">
                         <div class="flex items-center justify-center gap-1 sm:gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100">
                             <button onclick="updateCart('${prodId}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100" style="width:38px;height:38px;font-size:1.2rem;">-</button>
@@ -1222,7 +1313,7 @@
                             <button onclick="updateCart('${prodId}', 1)" class="qty-btn bg-dm-blue text-white shadow-md" style="width:38px;height:38px;font-size:1.2rem;">+</button>
                         </div>
                     </td>
-                    <td class="text-right pr-4 sm:pr-6 py-4 font-black text-dm-blue text-sm sm:text-base">${(i.quantity*pF_net).toFixed(2)}</td>
+                    <td class="text-right pr-4 sm:pr-6 py-4 font-black ${nameColorClass} text-sm sm:text-base">${(i.quantity*pF_net).toFixed(2)}</td>
                 </tr>`;
             }).join('');
             
@@ -1232,7 +1323,12 @@
 
         function golesteCos() { 
             if(confirm("Ești sigur că vrei să golești tot coșul?")) { 
-                cart = {}; saveAgentData(); updateBadge(); renderCart(); filterProducts(); 
+                cart = {}; 
+                saveAgentData(); 
+                updateBadge(); 
+                renderCart(); 
+                filterProducts(); 
+                renderOferte(); // Curatam vizual si ofertele
             } 
         }
 
@@ -1437,10 +1533,13 @@
         async function triggerManualSync() { 
             showToast("ACTUALIZARE LIVE...");
             await syncMasterData(); 
+            await syncOferteData(); // Acum descarca si ofertele automat
             await syncClients(); 
             await syncSoldData();
             showToast("Bază de date actualizată!");
+            
             if(selectedCategory) selectCategory(selectedCategory); 
+            if(currentActiveView === 'oferte') renderOferte();
         }
 
         window.addEventListener('load', () => { 
