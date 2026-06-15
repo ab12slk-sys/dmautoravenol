@@ -666,13 +666,15 @@
                 const wb = XLSX.read(ab, {type: 'array'});
                 const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
                 allProductsRaw = data.map(r => {
-                    const kName = Object.keys(r).find(k => k.toLowerCase().includes("denumire")) || Object.keys(r)[0];
-                    const kPret = Object.keys(r).find(k => k.toLowerCase().includes("pret") || k.toLowerCase().includes("preț")) || Object.keys(r)[1];
-                    const kStoc = Object.keys(r).find(k => k.toLowerCase().includes("stoc")) || Object.keys(r)[2];
+                    // Logică actualizată pentru a citi exact noile coloane
+                    const keys = Object.keys(r);
+                    const kName = keys.find(k => k.toLowerCase().includes("denumire"));
+                    const kPret = keys.find(k => k.toLowerCase().includes("pret fara tva") || (k.toLowerCase().includes("pret") && !k.toLowerCase().includes("cu tva")));
+                    const kStoc = keys.find(k => k.toLowerCase().includes("cantitate") || k.toLowerCase().includes("stoc"));
                     
-                    const name = r[kName] ? r[kName].toString().trim() : 'Necunoscut';
-                    const pretNet = parseExcelNumber(r[kPret]);
-                    const stocCalculat = parseExcelNumber(r[kStoc]);
+                    const name = kName && r[kName] ? r[kName].toString().trim() : 'Necunoscut';
+                    const pretNet = kPret ? parseExcelNumber(r[kPret]) : 0;
+                    const stocCalculat = kStoc ? parseExcelNumber(r[kStoc]) : 0;
                     
                     // Creăm un ID Unic pe baza numelui, prețului ȘI STOCULUI pentru a separa liniile complet identice
                     const prodId = encodeURIComponent(name + '___' + pretNet + '___' + stocCalculat).replace(/[']/g, "%27");
