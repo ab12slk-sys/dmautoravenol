@@ -643,6 +643,8 @@
             else switchView('catalog');
         }
 
+        // Funcționalitatea de swipe (slide stânga-dreapta) a fost eliminată pentru a preveni schimbarea accidentală a ferestrelor
+        /*
         let tsX = 0; let tsY = 0; 
         document.addEventListener('touchstart', e => { tsX = e.changedTouches[0].screenX; tsY = e.changedTouches[0].screenY; }, {passive: true});
         document.addEventListener('touchend', e => { 
@@ -656,6 +658,7 @@
             if (teX < tsX - 70 && idx < 3) switchView(['catalog', 'oferte', 'cart', 'history'][idx + 1]); 
             if (teX > tsX + 70 && idx > 0) switchView(['catalog', 'oferte', 'cart', 'history'][idx - 1]); 
         }, {passive: true});
+        */
 
         function handleLogin() {
             const u = document.getElementById('login-user').value.toLowerCase().trim();
