@@ -353,15 +353,17 @@
 
             <div class="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden border border-red-100 mb-8 sm:mb-12">
                 <div class="overflow-x-auto max-h-[75vh]">
-                    <table class="w-full text-left quick-order-table">
+                    <table class="w-full text-left quick-order-table whitespace-nowrap">
                         <thead class="bg-red-50 border-b border-red-100">
                             <tr>
-                                <th class="pl-4 sm:pl-6 w-1/2 text-red-800">Ofertă / Stoc / Preț Net</th>
-                                <th class="text-center text-red-800">Cant.</th>
-                                <th class="pr-4 sm:pr-6 text-right text-red-800">Total Net</th>
+                                <th class="pl-4 sm:pl-6 text-red-800">Ofertă / Stoc</th>
+                                <th class="text-red-800">Achiziție</th>
+                                <th class="text-red-800">Alba 15%</th>
+                                <th class="text-red-800">Oradea+15%</th>
+                                <th class="pr-4 sm:pr-6 text-center text-red-800">Adaugă</th>
                             </tr>
                         </thead>
-                        <tbody id="oferteTableBody" class="divide-y divide-gray-100"></tbody>
+                        <tbody id="oferteTableBody" class="divide-y divide-red-50"></tbody>
                     </table>
                 </div>
             </div>
@@ -727,31 +729,55 @@
         async function syncOferteData() {
             try {
                 const res = await fetchExcelLive(OFERTE_FILE);
-                if (!res.ok) return; // Silent catch in caz ca nu exista fisierul inca
+                if (!res.ok) return; 
                 const ab = await res.arrayBuffer();
                 const wb = XLSX.read(ab, {type: 'array'});
-                const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                
+                // Căutăm sheet-ul EN-GROSS, sau luăm primul sheet
+                let targetSheetName = wb.SheetNames.find(n => n.toUpperCase().includes('EN-GROSS')) || wb.SheetNames[0];
+                const sh = wb.Sheets[targetSheetName];
+                
+                const raw = XLSX.utils.sheet_to_json(sh, { header: 1 });
+                let headerIdx = raw.findIndex(r => r && r.some(c => c && c.toString().toUpperCase().includes("DENUMIRE")));
+                if(headerIdx === -1) headerIdx = 0;
+                
+                const data = XLSX.utils.sheet_to_json(sh, { range: headerIdx, defval: "" });
                 
                 allOferteData = data.map(r => {
                     const keys = Object.keys(r);
-                    const kName = keys.find(k => k.toLowerCase().includes("denumire") || k.toLowerCase().includes("oferta"));
-                    const kPret = keys.find(k => k.toLowerCase().includes("pret fara tva") || (k.toLowerCase().includes("pret") && !k.toLowerCase().includes("cu tva")));
-                    const kStoc = keys.find(k => k.toLowerCase().includes("cantitate") || k.toLowerCase().includes("stoc"));
+                    const kName = keys.find(k => k.toUpperCase().includes("DENUMIRE"));
+                    const kCant = keys.find(k => k.toUpperCase().includes("CANTITATE"));
+                    const kAchizitie = keys.find(k => k.toUpperCase().includes("ACHIZITIE"));
+                    const kAlba = keys.find(k => k.toUpperCase().includes("ALBA"));
+                    const kOradea = keys.find(k => k.toUpperCase().includes("ORADEA"));
                     
                     const name = kName && r[kName] ? r[kName].toString().trim() : 'Necunoscut';
-                    const pretNet = kPret ? parseExcelNumber(r[kPret]) : 0;
-                    const stocCalculat = kStoc ? parseExcelNumber(r[kStoc]) : 0;
+                    if(name === 'Necunoscut' || name === '') return null;
+
+                    // Luăm valorile fix cum sunt scrise în tabel (pentru a arăta textele speciale)
+                    const cantRaw = kCant && r[kCant] !== undefined ? r[kCant].toString() : '';
+                    const achizitieRaw = kAchizitie && r[kAchizitie] !== undefined ? r[kAchizitie].toString() : '';
+                    const albaRaw = kAlba && r[kAlba] !== undefined ? r[kAlba].toString() : '';
+                    const oradeaRaw = kOradea && r[kOradea] !== undefined ? r[kOradea].toString() : '';
                     
-                    const prodId = encodeURIComponent('OFERTA___' + name + '___' + pretNet + '___' + stocCalculat).replace(/[']/g, "%27");
+                    // Pentru calculul din coș avem nevoie de un număr curat. Vom folosi prețul de Alba 15% ca bază
+                    const pretNet = parseExcelNumber(albaRaw); 
+                    const stocCalculat = parseExcelNumber(cantRaw);
+                    
+                    const prodId = encodeURIComponent('OFERTA___' + name + '___' + cantRaw).replace(/[']/g, "%27");
 
                     return {
                         id: prodId,
-                        denumire: "🎁 " + name, // Adaugam iconita sa iasa in evidenta in cos
-                        pret: pretNet,
+                        denumire: "🎁 " + name,
+                        pret: pretNet, 
                         stoc: stocCalculat,
+                        stocRaw: cantRaw,
+                        achizitieRaw: achizitieRaw,
+                        albaRaw: albaRaw,
+                        oradeaRaw: oradeaRaw,
                         isOferta: true
                     };
-                }).filter(p => p.denumire && p.denumire !== '🎁 Necunoscut');
+                }).filter(p => p !== null);
             } catch (err) { console.warn("Fisier oferte_butoaie inexistent inca sau eroare."); }
         }
 
@@ -1209,37 +1235,34 @@
             }).join('');
         }
 
-        // Functia noua pentru listarea Ofertelor Specifice
+        // Functia noua pentru listarea Ofertelor Specifice din fisier separat
         function renderOferte() {
             const tbody = document.getElementById('oferteTableBody'); if (!tbody) return;
             if (allOferteData.length === 0) { 
-                tbody.innerHTML = '<tr><td colspan="3" class="p-10 sm:p-20 text-center text-gray-400 font-black text-sm sm:text-xl">Nu sunt oferte disponibile momentan.</td></tr>'; 
+                tbody.innerHTML = '<tr><td colspan="5" class="p-10 sm:p-20 text-center text-gray-400 font-black text-sm sm:text-xl">Nu sunt oferte disponibile momentan.</td></tr>'; 
                 return; 
             }
             
             tbody.innerHTML = allOferteData.map(p => {
                 const name = p.denumire;
-                const pretNet = p.pret;
-                const stocVal = (p.stoc !== undefined && p.stoc !== "") ? parseFloat(p.stoc.toString().replace(/\./g, '').replace(',', '.')) : null;
                 const prodId = p.id;
                 const qty = cart[prodId] ? cart[prodId].quantity : 0;
                 
                 return `<tr class="${qty > 0 ? 'bg-red-50' : ''} border-b border-red-50">
-                    <td class="px-2 sm:px-6 py-3 sm:py-5 font-black text-dm-blue uppercase leading-tight tracking-tighter">
-                        <span class="text-[11px] sm:text-sm block mb-1 sm:mb-2 leading-tight text-red-700 drop-shadow-sm">${name}</span>
-                        <div class="flex items-center gap-2 sm:gap-3">
-                            <span class="text-xs sm:text-sm font-black text-red-600/80">${pretNet.toFixed(2)} RON</span>
-                            ${stocVal !== null ? `<span class="text-[9px] font-black ${stocVal>0?'text-green-600 bg-green-50':'text-red-500 bg-red-50'} px-2 py-0.5 rounded-lg border">STOC: ${stocVal.toFixed(0)}</span>` : ''}
+                    <td class="pl-4 sm:pl-6 py-4">
+                        <span class="font-black text-[11px] sm:text-sm text-red-700 block mb-1 drop-shadow-sm whitespace-normal min-w-[150px]">${name}</span>
+                        <span class="text-[9px] font-black bg-red-100 text-red-800 px-2 py-0.5 rounded-lg border border-red-200">STOC: ${p.stocRaw}</span>
+                    </td>
+                    <td class="py-4 font-bold text-gray-500 text-[10px] sm:text-xs">${p.achizitieRaw}</td>
+                    <td class="py-4 font-black text-dm-blue text-[11px] sm:text-sm">${p.albaRaw}</td>
+                    <td class="py-4 font-black text-blue-600 text-[11px] sm:text-sm">${p.oradeaRaw}</td>
+                    <td class="pr-4 sm:pr-6 py-4">
+                        <div class="flex items-center justify-center gap-1 sm:gap-2 bg-gray-50 rounded-xl sm:rounded-2xl p-1 border border-red-100 shadow-inner w-max mx-auto">
+                            <button onclick="updateCart('${prodId}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100" style="width:32px;height:32px;font-size:1rem;">-</button>
+                            <span class="font-black text-sm sm:text-lg w-6 text-center text-dm-blue">${qty}</span>
+                            <button onclick="updateCart('${prodId}', 1)" class="qty-btn bg-red-500 text-white shadow-md sm:shadow-xl" style="width:32px;height:32px;font-size:1rem;">+</button>
                         </div>
                     </td>
-                    <td class="py-3 sm:py-5">
-                        <div class="flex items-center justify-center gap-1 sm:gap-2 bg-gray-50 rounded-xl sm:rounded-2xl p-1 border border-red-100 shadow-inner">
-                            <button onclick="updateCart('${prodId}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100">-</button>
-                            <span class="font-black text-sm sm:text-xl w-6 sm:w-8 text-center text-dm-blue">${qty}</span>
-                            <button onclick="updateCart('${prodId}', 1)" class="qty-btn bg-red-500 text-white shadow-md sm:shadow-xl">+</button>
-                        </div>
-                    </td>
-                    <td class="text-right pr-3 sm:pr-6 py-3 sm:py-5 font-black text-red-700 text-sm sm:text-lg">${(qty*pretNet).toFixed(2)}</td>
                 </tr>`;
             }).join('');
         }
