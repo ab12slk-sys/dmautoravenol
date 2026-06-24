@@ -479,6 +479,7 @@
                 </div>
                 <button onclick="switchView('clients')" class="text-[10px] sm:text-xs font-black bg-dm-blue text-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl uppercase shadow-xl flex-shrink-0">Schimbă</button>
             </div>
+            
             <div class="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden mb-8 sm:mb-10">
                 <div class="overflow-x-auto max-h-[50vh]">
                     <table class="w-full text-left quick-order-table">
@@ -491,13 +492,28 @@
                 <div id="cart-empty-msg" class="p-12 sm:p-20 text-center text-gray-400 uppercase font-black text-base sm:text-lg italic view-hidden">Coșul este gol momentan.</div>
             </div>
             
+            <!-- SUMAR COMANDA SI SELECTOR FACTURA/AVIZ -->
             <div id="cart-summary-box" class="bg-dm-blue text-white rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 shadow-2xl relative overflow-hidden">
                 <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl pointer-events-none">💰</div>
+                
+                <!-- SELECTOR FACTURA SAU AVIZ -->
+                <div class="mb-5 sm:mb-8 bg-white/10 p-1 rounded-xl flex relative z-10 border border-white/20">
+                    <label class="flex-1 text-center cursor-pointer relative">
+                        <input type="radio" name="docType" value="FACTURĂ" class="peer sr-only" checked>
+                        <div class="py-2.5 sm:py-3.5 rounded-lg text-xs sm:text-sm font-black uppercase transition-all peer-checked:bg-dm-yellow peer-checked:text-dm-blue text-white/50 peer-checked:shadow-md">Factură</div>
+                    </label>
+                    <label class="flex-1 text-center cursor-pointer relative">
+                        <input type="radio" name="docType" value="AVIZ" class="peer sr-only">
+                        <div class="py-2.5 sm:py-3.5 rounded-lg text-xs sm:text-sm font-black uppercase transition-all peer-checked:bg-dm-yellow peer-checked:text-dm-blue text-white/50 peer-checked:shadow-md">Aviz</div>
+                    </label>
+                </div>
+
                 <div class="flex justify-between items-end border-b border-white/10 pb-4 sm:pb-6 mb-4 sm:mb-6">
                     <span class="text-[10px] sm:text-xs font-black text-dm-yellow uppercase tracking-widest">Total Net de Plată:</span>
                     <span id="totalNoVat" class="text-3xl sm:text-5xl font-black italic tracking-tighter">0.00 RON</span>
                 </div>
                 <span id="totalWithVat" class="hidden">0.00 RON</span>
+                
                 <div class="grid grid-cols-2 gap-4 sm:gap-6 relative z-10">
                     <button onclick="salveazaComanda(true)" class="bg-blue-600 text-white py-4 sm:py-7 rounded-[1.5rem] sm:rounded-[2rem] font-black uppercase shadow-2xl flex flex-col items-center gap-1 sm:gap-2 text-xs sm:text-base border border-blue-400/50 hover:bg-blue-500">
                         <span class="text-xl sm:text-2xl">💾</span> SALVEAZĂ (Ciornă)
@@ -643,22 +659,7 @@
             else switchView('catalog');
         }
 
-        // Funcționalitatea de swipe (slide stânga-dreapta) a fost eliminată pentru a preveni schimbarea accidentală a ferestrelor
-        /*
-        let tsX = 0; let tsY = 0; 
-        document.addEventListener('touchstart', e => { tsX = e.changedTouches[0].screenX; tsY = e.changedTouches[0].screenY; }, {passive: true});
-        document.addEventListener('touchend', e => { 
-            const teX = e.changedTouches[0].screenX;
-            const teY = e.changedTouches[0].screenY;
-            if (Math.abs(teY - tsY) > 50) return; 
-            
-            const idx = ['catalog', 'oferte', 'cart', 'history'].indexOf(currentActiveView);
-            if (idx === -1) return; 
-            
-            if (teX < tsX - 70 && idx < 3) switchView(['catalog', 'oferte', 'cart', 'history'][idx + 1]); 
-            if (teX > tsX + 70 && idx > 0) switchView(['catalog', 'oferte', 'cart', 'history'][idx - 1]); 
-        }, {passive: true});
-        */
+        // Funcționalitatea de swipe a fost eliminată.
 
         function handleLogin() {
             const u = document.getElementById('login-user').value.toLowerCase().trim();
@@ -736,7 +737,6 @@
                 const ab = await res.arrayBuffer();
                 const wb = XLSX.read(ab, {type: 'array'});
                 
-                // Căutăm sheet-ul EN-GROSS, sau luăm primul sheet
                 let targetSheetName = wb.SheetNames.find(n => n.toUpperCase().includes('EN-GROSS')) || wb.SheetNames[0];
                 const sh = wb.Sheets[targetSheetName];
                 
@@ -757,13 +757,11 @@
                     const name = kName && r[kName] ? r[kName].toString().trim() : 'Necunoscut';
                     if(name === 'Necunoscut' || name === '') return null;
 
-                    // Luăm valorile fix cum sunt scrise în tabel (pentru a arăta textele speciale)
                     const cantRaw = kCant && r[kCant] !== undefined ? r[kCant].toString() : '';
                     const achizitieRaw = kAchizitie && r[kAchizitie] !== undefined ? r[kAchizitie].toString() : '';
                     const albaRaw = kAlba && r[kAlba] !== undefined ? r[kAlba].toString() : '';
                     const oradeaRaw = kOradea && r[kOradea] !== undefined ? r[kOradea].toString() : '';
                     
-                    // Pentru calculul din coș avem nevoie de un număr curat. Vom folosi prețul de Alba 15% ca bază
                     const pretNet = parseExcelNumber(albaRaw); 
                     const stocCalculat = parseExcelNumber(cantRaw);
                     
@@ -1238,7 +1236,6 @@
             }).join('');
         }
 
-        // Functia noua pentru listarea Ofertelor Specifice din fisier separat
         function renderOferte() {
             const tbody = document.getElementById('oferteTableBody'); if (!tbody) return;
             if (allOferteData.length === 0) { 
@@ -1270,10 +1267,9 @@
             }).join('');
         }
 
-        // Functia unificata pentru a pune si produse si oferte in cos
         function updateCart(prodId, d) {
             let p = allProductsRaw.find(x => x.id === prodId);
-            if (!p) p = allOferteData.find(x => x.id === prodId); // Cautam si in oferte daca nu e produs simplu
+            if (!p) p = allOferteData.find(x => x.id === prodId); 
             
             if (!p) return;
             
@@ -1285,7 +1281,6 @@
             
             saveAgentData(); 
             
-            // Actualizam interfata corecta de unde a venit clickul
             if(p.isOferta) {
                 renderOferte();
             } else {
@@ -1327,7 +1322,6 @@
                 
                 const prodId = i.data.id;
                 
-                // Daca e oferta, coloram putin textul in cos
                 const nameColorClass = i.data.isOferta ? 'text-red-700' : 'text-dm-blue';
                 
                 return `<tr class="border-b border-gray-100">
@@ -1354,7 +1348,7 @@
                 updateBadge(); 
                 renderCart(); 
                 filterProducts(); 
-                renderOferte(); // Curatam vizual si ofertele
+                renderOferte(); 
             } 
         }
 
@@ -1368,6 +1362,10 @@
                 showToast("COȘUL ESTE GOL!");
                 return;
             }
+
+            // Citim tipul de document ales din interfață
+            const docSelector = document.querySelector('input[name="docType"]:checked');
+            const docType = docSelector ? docSelector.value : 'FACTURĂ';
             
             const ts = new Date().toLocaleString('ro-RO'); 
             let total = 0;
@@ -1379,13 +1377,14 @@
                 items: Object.keys(cart).length, 
                 cartData: JSON.parse(JSON.stringify(cart)), 
                 status: isDraft ? 'Ciornă' : 'Trimisă', 
-                client: selectedClient 
+                client: selectedClient,
+                docType: docType // Salvăm documentul în istoric
             });
             
             saveAgentData(); 
             
             if (!isDraft) { 
-                trimiteWhatsApp(ts, cart); 
+                trimiteWhatsApp(ts, cart, docType); 
                 cart = {}; 
                 selectedClient = null; 
                 saveAgentData(); 
@@ -1398,11 +1397,11 @@
             }
         }
 
-        function trimiteWhatsApp(ts, data) {
+        function trimiteWhatsApp(ts, data, docType = 'FACTURĂ') {
             const clientName = selectedClient ? selectedClient.name : "N/A";
             const clientAdresa = (selectedClient && selectedClient.adresa) ? selectedClient.adresa : ((selectedClient && selectedClient.loc) ? selectedClient.loc : "Nespecificat");
             
-            let msg = `Salut! Comandă nouă\n🏢 DM Auto Sebeș\n\n👤 AGENT: ${currentAgent.name}\n🛒 CLIENT: ${clientName}\n📍 ADRESĂ: ${clientAdresa}\n📅 Data: ${ts}\n\n`;
+            let msg = `Salut! Comandă nouă\n🏢 DM Auto Sebeș\n\n👤 AGENT: ${currentAgent.name}\n🛒 CLIENT: ${clientName}\n📍 ADRESĂ: ${clientAdresa}\n📄 DOCUMENT: ${docType}\n📅 Data: ${ts}\n\n`;
             
             Object.values(data).forEach(i => {
                 msg += `👉 ${i.quantity} x ${i.data.denumire} (${i.data.pret.toFixed(2)} RON/buc)\n`;
@@ -1429,7 +1428,8 @@
                         <span class="text-[10px] font-black text-gray-400 italic">${o.timestamp}</span>
                         <span class="${o.status==='Ciornă'?'bg-blue-100 text-blue-700':'bg-green-100 text-green-700'} text-[9px] font-black px-3 py-1.5 rounded-xl uppercase">${o.status}</span>
                     </div>
-                    <p class="text-base sm:text-xl font-black text-dm-blue uppercase leading-none truncate mb-3">${o.client ? o.client.name : 'Client Nespecificat'}</p>
+                    <p class="text-base sm:text-xl font-black text-dm-blue uppercase leading-none truncate mb-2">${o.client ? o.client.name : 'Client Nespecificat'}</p>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">📄 ${o.docType || 'FACTURĂ'}</p>
                     <div class="flex justify-between items-end border-t border-gray-50 pt-4">
                         <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">${o.items} REPERE</p>
                         <p class="text-lg sm:text-xl font-black text-dm-blue">${o.total} RON</p>
@@ -1448,7 +1448,8 @@
                     <h3 class="text-xs font-black text-gray-400 uppercase italic">DETALII COMANDĂ</h3>
                     <span class="text-[9px] font-black bg-gray-100 px-3 py-1.5 rounded-xl uppercase">${o.status}</span>
                 </div>
-                <p class="text-lg sm:text-2xl font-black text-dm-blue uppercase mb-3 leading-none">${o.client ? o.client.name : 'Fara Client'}</p>
+                <p class="text-lg sm:text-2xl font-black text-dm-blue uppercase mb-1 leading-none">${o.client ? o.client.name : 'Fara Client'}</p>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">📄 DOC: ${o.docType || 'FACTURĂ'}</p>
                 <p class="text-2xl sm:text-4xl font-black text-dm-blue italic tracking-tighter">${o.total} RON</p>`;
                 
             document.getElementById('order-details-items').innerHTML = Object.values(o.cartData).map(i => {
@@ -1477,7 +1478,8 @@
             if (currentViewingOrderIndex === null) return; 
             const o = window.orderHistory[currentViewingOrderIndex]; 
             selectedClient = o.client; 
-            trimiteWhatsApp(o.timestamp, o.cartData); 
+            const docType = o.docType || 'FACTURĂ';
+            trimiteWhatsApp(o.timestamp, o.cartData, docType); 
             if (o.status === 'Ciornă') { 
                 window.orderHistory[currentViewingOrderIndex].status = 'Trimisă'; 
                 saveAgentData(); 
@@ -1559,7 +1561,7 @@
         async function triggerManualSync() { 
             showToast("ACTUALIZARE LIVE...");
             await syncMasterData(); 
-            await syncOferteData(); // Acum descarca si ofertele automat
+            await syncOferteData(); 
             await syncClients(); 
             await syncSoldData();
             showToast("Bază de date actualizată!");
