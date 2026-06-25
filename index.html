@@ -267,7 +267,7 @@
         <!-- ECRANUL 1: CATALOGUL DE PRODUSE (Acasa) -->
         <div id="view-catalog" class="active-view">
             <!-- Noua Grilă de categorii 2x4 -->
-            <div class="p-3 sm:p-4 grid grid-cols-2 gap-3 sm:gap-5">
+            <div id="brands-grid" class="p-3 sm:p-4 grid grid-cols-2 gap-3 sm:gap-5">
                 
                 <!-- Categoria: Ravenol -->
                 <div id="card-Ravenol" onclick="selectCategory('Ravenol')" class="category-card" style="background-color: #1e293b; background-image: url('ravenol.jpg')">
@@ -311,13 +311,27 @@
                 
             </div>
 
+            <!-- SECTIUNE NOUA: SUBCATEGORII -->
+            <div id="subcategories-section" class="px-2 sm:px-4 view-hidden pt-2 sm:pt-4">
+                <div class="flex items-center justify-between mb-4 sm:mb-6 px-1">
+                    <div class="flex items-center gap-3">
+                        <button onclick="backToBrands()" class="bg-gray-200 p-2 sm:p-3 rounded-xl text-gray-600 font-black shadow-sm active:scale-90 transition-all">⬅️</button>
+                        <h3 class="text-xl sm:text-2xl font-black uppercase tracking-widest text-dm-blue italic" id="subcats-brand-title">BRAND</h3>
+                    </div>
+                </div>
+                <p class="text-xs sm:text-sm font-bold text-gray-500 mb-4 px-1 uppercase tracking-widest">Alege Subcategoria</p>
+                <div id="subcategories-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 pb-8">
+                    <!-- Generat dinamic din JS -->
+                </div>
+            </div>
+
             <div id="product-section" class="px-2 sm:px-4 view-hidden">
                 <div class="flex justify-between items-center mb-3 sm:mb-5 px-1 pt-2 sm:pt-4">
-                    <div class="flex items-center gap-3 sm:gap-4">
-                        <h3 id="selected-category-title" class="text-lg sm:text-xl font-black uppercase tracking-widest text-dm-blue italic">Produse</h3>
-                        <button onclick="resetSelection()" class="text-[10px] sm:text-xs bg-gray-200 px-4 sm:px-5 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl text-gray-600 font-black uppercase shadow-sm">Închide x</button>
+                    <div class="flex items-center gap-2 sm:gap-4">
+                        <button onclick="backToSubcategories()" class="bg-gray-200 p-2 sm:p-3 rounded-xl text-gray-600 font-black shadow-sm active:scale-90 transition-all">⬅️</button>
+                        <h3 id="selected-category-title" class="text-[13px] sm:text-xl font-black uppercase tracking-widest text-dm-blue italic leading-tight">Produse</h3>
                     </div>
-                    <span id="productCount" class="text-[10px] sm:text-xs text-gray-400 font-bold uppercase italic tracking-tighter">...</span>
+                    <span id="productCount" class="text-[10px] sm:text-xs text-gray-400 font-bold uppercase italic tracking-tighter text-right">...</span>
                 </div>
                 
                 <div class="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100 mb-8 sm:mb-12">
@@ -589,6 +603,7 @@
         let selectedClient = null;
         let cart = {};
         let selectedCategory = null;
+        let selectedSubcategory = null;
         let currentCategoryData = []; 
         let currentActiveView = 'catalog';
         let navigationHistory = [];
@@ -712,10 +727,14 @@
                     const kName = keys.find(k => k.toLowerCase().includes("denumire"));
                     const kPret = keys.find(k => k.toLowerCase().includes("pret fara tva") || (k.toLowerCase().includes("pret") && !k.toLowerCase().includes("cu tva")));
                     const kStoc = keys.find(k => k.toLowerCase().includes("cantitate") || k.toLowerCase().includes("stoc"));
+                    const kSubcat = keys.find(k => k.toLowerCase().includes("subcategorie"));
                     
                     const name = kName && r[kName] ? r[kName].toString().trim() : 'Necunoscut';
                     const pretNet = kPret ? parseExcelNumber(r[kPret]) : 0;
                     const stocCalculat = kStoc ? parseExcelNumber(r[kStoc]) : 0;
+                    
+                    // Default la 'GENERAL' daca o casuta e goala in excel pe coloana Subcategorie
+                    const subcategorie = kSubcat && r[kSubcat] ? r[kSubcat].toString().trim().toUpperCase() : 'GENERAL';
                     
                     const prodId = encodeURIComponent(name + '___' + pretNet + '___' + stocCalculat).replace(/[']/g, "%27");
 
@@ -724,6 +743,7 @@
                         denumire: name,
                         pret: pretNet,
                         stoc: stocCalculat,
+                        subcategorie: subcategorie,
                         isOferta: false
                     };
                 }).filter(p => p.denumire && p.denumire !== 'Necunoscut');
@@ -1154,10 +1174,11 @@
         function selectCategory(category) {
             document.getElementById('searchInput').value = ''; 
             selectedCategory = category;
+            selectedSubcategory = null;
             
-            document.getElementById('product-section').classList.remove('view-hidden');
+            document.getElementById('brands-grid').classList.add('view-hidden');
+            document.getElementById('product-section').classList.add('view-hidden');
             document.getElementById('category-placeholder').classList.add('view-hidden');
-            document.getElementById('selected-category-title').innerText = category;
             
             ['Ravenol', 'Banner', 'Cyclon', 'Castrol', 'Cemsa', 'Repsol', 'Valvoline', 'Eurol'].forEach(cat => {
                 const card = document.getElementById(`card-${cat}`); 
@@ -1177,13 +1198,65 @@
                 return false;
             });
             
-            filterProducts(); 
+            // Generare dinamica subcategorii unice pentru brandul ales
+            const uniqueSubcats = [...new Set(currentCategoryData.map(p => p.subcategorie))].sort();
+            renderSubcategories(category, uniqueSubcats);
+            
+            document.getElementById('subcategories-section').classList.remove('view-hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderSubcategories(brandName, subcats) {
+            document.getElementById('subcats-brand-title').innerText = brandName;
+            const container = document.getElementById('subcategories-grid');
+
+            if(subcats.length === 0) {
+                container.innerHTML = `<p class="col-span-2 sm:col-span-3 text-center text-gray-400 font-bold p-8">Nicio subcategorie găsită.</p>`;
+                return;
+            }
+
+            container.innerHTML = subcats.map(sc => `
+                <div onclick="selectSubcategory('${sc}')" class="bg-white border-2 border-gray-100 rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md cursor-pointer active:scale-95 transition-all text-center flex flex-col items-center justify-center min-h-[90px] sm:min-h-[110px]">
+                    <span class="text-2xl sm:text-3xl mb-2 text-dm-yellow drop-shadow-sm">📁</span>
+                    <span class="font-black text-dm-blue text-[10px] sm:text-[12px] uppercase tracking-widest leading-tight break-words">${sc}</span>
+                </div>
+            `).join('');
+        }
+
+        function selectSubcategory(subcat) {
+            selectedSubcategory = subcat;
+            document.getElementById('searchInput').value = '';
+            
+            document.getElementById('subcategories-section').classList.add('view-hidden');
+            document.getElementById('product-section').classList.remove('view-hidden');
+            document.getElementById('selected-category-title').innerText = `${selectedCategory} - ${subcat}`;
+
+            filterProducts();
             document.getElementById('product-section').scrollIntoView({ behavior: 'smooth' });
         }
 
         function filterProducts() { 
             const q = document.getElementById('searchInput').value.toLowerCase().trim(); 
-            const filtrat = currentCategoryData.filter(p => p.denumire.toLowerCase().includes(q));
+            
+            if (!selectedCategory) return;
+            
+            // Salt automat din subcategorii in lista de produse la scrierea in bara de cautare
+            if (!selectedSubcategory && q.length > 0) {
+                document.getElementById('subcategories-section').classList.add('view-hidden');
+                document.getElementById('product-section').classList.remove('view-hidden');
+                document.getElementById('selected-category-title').innerText = `${selectedCategory} - CĂUTARE`;
+            } else if (!selectedSubcategory && q.length === 0) {
+                document.getElementById('product-section').classList.add('view-hidden');
+                document.getElementById('subcategories-section').classList.remove('view-hidden');
+                return;
+            }
+
+            let dataToFilter = currentCategoryData;
+            if (selectedSubcategory) {
+                dataToFilter = dataToFilter.filter(p => p.subcategorie === selectedSubcategory);
+            }
+
+            const filtrat = dataToFilter.filter(p => p.denumire.toLowerCase().includes(q) || (p.subcategorie && p.subcategorie.toLowerCase().includes(q)));
             
             document.getElementById('productCount').innerText = `${filtrat.length} produse`;
             renderProducts(filtrat); 
@@ -1192,8 +1265,12 @@
         function resetSelection() { 
             document.getElementById('searchInput').value = ''; 
             selectedCategory = null; 
+            selectedSubcategory = null;
+            
             document.getElementById('product-section').classList.add('view-hidden'); 
+            document.getElementById('subcategories-section').classList.add('view-hidden');
             document.getElementById('category-placeholder').classList.remove('view-hidden'); 
+            document.getElementById('brands-grid').classList.remove('view-hidden');
             
             ['Ravenol', 'Banner', 'Cyclon', 'Castrol', 'Cemsa', 'Repsol', 'Valvoline', 'Eurol'].forEach(cat => { 
                 const card = document.getElementById(`card-${cat}`); 
@@ -1201,6 +1278,18 @@
             }); 
             
             window.scrollTo({ top: 0, behavior: 'smooth' }); 
+        }
+
+        function backToBrands() {
+            resetSelection();
+        }
+
+        function backToSubcategories() {
+            document.getElementById('searchInput').value = '';
+            selectedSubcategory = null;
+            document.getElementById('product-section').classList.add('view-hidden');
+            document.getElementById('subcategories-section').classList.remove('view-hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function renderProducts(products) {
