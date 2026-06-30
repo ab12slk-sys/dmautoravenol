@@ -308,6 +308,11 @@
                 <div id="card-Eurol" onclick="selectCategory('Eurol')" class="category-card" style="background-color: #b91c1c; background-image: url('eurol.jpg')">
                     <div class="category-overlay"><h3 class="text-white font-black text-sm sm:text-base uppercase italic tracking-tighter">EUROL</h3></div>
                 </div>
+
+                <!-- Categoria: Ipercomp -->
+                <div id="card-Ipercomp" onclick="selectCategory('Ipercomp')" class="category-card" style="background-color: #0f172a; background-image: url('ipercomp_logo.jpg')">
+                    <div class="category-overlay"><h3 class="text-white font-black text-sm sm:text-base uppercase italic tracking-tighter">IPERCOMP</h3></div>
+                </div>
                 
             </div>
 
@@ -1180,7 +1185,7 @@
             document.getElementById('product-section').classList.add('view-hidden');
             document.getElementById('category-placeholder').classList.add('view-hidden');
             
-            ['Ravenol', 'Banner', 'Cyclon', 'Castrol', 'Cemsa', 'Repsol', 'Valvoline', 'Eurol'].forEach(cat => {
+            ['Ravenol', 'Banner', 'Cyclon', 'Castrol', 'Cemsa', 'Repsol', 'Valvoline', 'Eurol', 'Ipercomp'].forEach(cat => {
                 const card = document.getElementById(`card-${cat}`); 
                 if (card) card.classList.toggle('selected-category', cat === category);
             });
@@ -1195,6 +1200,7 @@
                 if (category === 'Repsol') return n.includes('REPSOL') || n.startsWith('REP');
                 if (category === 'Valvoline') return n.includes('VALVOLINE') || n.startsWith('VAL');
                 if (category === 'Eurol') return n.includes('EUROL') || n.startsWith('EUR');
+                if (category === 'Ipercomp') return p.subcategorie === 'IPERCOMP' || p.subcategorie === 'NOXARO' || p.subcategorie === 'CLUE' || n.includes('IPERCOMP') || n.includes('NOXARO') || n.includes('CLUE') || n.includes('KIT SIGURANTA') || n.includes('STINGATOR') || n.includes('TRUSA');
                 return false;
             });
             
@@ -1272,7 +1278,7 @@
             document.getElementById('category-placeholder').classList.remove('view-hidden'); 
             document.getElementById('brands-grid').classList.remove('view-hidden');
             
-            ['Ravenol', 'Banner', 'Cyclon', 'Castrol', 'Cemsa', 'Repsol', 'Valvoline', 'Eurol'].forEach(cat => { 
+            ['Ravenol', 'Banner', 'Cyclon', 'Castrol', 'Cemsa', 'Repsol', 'Valvoline', 'Eurol', 'Ipercomp'].forEach(cat => { 
                 const card = document.getElementById(`card-${cat}`); 
                 if (card) card.classList.remove('selected-category'); 
             }); 
