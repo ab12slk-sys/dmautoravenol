@@ -313,6 +313,11 @@
                 <div id="card-Ipercomp" onclick="selectCategory('Ipercomp')" class="category-card" style="background-color: #0f172a; background-image: url('ipercomp_logo.jpg')">
                     <div class="category-overlay"><h3 class="text-white font-black text-sm sm:text-base uppercase italic tracking-tighter">IPERCOMP</h3></div>
                 </div>
+
+                <!-- Categoria: Fuchs -->
+                <div id="card-Fuchs" onclick="selectCategory('Fuchs')" class="category-card" style="background-color: #0c4a6e; background-image: url('fuchs_logo.jpg')">
+                    <div class="category-overlay"><h3 class="text-white font-black text-sm sm:text-base uppercase italic tracking-tighter">FUCHS</h3></div>
+                </div>
                 
             </div>
 
@@ -1185,7 +1190,7 @@
             document.getElementById('product-section').classList.add('view-hidden');
             document.getElementById('category-placeholder').classList.add('view-hidden');
             
-            ['Ravenol', 'Banner', 'Cyclon', 'Castrol', 'Cemsa', 'Repsol', 'Valvoline', 'Eurol', 'Ipercomp'].forEach(cat => {
+            ['Ravenol', 'Banner', 'Cyclon', 'Castrol', 'Cemsa', 'Repsol', 'Valvoline', 'Eurol', 'Ipercomp', 'Fuchs'].forEach(cat => {
                 const card = document.getElementById(`card-${cat}`); 
                 if (card) card.classList.toggle('selected-category', cat === category);
             });
@@ -1201,6 +1206,7 @@
                 if (category === 'Valvoline') return n.includes('VALVOLINE') || n.startsWith('VAL');
                 if (category === 'Eurol') return n.includes('EUROL') || n.startsWith('EUR');
                 if (category === 'Ipercomp') return p.subcategorie === 'IPERCOMP' || p.subcategorie === 'NOXARO' || p.subcategorie === 'CLUE' || n.includes('IPERCOMP') || n.includes('NOXARO') || n.includes('CLUE') || n.includes('KIT SIGURANTA') || n.includes('STINGATOR') || n.includes('TRUSA');
+                if (category === 'Fuchs') return n.includes('FUCHS') || n.startsWith('FUC') || p.subcategorie === 'FUCHS';
                 return false;
             });
             
@@ -1278,7 +1284,7 @@
             document.getElementById('category-placeholder').classList.remove('view-hidden'); 
             document.getElementById('brands-grid').classList.remove('view-hidden');
             
-            ['Ravenol', 'Banner', 'Cyclon', 'Castrol', 'Cemsa', 'Repsol', 'Valvoline', 'Eurol', 'Ipercomp'].forEach(cat => { 
+            ['Ravenol', 'Banner', 'Cyclon', 'Castrol', 'Cemsa', 'Repsol', 'Valvoline', 'Eurol', 'Ipercomp', 'Fuchs'].forEach(cat => { 
                 const card = document.getElementById(`card-${cat}`); 
                 if (card) card.classList.remove('selected-category'); 
             }); 
@@ -1458,7 +1464,6 @@
                 return;
             }
 
-            // Citim tipul de document ales din interfață
             const docSelector = document.querySelector('input[name="docType"]:checked');
             const docType = docSelector ? docSelector.value : 'FACTURĂ';
             
@@ -1473,7 +1478,7 @@
                 cartData: JSON.parse(JSON.stringify(cart)), 
                 status: isDraft ? 'Ciornă' : 'Trimisă', 
                 client: selectedClient,
-                docType: docType // Salvăm documentul în istoric
+                docType: docType 
             });
             
             saveAgentData(); 
