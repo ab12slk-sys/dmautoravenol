@@ -1352,36 +1352,36 @@
                 return `<tr class="${qty > 0 ? 'bg-red-50' : ''} border-b border-red-50">
                     <td class="pl-4 sm:pl-6 py-4">
                         <span class="font-black text-[11px] sm:text-sm text-red-700 block mb-1 drop-shadow-sm whitespace-normal min-w-[150px]">${name}</span>
-                        <span class="text-[9px] font-black bg-red-100 text-red-800 px-2 py-0.5 rounded-lg border border-red-200">STOC: ${p.stocRaw}</span>
-                    </td>
-                    <td class="py-4 font-bold text-gray-500 text-[10px] sm:text-xs">${p.achizitieRaw}</td>
-                    <td class="py-4 font-black text-dm-blue text-[11px] sm:text-sm">${p.albaRaw}</td>
-                    <td class="py-4 font-black text-blue-600 text-[11px] sm:text-sm">${p.oradeaRaw}</td>
-                    <td class="pr-4 sm:pr-6 py-4">
-                        <div class="flex items-center justify-center gap-1 sm:gap-2 bg-gray-50 rounded-xl sm:rounded-2xl p-1 border border-red-100 shadow-inner w-max mx-auto">
-                            <button onclick="updateCart('${prodId}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100" style="width:32px;height:32px;font-size:1rem;">-</button>
-                            <span class="font-black text-sm sm:text-lg w-6 text-center text-dm-blue">${qty}</span>
-                            <button onclick="updateCart('${prodId}', 1)" class="qty-btn bg-red-500 text-white shadow-md sm:shadow-xl" style="width:32px;height:32px;font-size:1rem;">+</button>
-                        </div>
-                    </td>
+                    <td class="text-right pr-4 sm:pr-6 py-4 font-black text-red-700 text-sm sm:text-lg">${(qty*pretNet).toFixed(2)}</td>
                 </tr>`;
             }).join('');
         }
 
+        // Functia unificata pentru a pune si produse si oferte in cos
         function updateCart(prodId, d) {
             let p = allProductsRaw.find(x => x.id === prodId);
-            if (!p) p = allOferteData.find(x => x.id === prodId); 
+            if (!p) p = allOferteData.find(x => x.id === prodId); // Cautam si in oferte daca nu e produs simplu
             
             if (!p) return;
             
+            let currentQty = cart[prodId] ? cart[prodId].quantity : 0;
+            let newQty = currentQty + d;
+
+            // 🛑 PROTECȚIE STOC: Verificăm dacă vrea să adauge mai mult decât e pe stoc
+            if (d > 0 && newQty > p.stoc) {
+                showToast(`⚠️ STOC INSUFICIENT! LIMITA ESTE DE ${p.stoc} BUC.`);
+                return; // Oprește funcția, nu permite adăugarea în coș!
+            }
+            
             if (!cart[prodId]) cart[prodId] = { quantity: 0, data: p, category: p.isOferta ? 'OFERTA' : selectedCategory };
             
-            cart[prodId].quantity += d;
+            cart[prodId].quantity = newQty;
             
             if (cart[prodId].quantity <= 0) delete cart[prodId]; 
             
             saveAgentData(); 
             
+            // Actualizam interfata corecta de unde a venit clickul
             if(p.isOferta) {
                 renderOferte();
             } else {
