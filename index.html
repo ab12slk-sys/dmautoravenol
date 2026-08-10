@@ -767,50 +767,49 @@
                 const ab = await res.arrayBuffer();
                 const wb = XLSX.read(ab, {type: 'array'});
                 
-                let targetSheetName = wb.SheetNames.find(n => n.toUpperCase().includes('EN-GROSS')) || wb.SheetNames[0];
-                const sh = wb.Sheets[targetSheetName];
-                
-                // Setăm {header: 1} pentru a primi o matrice simplă de rânduri și coloane, fără să ne pese de titluri
-                const raw = XLSX.utils.sheet_to_json(sh, { header: 1, defval: "" });
-                
                 allOferteData = [];
                 
-                // Parcurgem rând cu rând, sărind peste primele rânduri care par a fi headere
-                raw.forEach((r, idx) => {
-                    // Ignorăm rândurile goale
-                    if (!r || r.length === 0) return;
+                // NOU: Parcurgem ABSOLUT TOATE filele (sheets) din excel, in caz ca datele sunt pe a doua foaie
+                for(let s = 0; s < wb.SheetNames.length; s++) {
+                    const sh = wb.Sheets[wb.SheetNames[s]];
                     
-                    const numeProdus = r[0] ? r[0].toString().trim() : "";
+                    // {header: 1} ne da un array de array-uri, exact cum e tabelul vizual
+                    const raw = XLSX.utils.sheet_to_json(sh, { header: 1, defval: "" });
                     
-                    // Sărim rândurile care clar nu sunt produse (headere sau titluri)
-                    if (!numeProdus || numeProdus.toUpperCase() === "DENUMIRE PRODUS" || numeProdus.toUpperCase() === "DENUMIRE" || numeProdus.toUpperCase().includes("OFERT")) return;
-                    
-                    // Mapăm fix la coloanele din Excel (0=A, 1=B, 2=C, etc.)
-                    const cantRaw = r[1] !== undefined && r[1] !== "" ? r[1].toString() : '';
-                    const achizitieRaw = r[2] !== undefined && r[2] !== "" ? r[2].toString() : '';
-                    const albaRaw = r[3] !== undefined && r[3] !== "" ? r[3].toString() : '';
-                    const oradeaRaw = r[4] !== undefined && r[4] !== "" ? r[4].toString() : '';
-                    
-                    // Prețul de bază pentru coș îl luăm din coloana Alba (index 3)
-                    const pretNet = parseExcelNumber(albaRaw); 
-                    const stocCalculat = parseExcelNumber(cantRaw);
-                    
-                    const prodId = encodeURIComponent('OFERTA___' + numeProdus + '___' + cantRaw).replace(/[']/g, "%27");
+                    raw.forEach((r) => {
+                        if (!r || r.length === 0) return;
+                        
+                        const numeProdus = r[0] ? r[0].toString().trim() : "";
+                        
+                        // Sarim peste randurile goale sau care par a fi headere
+                        if (!numeProdus || numeProdus.toUpperCase() === "DENUMIRE PRODUS" || numeProdus.toUpperCase() === "DENUMIRE" || numeProdus.toUpperCase().includes("OFERT")) return;
+                        
+                        // Citim la fix coloanele, asa cum stiu ca le-ai asezat
+                        const cantRaw = r[1] !== undefined && r[1] !== "" ? r[1].toString() : '';
+                        const achizitieRaw = r[2] !== undefined && r[2] !== "" ? r[2].toString() : '';
+                        const albaRaw = r[3] !== undefined && r[3] !== "" ? r[3].toString() : '';
+                        const oradeaRaw = r[4] !== undefined && r[4] !== "" ? r[4].toString() : '';
+                        
+                        const pretNet = parseExcelNumber(albaRaw); 
+                        const stocCalculat = parseExcelNumber(cantRaw);
+                        
+                        const prodId = encodeURIComponent('OFERTA___' + numeProdus + '___' + cantRaw).replace(/[']/g, "%27");
 
-                    allOferteData.push({
-                        id: prodId,
-                        denumire: "🎁 " + numeProdus,
-                        pret: pretNet, 
-                        stoc: stocCalculat,
-                        stocRaw: cantRaw,
-                        achizitieRaw: achizitieRaw,
-                        albaRaw: albaRaw,
-                        oradeaRaw: oradeaRaw,
-                        isOferta: true
+                        allOferteData.push({
+                            id: prodId,
+                            denumire: "🎁 " + numeProdus,
+                            pret: pretNet, 
+                            stoc: stocCalculat,
+                            stocRaw: cantRaw,
+                            achizitieRaw: achizitieRaw,
+                            albaRaw: albaRaw,
+                            oradeaRaw: oradeaRaw,
+                            isOferta: true
+                        });
                     });
-                });
+                }
                 
-            } catch (err) { console.warn("Fisier oferte_butoaie inexistent inca sau eroare:", err); }
+            } catch (err) { console.warn("Eroare citire oferte_butoaie.xlsx", err); }
         }
 
         async function syncClients() {
