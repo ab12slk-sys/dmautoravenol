@@ -266,7 +266,7 @@
 
         <!-- ECRANUL 1: CATALOGUL DE PRODUSE (Acasa) -->
         <div id="view-catalog" class="active-view">
-            <!-- Noua Grilă de categorii 2x4 -->
+            <!-- Noua Grilă de categorii -->
             <div id="brands-grid" class="p-3 sm:p-4 grid grid-cols-2 gap-3 sm:gap-5">
                 
                 <!-- Categoria: Ravenol -->
@@ -321,7 +321,7 @@
                 
             </div>
 
-            <!-- SECTIUNE NOUA: SUBCATEGORII -->
+            <!-- SECTIUNE SUBCATEGORII -->
             <div id="subcategories-section" class="px-2 sm:px-4 view-hidden pt-2 sm:pt-4">
                 <div class="flex items-center justify-between mb-4 sm:mb-6 px-1">
                     <div class="flex items-center gap-3">
@@ -335,6 +335,7 @@
                 </div>
             </div>
 
+            <!-- LISTA DE PRODUSE -->
             <div id="product-section" class="px-2 sm:px-4 view-hidden">
                 <div class="flex justify-between items-center mb-3 sm:mb-5 px-1 pt-2 sm:pt-4">
                     <div class="flex items-center gap-2 sm:gap-4">
@@ -375,20 +376,22 @@
             </div>
             <p class="text-xs sm:text-sm font-bold text-gray-500 mb-6 uppercase tracking-widest">Adaugă direct din listă în coșul tău</p>
 
-            <!-- Adăugat min-h-[50vh] pentru a forța vizibilitatea containerului -->
-            <div class="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden border border-red-100 mb-8 sm:mb-12 min-h-[50vh]">
-                <div class="overflow-x-auto max-h-[75vh]">
-                    <table class="w-full text-left quick-order-table whitespace-nowrap">
+            <div class="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden border border-red-100 mb-8 sm:mb-12">
+                <!-- IMPORTANT: Am adaugat min-h-[50vh] pentru a nu strivi tabelul -->
+                <div class="overflow-x-auto max-h-[75vh] min-h-[50vh]">
+                    <table class="w-full text-left quick-order-table whitespace-nowrap min-w-full">
                         <thead class="bg-red-50 border-b border-red-100">
                             <tr>
-                                <th class="pl-4 sm:pl-6 text-red-800">Ofertă / Stoc</th>
+                                <th class="pl-4 sm:pl-6 text-red-800" style="min-width: 180px;">Ofertă / Stoc</th>
                                 <th class="text-red-800">Achiziție</th>
                                 <th class="text-red-800">Alba 15%</th>
                                 <th class="text-red-800">Oradea+15%</th>
-                                <th class="pr-4 sm:pr-6 text-center text-red-800">Adaugă</th>
+                                <th class="pr-4 sm:pr-6 text-center text-red-800" style="min-width: 120px;">Adaugă</th>
                             </tr>
                         </thead>
-                        <tbody id="oferteTableBody" class="divide-y divide-red-50"></tbody>
+                        <tbody id="oferteTableBody" class="divide-y divide-red-50">
+                            <!-- Aici vor aparea ofertele generate dinamic -->
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -625,7 +628,7 @@
             const t = document.getElementById('custom-toast'); 
             t.innerText = msg; 
             t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 3000);
+            setTimeout(() => t.classList.remove('show'), 3500);
         }
 
         function normalizeName(name) {
@@ -684,8 +687,6 @@
             if (navigationHistory.length > 0) switchView(navigationHistory.pop(), false);
             else switchView('catalog');
         }
-
-        // Funcționalitatea de swipe a fost eliminată.
 
         function handleLogin() {
             const u = document.getElementById('login-user').value.toLowerCase().trim();
@@ -763,41 +764,49 @@
         async function syncOferteData() {
             try {
                 const res = await fetchExcelLive(OFERTE_FILE);
-                if (!res.ok) return; 
+                if (!res.ok) {
+                    showToast(`EROARE 404: Fisierul ${OFERTE_FILE} nu a fost gasit pe server!`);
+                    return;
+                }
                 const ab = await res.arrayBuffer();
                 const wb = XLSX.read(ab, {type: 'array'});
                 
                 allOferteData = [];
                 
-                // NOU: Parcurgem ABSOLUT TOATE filele (sheets) din excel, in caz ca datele sunt pe a doua foaie
                 for(let s = 0; s < wb.SheetNames.length; s++) {
                     const sh = wb.Sheets[wb.SheetNames[s]];
-                    
-                    // {header: 1} ne da un array de array-uri, exact cum e tabelul vizual
                     const raw = XLSX.utils.sheet_to_json(sh, { header: 1, defval: "" });
                     
-                    raw.forEach((r) => {
-                        if (!r || r.length === 0) return;
+                    raw.forEach(r => {
+                        // Scanăm manual rândul. Găsim prima coloană cu date pentru a ignora shiftările
+                        let startIdx = -1;
+                        for(let i=0; i<r.length; i++) {
+                            if(r[i] !== undefined && r[i] !== null && r[i].toString().trim() !== "") {
+                                startIdx = i;
+                                break;
+                            }
+                        }
                         
-                        const numeProdus = r[0] ? r[0].toString().trim() : "";
+                        if(startIdx === -1) return; // Rând complet gol
                         
-                        // Sarim peste randurile goale sau care par a fi headere
-                        if (!numeProdus || numeProdus.toUpperCase() === "DENUMIRE PRODUS" || numeProdus.toUpperCase() === "DENUMIRE" || numeProdus.toUpperCase().includes("OFERT")) return;
+                        const nume = r[startIdx].toString().trim();
+                        // Ignorăm rândurile care par a fi headere
+                        if(nume.toUpperCase().includes("DENUMIRE") || nume.toUpperCase().includes("OFERT")) return;
                         
-                        // Citim la fix coloanele, asa cum stiu ca le-ai asezat
-                        const cantRaw = r[1] !== undefined && r[1] !== "" ? r[1].toString() : '';
-                        const achizitieRaw = r[2] !== undefined && r[2] !== "" ? r[2].toString() : '';
-                        const albaRaw = r[3] !== undefined && r[3] !== "" ? r[3].toString() : '';
-                        const oradeaRaw = r[4] !== undefined && r[4] !== "" ? r[4].toString() : '';
+                        // Luăm datele fix în ordinea lor: 0, 1, 2, 3, 4
+                        const cantRaw = r[startIdx + 1] !== undefined ? r[startIdx + 1].toString() : '';
+                        const achizitieRaw = r[startIdx + 2] !== undefined ? r[startIdx + 2].toString() : '';
+                        const albaRaw = r[startIdx + 3] !== undefined ? r[startIdx + 3].toString() : '';
+                        const oradeaRaw = r[startIdx + 4] !== undefined ? r[startIdx + 4].toString() : '';
                         
                         const pretNet = parseExcelNumber(albaRaw); 
                         const stocCalculat = parseExcelNumber(cantRaw);
                         
-                        const prodId = encodeURIComponent('OFERTA___' + numeProdus + '___' + cantRaw).replace(/[']/g, "%27");
+                        const prodId = encodeURIComponent('OFERTA___' + nume + '___' + cantRaw).replace(/[']/g, "%27");
 
                         allOferteData.push({
                             id: prodId,
-                            denumire: "🎁 " + numeProdus,
+                            denumire: "🎁 " + nume,
                             pret: pretNet, 
                             stoc: stocCalculat,
                             stocRaw: cantRaw,
@@ -809,7 +818,13 @@
                     });
                 }
                 
-            } catch (err) { console.warn("Eroare citire oferte_butoaie.xlsx", err); }
+                if (allOferteData.length === 0) {
+                    showToast("Fisierul oferte_butoaie.xlsx a fost citit, dar nu s-au putut extrage date valide.");
+                }
+            } catch (err) { 
+                console.error("Eroare oferte:", err);
+                showToast("EROARE CITIRE OFERTE: " + err.message);
+            }
         }
 
         async function syncClients() {
@@ -1210,7 +1225,6 @@
                 return false;
             });
             
-            // Generare dinamica subcategorii unice pentru brandul ales
             const uniqueSubcats = [...new Set(currentCategoryData.map(p => p.subcategorie))].sort();
             renderSubcategories(category, uniqueSubcats);
             
@@ -1252,7 +1266,6 @@
             
             if (!selectedCategory) return;
             
-            // Salt automat din subcategorii in lista de produse la scrierea in bara de cautare
             if (!selectedSubcategory && q.length > 0) {
                 document.getElementById('subcategories-section').classList.add('view-hidden');
                 document.getElementById('product-section').classList.remove('view-hidden');
@@ -1292,9 +1305,7 @@
             window.scrollTo({ top: 0, behavior: 'smooth' }); 
         }
 
-        function backToBrands() {
-            resetSelection();
-        }
+        function backToBrands() { resetSelection(); }
 
         function backToSubcategories() {
             document.getElementById('searchInput').value = '';
@@ -1352,41 +1363,45 @@
                 return `<tr class="${qty > 0 ? 'bg-red-50' : ''} border-b border-red-50">
                     <td class="pl-4 sm:pl-6 py-4">
                         <span class="font-black text-[11px] sm:text-sm text-red-700 block mb-1 drop-shadow-sm whitespace-normal min-w-[150px]">${name}</span>
-                    <td class="text-right pr-4 sm:pr-6 py-4 font-black text-red-700 text-sm sm:text-lg">${(qty*pretNet).toFixed(2)}</td>
+                        <span class="text-[9px] font-black bg-red-100 text-red-800 px-2 py-0.5 rounded-lg border border-red-200">STOC: ${p.stocRaw}</span>
+                    </td>
+                    <td class="py-4 font-bold text-gray-500 text-[10px] sm:text-xs">${p.achizitieRaw}</td>
+                    <td class="py-4 font-black text-dm-blue text-[11px] sm:text-sm">${p.albaRaw}</td>
+                    <td class="py-4 font-black text-blue-600 text-[11px] sm:text-sm">${p.oradeaRaw}</td>
+                    <td class="pr-4 sm:pr-6 py-4">
+                        <div class="flex items-center justify-center gap-1 sm:gap-2 bg-gray-50 rounded-xl sm:rounded-2xl p-1 border border-red-100 shadow-inner w-max mx-auto">
+                            <button onclick="updateCart('${prodId}', -1)" class="qty-btn bg-white text-gray-400 shadow-sm border border-gray-100" style="width:32px;height:32px;font-size:1rem;">-</button>
+                            <span class="font-black text-sm sm:text-lg w-6 text-center text-dm-blue">${qty}</span>
+                            <button onclick="updateCart('${prodId}', 1)" class="qty-btn bg-red-500 text-white shadow-md sm:shadow-xl" style="width:32px;height:32px;font-size:1rem;">+</button>
+                        </div>
+                    </td>
                 </tr>`;
             }).join('');
         }
 
-        // Functia unificata pentru a pune si produse si oferte in cos
         function updateCart(prodId, d) {
             let p = allProductsRaw.find(x => x.id === prodId);
-            if (!p) p = allOferteData.find(x => x.id === prodId); // Cautam si in oferte daca nu e produs simplu
-            
+            if (!p) p = allOferteData.find(x => x.id === prodId); 
             if (!p) return;
             
             let currentQty = cart[prodId] ? cart[prodId].quantity : 0;
             let newQty = currentQty + d;
 
-            // 🛑 PROTECȚIE STOC: Verificăm dacă vrea să adauge mai mult decât e pe stoc
+            // 🛑 PROTECȚIE STOC
             if (d > 0 && newQty > p.stoc) {
                 showToast(`⚠️ STOC INSUFICIENT! LIMITA ESTE DE ${p.stoc} BUC.`);
-                return; // Oprește funcția, nu permite adăugarea în coș!
+                return;
             }
             
             if (!cart[prodId]) cart[prodId] = { quantity: 0, data: p, category: p.isOferta ? 'OFERTA' : selectedCategory };
-            
             cart[prodId].quantity = newQty;
             
             if (cart[prodId].quantity <= 0) delete cart[prodId]; 
             
             saveAgentData(); 
             
-            // Actualizam interfata corecta de unde a venit clickul
-            if(p.isOferta) {
-                renderOferte();
-            } else {
-                filterProducts();
-            }
+            if(p.isOferta) renderOferte();
+            else filterProducts();
             
             if (currentActiveView === 'cart') renderCart(); 
             updateBadge();
@@ -1478,7 +1493,7 @@
                 cartData: JSON.parse(JSON.stringify(cart)), 
                 status: isDraft ? 'Ciornă' : 'Trimisă', 
                 client: selectedClient,
-                docType: docType 
+                docType: docType
             });
             
             saveAgentData(); 
