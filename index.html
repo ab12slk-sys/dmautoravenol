@@ -743,7 +743,6 @@
                     const pretNet = kPret ? parseExcelNumber(r[kPret]) : 0;
                     const stocCalculat = kStoc ? parseExcelNumber(r[kStoc]) : 0;
                     
-                    // Default la 'GENERAL' daca o casuta e goala in excel pe coloana Subcategorie
                     const subcategorie = kSubcat && r[kSubcat] ? r[kSubcat].toString().trim().toUpperCase() : 'GENERAL';
                     
                     const prodId = encodeURIComponent(name + '___' + pretNet + '___' + stocCalculat).replace(/[']/g, "%27");
