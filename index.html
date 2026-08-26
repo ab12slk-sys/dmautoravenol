@@ -848,22 +848,47 @@
                 const res = await fetchExcelLive(SOLD_FILE);
                 const ab = await res.arrayBuffer();
                 const wb = XLSX.read(ab, {type: 'array'});
-                const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-                allSoldData = data.map(r => {
-                    const kClient = Object.keys(r).find(k => k.toLowerCase().includes("client")) || 'Client';
-                    const kFact = Object.keys(r).find(k => k.toLowerCase().includes("factur")) || 'Factura';
-                    const kData = Object.keys(r).find(k => k.toLowerCase().includes("data") || k.toLowerCase().includes("dată")) || 'Data';
-                    const kRest = Object.keys(r).find(k => k.toLowerCase().includes("rest") || k.toLowerCase().includes("sold")) || 'Rest';
+                
+                const sh = wb.Sheets[wb.SheetNames[0]];
+                // Folosim "header: 1" pentru a citi matricea brută ca să fim 100% siguri pe coloane
+                const raw = XLSX.utils.sheet_to_json(sh, { header: 1, defval: "" });
+                
+                allSoldData = [];
+                
+                let idxClient = 0; // Coloana A
+                let idxFact = 1;   // Coloana B
+                let idxData = 2;   // Coloana C
+                
+                // Scanăm primele rânduri ca să găsim exact unde e Clientul, Factura și Data
+                for(let i=0; i < Math.min(10, raw.length); i++) {
+                    const r = raw[i];
+                    for(let j=0; j < r.length; j++) {
+                        const val = r[j].toString().toUpperCase();
+                        if(val.includes("CLIENT")) idxClient = j;
+                        if(val.includes("FACTUR")) idxFact = j;
+                        if(val === "DATA" || val === "DATĂ") idxData = j;
+                    }
+                }
+
+                for(let i=0; i < raw.length; i++) {
+                    const r = raw[i];
+                    const clientName = r[idxClient] ? r[idxClient].toString().trim() : '';
                     
-                    const clientName = r[kClient] ? r[kClient].toString().trim() : '';
-                    return {
+                    // Ignorăm rândul cap de tabel, rândurile goale sau cele cu "Total" care ne pot strica sumele
+                    if(!clientName || clientName.toUpperCase().includes('CLIENT') || clientName.toUpperCase() === 'TOTAL') continue;
+                    
+                    // Fortăm citirea Restului de plată direct de pe Coloana F (Index 5)
+                    const restVal = r[5] !== undefined && r[5] !== "" ? r[5] : 0;
+                    const parsedRest = parseExcelNumber(restVal);
+                    
+                    allSoldData.push({
                         client: clientName,
                         clientNorm: normalizeName(clientName),
-                        factura: r[kFact] ? r[kFact].toString() : '',
-                        data: r[kData] ? r[kData].toString() : '',
-                        rest: parseExcelNumber(r[kRest])
-                    };
-                });
+                        factura: r[idxFact] ? r[idxFact].toString() : '-',
+                        data: r[idxData] ? r[idxData].toString() : '-',
+                        rest: parsedRest
+                    });
+                }
             } catch (err) { console.error("Eroare solduri:", err); showToast("Eroare citire Facturi_Neincasate.xlsx"); }
         }
 
