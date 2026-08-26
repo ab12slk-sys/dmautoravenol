@@ -877,6 +877,10 @@
                     // Ignorăm rândul cap de tabel, rândurile goale sau cele cu "Total" care ne pot strica sumele
                     if(!clientName || clientName.toUpperCase().includes('CLIENT') || clientName.toUpperCase() === 'TOTAL') continue;
                     
+                    // Valoarea Totală a facturii de pe Coloana E (Index 4)
+                    const totalVal = r[4] !== undefined && r[4] !== "" ? r[4] : 0;
+                    const parsedTotal = parseExcelNumber(totalVal);
+
                     // Fortăm citirea Restului de plată direct de pe Coloana F (Index 5)
                     const restVal = r[5] !== undefined && r[5] !== "" ? r[5] : 0;
                     const parsedRest = parseExcelNumber(restVal);
@@ -886,6 +890,7 @@
                         clientNorm: normalizeName(clientName),
                         factura: r[idxFact] ? r[idxFact].toString() : '-',
                         data: r[idxData] ? r[idxData].toString() : '-',
+                        totalFactura: parsedTotal, // AICI SALVAM TOTALUL
                         rest: parsedRest
                     });
                 }
@@ -1098,18 +1103,22 @@
                 disp.innerText = "0.00 RON"; return; 
             }
 
+            // === AICI SE FACE ORDONAREA CRONOLOGICĂ (Cele mai vechi primele) ===
             mySold.sort((a, b) => parseDateString(a.data) - parseDateString(b.data));
 
             let total = 0;
             table.innerHTML = mySold.map(row => {
                 total += row.rest;
                 const formattedSum = Math.abs(row.rest).toLocaleString('ro-RO', {minimumFractionDigits: 2});
+                const formattedTotalFact = row.totalFactura.toLocaleString('ro-RO', {minimumFractionDigits: 2});
                 const sign = row.rest < 0 ? '-' : '';
                 const colorClass = row.rest < 0 ? 'text-blue-600' : 'text-red-600';
                 
                 return `<tr class="border-b border-gray-100">
                     <td class="pl-4 sm:pl-6 py-4 sm:py-6 font-black text-dm-blue text-sm sm:text-xl leading-tight">
-                        FACT: ${row.factura}<br><span class="text-[10px] sm:text-base text-gray-400 font-bold">${row.data}</span>
+                        FACT: ${row.factura}<br>
+                        <span class="text-[10px] sm:text-base text-gray-400 font-bold">${row.data}</span><br>
+                        <span class="text-[9px] sm:text-xs text-blue-600/70 font-bold uppercase mt-1 block tracking-wider">Total Factură: ${formattedTotalFact} RON</span>
                     </td>
                     <td class="pr-4 sm:pr-6 text-right">
                         <div class="flex flex-col items-end gap-2 sm:gap-3">
