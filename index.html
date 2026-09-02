@@ -318,6 +318,11 @@
                 <div id="card-Fuchs" onclick="selectCategory('Fuchs')" class="category-card" style="background-color: #0c4a6e; background-image: url('fuchs_logo.jpg')">
                     <div class="category-overlay"><h3 class="text-white font-black text-sm sm:text-base uppercase italic tracking-tighter">FUCHS</h3></div>
                 </div>
+
+                <!-- Categoria: Febi -->
+                <div id="card-Febi" onclick="selectCategory('Febi')" class="category-card" style="background-color: #b91c1c; background-image: url('febi_logo.jpg')">
+                    <div class="category-overlay"><h3 class="text-white font-black text-sm sm:text-base uppercase italic tracking-tighter">FEBI</h3></div>
+                </div>
                 
             </div>
 
@@ -1244,7 +1249,7 @@
             document.getElementById('product-section').classList.add('view-hidden');
             document.getElementById('category-placeholder').classList.add('view-hidden');
             
-            ['Ravenol', 'Banner', 'Cyclon', 'Castrol', 'Cemsa', 'Repsol', 'Valvoline', 'Eurol', 'Ipercomp', 'Fuchs'].forEach(cat => {
+            ['Ravenol', 'Banner', 'Cyclon', 'Castrol', 'Cemsa', 'Repsol', 'Valvoline', 'Eurol', 'Ipercomp', 'Fuchs', 'Febi'].forEach(cat => {
                 const card = document.getElementById(`card-${cat}`); 
                 if (card) card.classList.toggle('selected-category', cat === category);
             });
@@ -1261,6 +1266,7 @@
                 if (category === 'Eurol') return n.includes('EUROL') || n.startsWith('EUR');
                 if (category === 'Ipercomp') return p.subcategorie === 'IPERCOMP' || p.subcategorie === 'NOXARO' || p.subcategorie === 'CLUE' || n.includes('IPERCOMP') || n.includes('NOXARO') || n.includes('CLUE') || n.includes('KIT SIGURANTA') || n.includes('STINGATOR') || n.includes('TRUSA');
                 if (category === 'Fuchs') return n.includes('FUCHS') || n.startsWith('FUC') || p.subcategorie === 'FUCHS';
+                if (category === 'Febi') return n.includes('FEBI') || p.subcategorie === 'FEBI';
                 return false;
             });
             
@@ -1336,7 +1342,7 @@
             document.getElementById('category-placeholder').classList.remove('view-hidden'); 
             document.getElementById('brands-grid').classList.remove('view-hidden');
             
-            ['Ravenol', 'Banner', 'Cyclon', 'Castrol', 'Cemsa', 'Repsol', 'Valvoline', 'Eurol', 'Ipercomp', 'Fuchs'].forEach(cat => { 
+            ['Ravenol', 'Banner', 'Cyclon', 'Castrol', 'Cemsa', 'Repsol', 'Valvoline', 'Eurol', 'Ipercomp', 'Fuchs', 'Febi'].forEach(cat => { 
                 const card = document.getElementById(`card-${cat}`); 
                 if (card) card.classList.remove('selected-category'); 
             }); 
