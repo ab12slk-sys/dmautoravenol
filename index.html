@@ -266,7 +266,7 @@
 
         <!-- ECRANUL 1: CATALOGUL DE PRODUSE (Acasa) -->
         <div id="view-catalog" class="active-view">
-            <!-- Noua Grilă de categorii 2x4 -->
+            <!-- Noua Grilă de categorii -->
             <div id="brands-grid" class="p-3 sm:p-4 grid grid-cols-2 gap-3 sm:gap-5">
                 
                 <!-- Categoria: Ravenol -->
@@ -323,7 +323,7 @@
                 <div id="card-Febi" onclick="selectCategory('Febi')" class="category-card" style="background-color: #b91c1c; background-image: url('febi_logo.jpg')">
                     <div class="category-overlay"><h3 class="text-white font-black text-sm sm:text-base uppercase italic tracking-tighter">FEBI</h3></div>
                 </div>
-                
+
                 <!-- Categoria: Swag -->
                 <div id="card-Swag" onclick="selectCategory('Swag')" class="category-card" style="background-color: #22c55e; background-image: url('swag_logo.jpg')">
                     <div class="category-overlay"><h3 class="text-white font-black text-sm sm:text-base uppercase italic tracking-tighter">SWAG</h3></div>
@@ -494,7 +494,7 @@
                 <div class="overflow-x-auto max-h-[60vh]">
                     <table class="w-full text-left">
                         <thead class="bg-gray-50 border-b border-gray-100 font-black uppercase text-[9px] sm:text-[10px] text-gray-400 sticky top-0">
-                            <tr><th class="pl-4 sm:pl-6 py-4 sm:py-5">Nr. Factură & Data</th><th class="pr-4 sm:pr-6 text-right">Sumă Rămasă / Factura</th></tr>
+                            <tr><th class="pl-4 sm:pl-6 py-4 sm:py-5">Nr. Factură & Data</th><th class="pr-4 sm:pr-6 text-right">Sumă Rămasă</th></tr>
                         </thead>
                         <tbody id="sold-items-table" class="divide-y divide-gray-100"></tbody>
                     </table>
@@ -623,6 +623,7 @@
         let selectedClient = null;
         let cart = {};
         let selectedCategory = null;
+        let selectedSubcategory = null;
         let currentCategoryData = []; 
         let currentActiveView = 'catalog';
         let navigationHistory = [];
@@ -1199,13 +1200,16 @@
             }
         }
 
+        // ====== LOGICA NOUĂ PENTRU CATEGORII ======
+
         function selectCategory(category) {
             document.getElementById('searchInput').value = ''; 
             selectedCategory = category;
+            selectedSubcategory = null;
             
-            document.getElementById('product-section').classList.remove('view-hidden');
+            document.getElementById('brands-grid').classList.add('view-hidden');
+            document.getElementById('product-section').classList.add('view-hidden');
             document.getElementById('category-placeholder').classList.add('view-hidden');
-            document.getElementById('selected-category-title').innerText = category;
             
             ['Ravenol', 'Banner', 'Cyclon', 'Castrol', 'Cemsa', 'Repsol', 'Valvoline', 'Eurol', 'Ipercomp', 'Fuchs', 'Febi', 'Swag'].forEach(cat => {
                 const card = document.getElementById(`card-${cat}`); 
@@ -1214,6 +1218,7 @@
             
             currentCategoryData = allProductsRaw.filter(p => {
                 const n = p.denumire.toUpperCase();
+                
                 if (category === 'Ravenol') return n.startsWith('RAV');
                 if (category === 'Cyclon') return n.startsWith('CYC');
                 if (category === 'Banner') return n.startsWith('BANNER') || n.startsWith('BAN');
@@ -1226,16 +1231,68 @@
                 if (category === 'Fuchs') return n.includes('FUCHS') || n.startsWith('FUC') || p.subcategorie === 'FUCHS';
                 if (category === 'Febi') return n.includes('FEBI') || p.subcategorie === 'FEBI';
                 if (category === 'Swag') return n.includes('SWAG') || p.subcategorie === 'SWAG';
+                
                 return false;
             });
             
-            filterProducts(); 
+            const uniqueSubcats = [...new Set(currentCategoryData.map(p => p.subcategorie))].sort();
+            renderSubcategories(category, uniqueSubcats);
+            
+            document.getElementById('subcategories-section').classList.remove('view-hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderSubcategories(brandName, subcats) {
+            document.getElementById('subcats-brand-title').innerText = brandName;
+            const container = document.getElementById('subcategories-grid');
+
+            if(subcats.length === 0) {
+                container.innerHTML = `<p class="col-span-2 sm:col-span-3 text-center text-gray-400 font-bold p-8">Nicio subcategorie găsită.</p>`;
+                return;
+            }
+
+            container.innerHTML = subcats.map(sc => `
+                <div onclick="selectSubcategory('${sc}')" class="bg-white border-2 border-gray-100 rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md cursor-pointer active:scale-95 transition-all text-center flex flex-col items-center justify-center min-h-[90px] sm:min-h-[110px]">
+                    <span class="text-2xl sm:text-3xl mb-2 text-dm-yellow drop-shadow-sm">📁</span>
+                    <span class="font-black text-dm-blue text-[10px] sm:text-[12px] uppercase tracking-widest leading-tight break-words">${sc}</span>
+                </div>
+            `).join('');
+        }
+
+        function selectSubcategory(subcat) {
+            selectedSubcategory = subcat;
+            document.getElementById('searchInput').value = '';
+            
+            document.getElementById('subcategories-section').classList.add('view-hidden');
+            document.getElementById('product-section').classList.remove('view-hidden');
+            document.getElementById('selected-category-title').innerText = `${selectedCategory} - ${subcat}`;
+
+            filterProducts();
             document.getElementById('product-section').scrollIntoView({ behavior: 'smooth' });
         }
 
         function filterProducts() { 
             const q = document.getElementById('searchInput').value.toLowerCase().trim(); 
-            const filtrat = currentCategoryData.filter(p => p.denumire.toLowerCase().includes(q));
+            
+            if (!selectedCategory) return;
+            
+            // Salt automat din subcategorii in lista de produse la scrierea in bara de cautare
+            if (!selectedSubcategory && q.length > 0) {
+                document.getElementById('subcategories-section').classList.add('view-hidden');
+                document.getElementById('product-section').classList.remove('view-hidden');
+                document.getElementById('selected-category-title').innerText = `${selectedCategory} - CĂUTARE`;
+            } else if (!selectedSubcategory && q.length === 0) {
+                document.getElementById('product-section').classList.add('view-hidden');
+                document.getElementById('subcategories-section').classList.remove('view-hidden');
+                return;
+            }
+
+            let dataToFilter = currentCategoryData;
+            if (selectedSubcategory) {
+                dataToFilter = dataToFilter.filter(p => p.subcategorie === selectedSubcategory);
+            }
+
+            const filtrat = dataToFilter.filter(p => p.denumire.toLowerCase().includes(q) || (p.subcategorie && p.subcategorie.toLowerCase().includes(q)));
             
             document.getElementById('productCount').innerText = `${filtrat.length} produse`;
             renderProducts(filtrat); 
@@ -1244,8 +1301,12 @@
         function resetSelection() { 
             document.getElementById('searchInput').value = ''; 
             selectedCategory = null; 
+            selectedSubcategory = null;
+            
             document.getElementById('product-section').classList.add('view-hidden'); 
+            document.getElementById('subcategories-section').classList.add('view-hidden');
             document.getElementById('category-placeholder').classList.remove('view-hidden'); 
+            document.getElementById('brands-grid').classList.remove('view-hidden');
             
             ['Ravenol', 'Banner', 'Cyclon', 'Castrol', 'Cemsa', 'Repsol', 'Valvoline', 'Eurol', 'Ipercomp', 'Fuchs', 'Febi', 'Swag'].forEach(cat => { 
                 const card = document.getElementById(`card-${cat}`); 
@@ -1254,6 +1315,20 @@
             
             window.scrollTo({ top: 0, behavior: 'smooth' }); 
         }
+
+        function backToBrands() {
+            resetSelection();
+        }
+
+        function backToSubcategories() {
+            document.getElementById('searchInput').value = '';
+            selectedSubcategory = null;
+            document.getElementById('product-section').classList.add('view-hidden');
+            document.getElementById('subcategories-section').classList.remove('view-hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ==========================================
 
         function renderProducts(products) {
             const tbody = document.getElementById('productTableBody'); if (!tbody) return;
@@ -1288,6 +1363,7 @@
             }).join('');
         }
 
+        // Functia noua pentru listarea Ofertelor Specifice din fisier separat
         function renderOferte() {
             const tbody = document.getElementById('oferteTableBody'); if (!tbody) return;
             if (allOferteData.length === 0) { 
@@ -1297,6 +1373,8 @@
             
             tbody.innerHTML = allOferteData.map(p => {
                 const name = p.denumire;
+                const pretNet = p.pret;
+                const stocVal = (p.stoc !== undefined && p.stoc !== "") ? parseFloat(p.stoc.toString().replace(/\./g, '').replace(',', '.')) : null;
                 const prodId = p.id;
                 const qty = cart[prodId] ? cart[prodId].quantity : 0;
                 
@@ -1319,6 +1397,7 @@
             }).join('');
         }
 
+        // Functia unificata pentru a pune si produse si oferte in cos
         function updateCart(prodId, d) {
             let p = allProductsRaw.find(x => x.id === prodId);
             if (!p) p = allOferteData.find(x => x.id === prodId); 
@@ -1344,6 +1423,7 @@
             
             saveAgentData(); 
             
+            // Actualizam interfata corecta de unde a venit clickul
             if(p.isOferta) {
                 renderOferte();
             } else {
@@ -1385,6 +1465,7 @@
                 
                 const prodId = i.data.id;
                 
+                // Daca e oferta, coloram putin textul in cos
                 const nameColorClass = i.data.isOferta ? 'text-red-700' : 'text-dm-blue';
                 
                 return `<tr class="border-b border-gray-100">
@@ -1411,7 +1492,7 @@
                 updateBadge(); 
                 renderCart(); 
                 filterProducts(); 
-                renderOferte(); 
+                renderOferte(); // Curatam vizual si ofertele
             } 
         }
 
@@ -1426,6 +1507,7 @@
                 return;
             }
 
+            // Citim tipul de document ales din interfață
             const docSelector = document.querySelector('input[name="docType"]:checked');
             const docType = docSelector ? docSelector.value : 'FACTURĂ';
             
@@ -1440,7 +1522,7 @@
                 cartData: JSON.parse(JSON.stringify(cart)), 
                 status: isDraft ? 'Ciornă' : 'Trimisă', 
                 client: selectedClient,
-                docType: docType 
+                docType: docType // Salvăm documentul în istoric
             });
             
             saveAgentData(); 
