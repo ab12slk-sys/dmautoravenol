@@ -608,12 +608,14 @@
         const OFERTE_FILE = 'oferte_butoaie.xlsx';
         const CLIENTS_FILE = 'LISTA_CLIENTI.xlsx';
         const SOLD_FILE = 'Facturi_Neincasate.xlsx';
+        const DETALII_FACTURI_FILE = 'detalii_facturi.json';
 
         let currentAgent = null;
         let allProductsRaw = []; 
         let allOferteData = [];
         let allClients = [];
         let allSoldData = [];
+        let allDetaliiFacturi = {};
         
         let manuallyCreatedClients = []; 
         let editedClients = {};
@@ -861,6 +863,13 @@
                     }
                 }
             } catch (err) { console.error("Eroare solduri:", err); showToast("Eroare citire Facturi_Neincasate.xlsx"); }
+
+            try {
+                const resDet = await fetchExcelLive(DETALII_FACTURI_FILE);
+                if (resDet.ok) {
+                    allDetaliiFacturi = await resDet.json();
+                }
+            } catch (err) { console.warn("Nu s-au incarcat detaliile facturilor:", err); }
         }
 
         function loadAgentData() {
@@ -1050,6 +1059,16 @@
             return isNaN(fallback.getTime()) ? new Date(0) : fallback;
         }
 
+        function toggleDetaliiFactura(idx) {
+            const detRow = document.getElementById(`fact-det-${idx}`);
+            const arrow = document.getElementById(`fact-arrow-${idx}`);
+            if (!detRow) return;
+            detRow.classList.toggle('hidden');
+            if (arrow) {
+                arrow.innerText = detRow.classList.contains('hidden') ? 'Vezi produse ▼' : 'Ascunde produse ▲';
+            }
+        }
+
         function renderSoldItems() {
             const table = document.getElementById('sold-items-table');
             const disp = document.getElementById('display-sold');
@@ -1072,23 +1091,46 @@
             mySold.sort((a, b) => parseDateString(a.data) - parseDateString(b.data));
 
             let total = 0;
-            table.innerHTML = mySold.map(row => {
+            table.innerHTML = mySold.map((row, idx) => {
                 total += row.rest;
                 const restFmt = Math.abs(row.rest).toLocaleString('ro-RO', {minimumFractionDigits: 2});
                 const totalFactFmt = Math.abs(row.total).toLocaleString('ro-RO', {minimumFractionDigits: 2});
                 const sign = row.rest < 0 ? '-' : '';
                 const colorClass = row.rest < 0 ? 'text-blue-600' : 'text-red-600';
+
+                const cheie = `${row.factura}|${row.data}`;
+                const produse = allDetaliiFacturi[cheie] || [];
+                const produseHtml = produse.length > 0
+                    ? produse.map(it => `
+                        <div class="flex justify-between items-start py-2 border-b border-blue-100/80 last:border-none gap-2">
+                            <div class="flex-1 min-w-0">
+                                <p class="font-black text-dm-blue text-[11px] sm:text-xs uppercase leading-tight">${it.p}</p>
+                                <p class="text-[10px] text-gray-500 font-bold mt-0.5">${it.c} buc × ${Number(it.pu).toFixed(2)} RON net (${Number(it.pc).toFixed(2)} cu TVA)</p>
+                            </div>
+                            <span class="font-black text-dm-blue text-xs sm:text-sm whitespace-nowrap">${Number(it.t).toFixed(2)} RON</span>
+                        </div>
+                    `).join('')
+                    : `<p class="text-[11px] text-gray-400 italic font-bold py-1">Produsele nu sunt disponibile pentru această factură.</p>`;
                 
-                return `<tr class="border-b border-gray-100">
+                return `<tr onclick="toggleDetaliiFactura(${idx})" class="border-b border-gray-100 cursor-pointer active:bg-blue-50/40 transition-colors">
                     <td class="pl-4 sm:pl-6 py-4 sm:py-6 leading-tight">
                         <span class="font-black text-dm-blue text-sm sm:text-xl">FACT: ${row.factura}</span><br>
                         <span class="text-[10px] sm:text-base text-gray-400 font-bold">${row.data}</span><br>
-                        <span class="text-[10px] sm:text-xs text-blue-600 font-black tracking-widest mt-1 inline-block">TOTAL FACTURĂ: ${totalFactFmt} RON</span>
+                        <span class="text-[10px] sm:text-xs text-blue-600 font-black tracking-widest mt-1 inline-block">TOTAL FACTURĂ: ${totalFactFmt} RON</span><br>
+                        <span id="fact-arrow-${idx}" class="text-[10px] font-black text-dm-blue/70 bg-blue-50 px-2.5 py-1 rounded-lg mt-2 inline-block uppercase tracking-wider">Vezi produse ▼</span>
                     </td>
                     <td class="pr-4 sm:pr-6 text-right align-top pt-4 sm:pt-6">
                         <div class="flex flex-col items-end gap-2 sm:gap-3">
                             <span class="font-black ${colorClass} text-xl sm:text-3xl">${sign}${restFmt}</span>
-                            <button onclick="handleIncasareFactura('${row.factura}', ${row.rest})" class="bg-green-600 text-white px-4 sm:px-5 py-2 sm:py-3 rounded-lg sm:rounded-xl font-black text-[9px] sm:text-xs uppercase shadow-lg active:scale-90 transition-all">Încasează ✅</button>
+                            <button onclick="event.stopPropagation(); handleIncasareFactura('${row.factura}', ${row.rest})" class="bg-green-600 text-white px-4 sm:px-5 py-2 sm:py-3 rounded-lg sm:rounded-xl font-black text-[9px] sm:text-xs uppercase shadow-lg active:scale-90 transition-all">Încasează ✅</button>
+                        </div>
+                    </td>
+                </tr>
+                <tr id="fact-det-${idx}" class="hidden bg-slate-50 border-b border-gray-200">
+                    <td colspan="2" class="px-4 sm:px-6 py-3">
+                        <div class="bg-white rounded-2xl p-3 sm:p-4 border border-blue-100 shadow-inner">
+                            <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">📦 Produse pe Factura ${row.factura}:</p>
+                            ${produseHtml}
                         </div>
                     </td>
                 </tr>`;
@@ -1276,7 +1318,6 @@
             
             if (!selectedCategory) return;
             
-            // Salt automat din subcategorii in lista de produse la scrierea in bara de cautare
             if (!selectedSubcategory && q.length > 0) {
                 document.getElementById('subcategories-section').classList.add('view-hidden');
                 document.getElementById('product-section').classList.remove('view-hidden');
@@ -1363,7 +1404,6 @@
             }).join('');
         }
 
-        // Functia noua pentru listarea Ofertelor Specifice din fisier separat
         function renderOferte() {
             const tbody = document.getElementById('oferteTableBody'); if (!tbody) return;
             if (allOferteData.length === 0) { 
@@ -1397,7 +1437,6 @@
             }).join('');
         }
 
-        // Functia unificata pentru a pune si produse si oferte in cos
         function updateCart(prodId, d) {
             let p = allProductsRaw.find(x => x.id === prodId);
             if (!p) p = allOferteData.find(x => x.id === prodId); 
@@ -1406,16 +1445,14 @@
             
             if (!cart[prodId]) cart[prodId] = { quantity: 0, data: p, category: p.isOferta ? 'OFERTA' : selectedCategory };
             
-            // --- PROTECTIE STOC ---
             if (d > 0) {
                 let currentQty = cart[prodId].quantity;
                 let limit = p.stoc;
                 if (limit !== null && limit !== undefined && currentQty + d > limit) {
                     showToast(`⚠️ STOC INSUFICIENT! LMITA ESTE ${limit} BUC.`);
-                    return; // Blocăm adăugarea
+                    return;
                 }
             }
-            // -----------------------
 
             cart[prodId].quantity += d;
             
@@ -1423,7 +1460,6 @@
             
             saveAgentData(); 
             
-            // Actualizam interfata corecta de unde a venit clickul
             if(p.isOferta) {
                 renderOferte();
             } else {
@@ -1464,8 +1500,6 @@
                 totalNet += i.quantity * pF_net;
                 
                 const prodId = i.data.id;
-                
-                // Daca e oferta, coloram putin textul in cos
                 const nameColorClass = i.data.isOferta ? 'text-red-700' : 'text-dm-blue';
                 
                 return `<tr class="border-b border-gray-100">
@@ -1492,7 +1526,7 @@
                 updateBadge(); 
                 renderCart(); 
                 filterProducts(); 
-                renderOferte(); // Curatam vizual si ofertele
+                renderOferte();
             } 
         }
 
@@ -1507,7 +1541,6 @@
                 return;
             }
 
-            // Citim tipul de document ales din interfață
             const docSelector = document.querySelector('input[name="docType"]:checked');
             const docType = docSelector ? docSelector.value : 'FACTURĂ';
             
@@ -1522,7 +1555,7 @@
                 cartData: JSON.parse(JSON.stringify(cart)), 
                 status: isDraft ? 'Ciornă' : 'Trimisă', 
                 client: selectedClient,
-                docType: docType // Salvăm documentul în istoric
+                docType: docType
             });
             
             saveAgentData(); 
